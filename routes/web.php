@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\GuruController;
 
 /*
 |--------------------------------------------------------------------------
@@ -72,20 +73,10 @@ Route::match(
 |
 */
 
-Route::get('/guru', function () {
-
-    $user = auth()->user();
-
-    return response()->json([
-        'authenticated' => true,
-        'area' => 'guru',
-        'id' => $user->id,
-        'nama' => $user->nama,
-        'email' => $user->email,
-        'status' => $user->status,
-    ]);
-
-})
+Route::get(
+    '/guru',
+    [GuruController::class, 'index']
+)
     ->middleware(['auth', 'role:A,G'])
     ->name('guru.index');
 
