@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GuruController;
 use App\Http\Controllers\DataguruController;
+use App\Http\Controllers\DatasiswaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -141,6 +142,55 @@ Route::middleware([
             '/hapuskelassiswa',
             [GuruController::class, 'hapusKelasSiswa']
         )->name('guru.kelas.siswa.remove');
+
+        Route::get(
+            '/data-siswa',
+            [DatasiswaController::class, 'index']
+        )->name('guru.siswa');
+
+
+        Route::post(
+            '/get-siswa',
+            [DatasiswaController::class, 'search']
+        )->name('guru.siswa.search');
+
+
+        Route::post(
+            '/simpanformsiswa',
+            [DatasiswaController::class, 'store']
+        )->name('guru.siswa.store');
+
+
+        Route::get(
+            '/detail-kelas-siswa/{id}',
+            [DatasiswaController::class, 'show']
+        )
+            ->whereNumber('id')
+            ->name('guru.siswa.detail');
+
+
+        Route::post(
+            '/updateprofilsiswa',
+            [DatasiswaController::class, 'update']
+        )->name('guru.siswa.update');
+
+
+        Route::post(
+            '/updateprofilfotosiswa',
+            [DatasiswaController::class, 'updatePhoto']
+        )->name('guru.siswa.photo');
+
+
+        Route::post(
+            '/hapussiswa',
+            [DatasiswaController::class, 'destroy']
+        )->name('guru.siswa.destroy');
+
+
+        Route::post(
+            '/hapuscalonsiswa',
+            [DatasiswaController::class, 'destroyCandidates']
+        )->name('guru.siswa.candidates.destroy');
 
     });
 
