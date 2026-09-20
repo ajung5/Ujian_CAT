@@ -22,6 +22,41 @@ Route::get('/', function () {
     };
 });
 
+Route::middleware([
+    'auth',
+    'role:A,G',
+    ])->group(function () {
+
+        Route::get(
+            '/profil-guru',
+            [GuruController::class, 'profil']
+        )->name('guru.profil');
+
+
+        Route::post(
+            '/updateprofil',
+            [GuruController::class, 'updateProfil']
+        )->name('guru.profil.update');
+
+
+        Route::post(
+            '/upload-foto-user',
+            [GuruController::class, 'uploadFotoUser']
+        )->name('guru.profil.photo');
+
+
+        Route::post(
+            '/update-profil-sekolah',
+            [GuruController::class, 'updateProfilSekolah']
+        )->name('guru.school.update');
+
+
+        Route::post(
+            '/upload-foto-sekolah',
+            [GuruController::class, 'uploadFotoSekolah']
+        )->name('guru.school.photo');
+    });
+
 /*
 |--------------------------------------------------------------------------
 | Authentication

@@ -1,16 +1,14 @@
-@extends('layouts/guru_baru')
+@extends('layouts.guru_baru')
 @section('title', 'Profil')
+
+@push('styles')
+<link
+    href="{{ asset('lib/dropzone/dropzone.css') }}"
+    rel="stylesheet"
+>
+@endpush
+
 @section('content')
-<link href="{{ url('/lib/dropzone/dropzone.css') }}" rel="stylesheet">
-<?php
-  include(app_path().'/functions/koneksi.php');
-  $sapaan = Auth::user()->jk;
-  if ($sapaan == "L") {
-    $sapaan = "Pak";
-  }else{
-    $sapaan = "Ibu";
-  }
-?>
 <div class="col-sm-12 col-md-8 col-lg-8 dash-left">
   <ol class="breadcrumb">
     <li><a href="#">Home</a></li>
@@ -120,13 +118,13 @@
               <tr>
                 <td>Jenis Kalamin</td>
                 <td>
-                  <?php
-                    if ($user->jk == "L") {
-                      echo "Laki-laki";
-                    }else{
-                      echo "Perempuan";
-                    }
-                  ?>
+                  @if ($user->jk === 'L')
+                      Laki-laki
+                  @elseif ($user->jk === 'P')
+                      Perempuan
+                  @else
+                      -
+                  @endif
                 </td>
               </tr>
               <tr>
@@ -219,27 +217,44 @@
       <ul class="media-list user-list">
       @if($aktifitas->count())
       @foreach($aktifitas as $data)
-      <?php
-        $tanggal_aktifitas = explode(" ", $data->created_at);
-        $tanggal_aktifitas = explode("-", $tanggal_aktifitas[0]);
-        $tanggal_aktifitas = $tanggal_aktifitas[2].' '.$bulanpendek[$tanggal_aktifitas[1]].' '.$tanggal_aktifitas[0];
-        if ($data->gambar != "") {
-          $gambar_aktifitas = $data->gambar;
-        }else{
-          $gambar_aktifitas = 'noimage.jpg';
-        }
-      ?>
+        @php
+            $gambarAktifitas =
+                ! empty($data->gambar)
+                    ? $data->gambar
+                    : 'noimage.jpg';
+        @endphp
+        @php
+            $gambarAktifitas = ! empty($data->gambar)
+                ? $data->gambar
+                : 'noimage.jpg';
+        @endphp
+
         <li class="media">
-          <div class="media-left">
-            <a href="#">
-              <img class="media-object img-thumbnail" src="{{ url('img/'.$gambar_aktifitas) }}" alt="">
-            </a>
-          </div>
-          <div class="media-body">
-            <h4 class="media-heading nomargin"><a href="#">{{ $data->nama_user }}</a></h4>
-            {{ $data->nama }}
-            <small class="date"><i class="fa fa-clock-o"></i> {{ $tanggal_aktifitas }}</small>
-          </div>
+            <div class="media-left">
+                <a href="#">
+                    <img
+                        class="media-object img-thumbnail"
+                        src="{{ asset('img/' . $gambarAktifitas) }}"
+                        alt="{{ $data->nama_user }}"
+                    >
+                </a>
+            </div>
+            <div class="media-body">
+                <h4 class="media-heading nomargin">
+                    <a href="#">
+                        {{ $data->nama_user }}
+                    </a>
+                </h4>
+                {{ $data->nama }}
+                <small class="date">
+                    <i class="fa fa-clock-o"></i>
+                    {{
+                        $data->created_at
+                            ? $data->created_at->format('d M Y')
+                            : '-'
+                    }}
+                </small>
+            </div>
         </li>
       @endforeach
       @endif
@@ -248,7 +263,225 @@
     </div>
   </div>
 </div>
-<script src="{{ url('/assets/assets/vendor/jquery.min.js') }}"></script>
+@push('scripts')
+
+<script src="{{ asset('lib/dropzone/dropzone.js') }}"></script>
+
+<script>
+$(document).ready(function () {
+
+    'use strict';
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | PROFIL SEKOLAH
+    |--------------------------------------------------------------------------
+    */
+
+    $('#btn-ubah-sekolah').click(function () {
+
+        $('.wrap-data-sekolah').hide();
+
+        $('#wrap-ubah-sekolah').fadeIn(350);
+
+    });
+
+
+    $('#batal-sekolah').click(function () {
+
+        $('#wrap-ubah-sekolah').hide();
+
+        $('.wrap-data-sekolah').fadeIn(350);
+
+    });
+
+
+    $('#btnupdate-sekolah').click(function () {
+
+        const button = $(this);
+
+        button.hide();
+
+        $('#batal-sekolah').hide();
+        $('#loading-sekolah').show();
+
+
+        $.ajax({
+
+            type: 'POST',
+
+            url: '{{ url('/update-profil-sekolah') }}',
+
+            data: {
+
+                id:
+                    $('#id_sekolah').val(),
+
+                nama_sekolah:
+                    $('#nama_sekolah').val(),
+
+                alamat_sekolah:
+                    $('#alamat_sekolah').val(),
+
+                motto_sekolah:
+                    $('#motto_sekolah').val()
+
+            },
+
+            success: function (data) {
+
+                if (data === 'berhasil') {
+
+                    $('#notif-sekolah')
+                        .removeClass('alert-danger')
+                        .addClass('alert alert-info')
+                        .html(
+                            'Profil sekolah berhasil diupdate.'
+                        )
+                        .fadeIn(250);
+
+                    window.location.href =
+                        '{{ url('/profil-guru') }}';
+
+                }
+
+            },
+
+            error: function (xhr) {
+
+                $('#loading-sekolah').hide();
+
+                $('#notif-sekolah')
+                    .removeClass('alert-info')
+                    .addClass('alert alert-danger')
+                    .html(
+                        xhr.responseText ||
+                        'Gagal memperbarui profil sekolah.'
+                    )
+                    .fadeIn(250);
+
+                button.show();
+
+                $('#batal-sekolah').show();
+
+            }
+
+        });
+
+    });
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | PROFIL GURU
+    |--------------------------------------------------------------------------
+    */
+
+    $('#btn-ubah').click(function () {
+
+        $('.wrap-data-profil').hide();
+
+        $('#wrap-ubah').fadeIn(350);
+
+    });
+
+
+    $('#batal').click(function () {
+
+        $('#wrap-ubah').hide();
+
+        $('.wrap-data-profil').fadeIn(350);
+
+    });
+
+
+    $('#btnupdate').click(function () {
+
+        const button = $(this);
+
+        button.hide();
+
+        $('#batal').hide();
+        $('#loading').show();
+
+
+        $.ajax({
+
+            type: 'POST',
+
+            url: '{{ url('/updateprofil') }}',
+
+            data: {
+
+                id:
+                    $('#id').val(),
+
+                nama:
+                    $('#nama').val(),
+
+                nis:
+                    $('#nis').val(),
+
+                jk:
+                    $('#jk').val(),
+
+                email:
+                    $('#email').val(),
+
+                password:
+                    $('#password').val()
+
+            },
+
+            success: function (data) {
+
+                if (data === 'berhasil') {
+
+                    $('#notif')
+                        .removeClass('alert-danger')
+                        .addClass('alert alert-info')
+                        .html(
+                            'Profil berhasil diupdate.'
+                        )
+                        .fadeIn(250);
+
+                    window.location.href =
+                        '{{ url('/profil-guru') }}';
+
+                }
+
+            },
+
+            error: function (xhr) {
+
+                $('#loading').hide();
+
+                $('#notif')
+                    .removeClass('alert-info')
+                    .addClass('alert alert-danger')
+                    .html(
+                        xhr.responseText ||
+                        'Gagal memperbarui profil.'
+                    )
+                    .fadeIn(250);
+
+                button.show();
+
+                $('#batal').show();
+
+            }
+
+        });
+
+    });
+
+});
+
+</script>
+
+@endpush
 <script src="{{ url('/lib/dropzone/dropzone.js') }}"></script>
 <script type="text/javascript">
   $.ajaxSetup({
