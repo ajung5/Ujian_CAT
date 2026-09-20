@@ -56,44 +56,94 @@ Route::middleware([
             '/upload-foto-sekolah',
             [GuruController::class, 'uploadFotoSekolah']
         )->name('guru.school.photo');
+
+        // route Guru lain...
+
+        Route::get(
+            '/data-guru',
+            [DataguruController::class, 'index']
+        )->name('guru.data');
+
+        Route::post(
+            '/get-user',
+            [DataguruController::class, 'getUser']
+        )->name('guru.search');
+
+        Route::post(
+            '/simpanformguru',
+            [DataguruController::class, 'store']
+        )->name('guru.store');
+
+        Route::get(
+            '/detail-guru/{id}',
+            [DataguruController::class, 'show']
+        )
+            ->whereNumber('id')
+            ->name('guru.detail');
+
+        Route::post(
+            '/hapusguru/{id}',
+            [DataguruController::class, 'destroy']
+        )
+            ->whereNumber('id')
+            ->name('guru.destroy');
+        Route::get(
+        '/kelas',
+        [GuruController::class, 'kelas']
+            )->name('guru.kelas');
+
+
+        Route::post(
+            '/ajax/ubah-kelas',
+            [GuruController::class, 'ubahKelas']
+            )->name('guru.kelas.update-inline');
+
+
+        Route::post(
+            '/ubahkelas',
+            [GuruController::class, 'ubahKelas']
+        )->name('guru.kelas.update');
+
+
+        Route::post(
+            '/tambahkelas',
+            [GuruController::class, 'tambahKelas']
+        )->name('guru.kelas.store');
+
+
+        Route::post(
+            '/hapuskelas',
+            [GuruController::class, 'hapusKelas']
+        )->name('guru.kelas.destroy');
+
+
+        Route::get(
+            '/detail-kelas/{id}',
+            [GuruController::class, 'detailKelas']
+        )
+            ->whereNumber('id')
+            ->name('guru.kelas.detail');
+
+
+        Route::post(
+            '/cekkelassiswa',
+            [GuruController::class, 'cekKelasSiswa']
+        )->name('guru.kelas.siswa.check');
+
+
+        Route::post(
+            '/tambahsiswakekelas',
+            [GuruController::class, 'tambahSiswaKeKelas']
+        )->name('guru.kelas.siswa.add');
+
+
+        Route::post(
+            '/hapuskelassiswa',
+            [GuruController::class, 'hapusKelasSiswa']
+        )->name('guru.kelas.siswa.remove');
+
     });
 
-Route::middleware([
-    'auth',
-    'role:A,G',
-])->group(function () {
-
-    // route Guru lain...
-
-    Route::get(
-        '/data-guru',
-        [DataguruController::class, 'index']
-    )->name('guru.data');
-
-    Route::post(
-        '/get-user',
-        [DataguruController::class, 'getUser']
-    )->name('guru.search');
-
-    Route::post(
-        '/simpanformguru',
-        [DataguruController::class, 'store']
-    )->name('guru.store');
-
-    Route::get(
-        '/detail-guru/{id}',
-        [DataguruController::class, 'show']
-    )
-        ->whereNumber('id')
-        ->name('guru.detail');
-
-    Route::post(
-        '/hapusguru/{id}',
-        [DataguruController::class, 'destroy']
-    )
-        ->whereNumber('id')
-        ->name('guru.destroy');
-});
     /*
 |--------------------------------------------------------------------------
 | Authentication
