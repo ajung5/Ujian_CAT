@@ -1,225 +1,745 @@
-@extends('layouts/guru_baru')
+@extends('layouts.guru_baru')
+
 @section('title', 'Detail Guru')
+
+
+@push('styles')
+
+<link
+    href="{{ asset('lib/dropzone/dropzone.css') }}"
+    rel="stylesheet"
+>
+
+@endpush
+
+
 @section('content')
-<link href="{{ url('/lib/dropzone/dropzone.css') }}" rel="stylesheet">
-<?php
-  include(app_path().'/functions/koneksi.php');
-  $sapaan = Auth::user()->jk;
-  if ($sapaan == "L") {
-    $sapaan = "Pak";
-  }else{
-    $sapaan = "Ibu";
-  }
-?>
+
+
 <div class="col-sm-12 col-md-8 col-lg-8 dash-left">
-  <ol class="breadcrumb">
-    <li><a href="{{ url('/guru') }}">Home</a></li>
-    <li><a href="{{ url('/data-guru') }}">Data Guru</a></li>
-    <li class="active">Detail Guru</li>
-  </ol>
-  <div class="panel panel-default">
-    <div class="panel-heading" style="background: #072047; color: #fff">Detail Guru</div>
-    <div class="panel-body">
-      <div class="row">
-        <div class="col-md-12">
-        <?php if (Auth::user()->status == "A"){ ?>
-          <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#wrapubah" aria-expanded="false" aria-controls="wrapubah">
-            Ubah Data Guru
-          </button>
-          <a href="{{ url('hapusguru/'.$user->id) }}" title="Hapus Guru" class="btn btn-danger" onclick="return confirm('Yakin data akan dihapus?')">Hapus Guru</a>
-          <div style="height: 20px"></div>
-          <div class="collapse" id="wrapubah">
-            <div class="well">
-              <div method="POST" id="formupdate" class="form-horizontal">
-                {!! csrf_field() !!}
-                <div class="form-group">
-                  <label for="nama" class="col-sm-2 control-label">Nama</label>
-                  <div class="col-sm-10">
-                    <!-- <input type="hidden" name="id" id="id" value="{{ $user->id }}"> -->
-                    <input type="text" name="nama" id="nama" class="form-control" value="{{ $user->nama }}">
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="nama" class="col-sm-2 control-label">NIP</label>
-                  <div class="col-sm-10">
-                    <input type="text" name="nis" id="nis" class="form-control" value="{{ $user->no_induk }}">
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="nama" class="col-sm-2 control-label">Jenis Kelamin</label>
-                  <div class="col-sm-10">
-                    <select name="jk" id="jk" class="form-control">
-                      <option value="{{ $user->jk }}">
-                      <?php
-                        if ($user->jk == "L") {
-                          echo "Laki-laki";
-                        }else{
-                          echo "Perempuan";
-                        }
-                      ?>
-                      </option>
-                      <option value="L">Laki-laki</option>
-                      <option value="P">Perempuan</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="nama" class="col-sm-2 control-label">Email</label>
-                  <div class="col-sm-10">
-                    <input type="email" name="email" id="email" class="form-control" value="{{ $user->email }}">
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="nama" class="col-sm-2 control-label">Password</label>
-                  <div class="col-sm-10">
-                    <input type="password" class="form-control" name="password" id="password">
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="nama" class="col-sm-2 control-label">Foto</label>
-                  <div class="col-sm-10">
-                    <form action="{{ url('/upload-foto-user') }}" class="dropzone">
-                      <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                      <input type="hidden" id="id" name="id" value="{{ $user->id }}">
-                      <div class="fallback">
-                        <input name="file" type="file" multiple />
-                      </div>
-                    </form>
-                  </div>
-                </div>
-                <div class="form-group" id="submit">
-                  <div class="col-sm-offset-2 col-sm-10">
-                    <button type="button" id="btnupdate" class="btn btn-primary">Simpan</button>
-                    <img src="{{ url('/assets/assets/images/facebook.gif') }}" alt="" id="loading" style="display: none;">
-                    <div id="notif" style="display: none;"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        <?php } ?>
-        </div>
-        <div class="col-sm-4 col-md-4">
-          <?php if ($user->gambar == "") { ?>
-          <img src="{{ url('img/noimage.jpg') }}" alt="foto guru" class="img-rounded img-thumbnail" />
-          <?php }else{ ?>
-          <img src="{{ url('img/'.$user->gambar) }}" alt="{{$user->gambar}}" class="img-rounded img-thumbnail" />
-          <?php } ?>
-        </div>
-        <div class="col-sm-8 col-md-8">
-          <table class="table table-user-information">
-            <tbody>
-              <tr>
-                <td width="140px">Nama:</td>
-                <td>{{ $user->nama }}</td>
-              </tr>
-              <tr>
-                <td>NIP:</td>
-                <td><?php if ($user->no_induk != "") {
-                  echo $user->no_induk;
-                }else{
-                  echo "-";
-                  } ?></td>
-              </tr>
-              <tr>
-                <td>Jenis Kalamin</td>
-                <td><?php
-                  if ($user->jk == "L") {
-                    echo "Laki-laki";
-                  }else{
-                    echo "Perempuan";
-                  }
-                ?></td>
-              </tr>
-              <tr>
-                <td>Email</td>
-                <td>{{ $user->email }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="col-sm-12 col-md-4 col-lg-4 dash-right">
-  <div class="panel panel-primary">
-    <div class="panel-heading">
-      <h4 class="panel-title">Aktifitas Terkini</h4>
-    </div>
-    <div class="panel-body">
-      <ul class="media-list user-list">
-      @if($aktifitas->count())
-      @foreach($aktifitas as $data)
-      <?php
-        $tanggal_aktifitas = explode(" ", $data->created_at);
-        $tanggal_aktifitas = explode("-", $tanggal_aktifitas[0]);
-        $tanggal_aktifitas = $tanggal_aktifitas[2].' '.$bulanpendek[$tanggal_aktifitas[1]].' '.$tanggal_aktifitas[0];
-        if ($data->gambar != "") {
-          $gambar_aktifitas = $data->gambar;
-        }else{
-          $gambar_aktifitas = 'noimage.jpg';
-        }
-      ?>
-        <li class="media">
-          <div class="media-left">
-            <a href="#">
-              <img class="media-object img-thumbnail" src="{{ url('img/'.$gambar_aktifitas) }}" alt="">
+
+
+    <ol class="breadcrumb">
+
+        <li>
+            <a href="{{ route('guru.index') }}">
+                Home
             </a>
-          </div>
-          <div class="media-body">
-            <h4 class="media-heading nomargin"><a href="#">{{ $data->nama_user }}</a></h4>
-            {{ $data->nama }}
-            <small class="date"><i class="fa fa-clock-o"></i> {{ $tanggal_aktifitas }}</small>
-          </div>
         </li>
-      @endforeach
-      @endif
-      </ul>
-      <a href="{{ url('/aktifitas') }}" class="btn btn-success" style="display: block; width: 100%; margin: 10px 0 0 0">Selengkapnya</a>
+
+        <li>
+            <a href="{{ route('guru.data') }}">
+                Data Guru
+            </a>
+        </li>
+
+        <li class="active">
+            Detail Guru
+        </li>
+
+    </ol>
+
+
+    <div class="panel panel-default">
+
+
+        <div
+            class="panel-heading"
+            style="
+                background:#072047;
+                color:#fff;
+            "
+        >
+            Detail Guru
+        </div>
+
+
+        <div class="panel-body">
+
+
+            <div class="row">
+
+
+                <div class="col-md-12">
+
+
+                    @if (auth()->user()->status === 'A')
+
+
+                        <button
+                            class="btn btn-primary"
+                            type="button"
+                            data-toggle="collapse"
+                            data-target="#wrapubah"
+                        >
+                            Ubah Data Guru
+                        </button>
+
+
+                        <form
+                            method="POST"
+                            action="{{
+                                route(
+                                    'guru.destroy',
+                                    $user->id
+                                )
+                            }}"
+                            style="display:inline;"
+                            onsubmit="
+                                return confirm(
+                                    'Yakin data Guru akan dihapus?'
+                                );
+                            "
+                        >
+
+                            @csrf
+
+                            <button
+                                type="submit"
+                                class="btn btn-danger"
+                            >
+                                Hapus Guru
+                            </button>
+
+                        </form>
+
+
+                        <div style="height:20px;"></div>
+
+
+                        <div
+                            class="collapse"
+                            id="wrapubah"
+                        >
+
+                            <div class="well">
+
+                                <div class="form-horizontal">
+
+
+                                    <div class="form-group">
+
+                                        <label
+                                            for="nama"
+                                            class="
+                                                col-sm-2
+                                                control-label
+                                            "
+                                        >
+                                            Nama
+                                        </label>
+
+                                        <div class="col-sm-10">
+
+                                            <input
+                                                type="text"
+                                                name="nama"
+                                                id="nama"
+                                                class="form-control"
+                                                value="{{ $user->nama }}"
+                                            >
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="form-group">
+
+                                        <label
+                                            for="nis"
+                                            class="
+                                                col-sm-2
+                                                control-label
+                                            "
+                                        >
+                                            NIP
+                                        </label>
+
+                                        <div class="col-sm-10">
+
+                                            <input
+                                                type="text"
+                                                name="nis"
+                                                id="nis"
+                                                class="form-control"
+                                                value="{{
+                                                    $user->no_induk
+                                                }}"
+                                            >
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="form-group">
+
+                                        <label
+                                            for="jk"
+                                            class="
+                                                col-sm-2
+                                                control-label
+                                            "
+                                        >
+                                            Jenis Kelamin
+                                        </label>
+
+                                        <div class="col-sm-10">
+
+                                            <select
+                                                name="jk"
+                                                id="jk"
+                                                class="form-control"
+                                            >
+
+                                                <option
+                                                    value="L"
+                                                    @selected(
+                                                        $user->jk === 'L'
+                                                    )
+                                                >
+                                                    Laki-laki
+                                                </option>
+
+                                                <option
+                                                    value="P"
+                                                    @selected(
+                                                        $user->jk === 'P'
+                                                    )
+                                                >
+                                                    Perempuan
+                                                </option>
+
+                                            </select>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="form-group">
+
+                                        <label
+                                            for="email"
+                                            class="
+                                                col-sm-2
+                                                control-label
+                                            "
+                                        >
+                                            Email
+                                        </label>
+
+                                        <div class="col-sm-10">
+
+                                            <input
+                                                type="email"
+                                                name="email"
+                                                id="email"
+                                                class="form-control"
+                                                value="{{ $user->email }}"
+                                            >
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="form-group">
+
+                                        <label
+                                            for="password"
+                                            class="
+                                                col-sm-2
+                                                control-label
+                                            "
+                                        >
+                                            Password
+                                        </label>
+
+                                        <div class="col-sm-10">
+
+                                            <input
+                                                type="password"
+                                                class="form-control"
+                                                name="password"
+                                                id="password"
+                                                placeholder="
+                                                    Kosongkan jika
+                                                    tidak diubah
+                                                "
+                                            >
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="form-group">
+
+                                        <label
+                                            class="
+                                                col-sm-2
+                                                control-label
+                                            "
+                                        >
+                                            Foto
+                                        </label>
+
+                                        <div class="col-sm-10">
+
+                                            <form
+                                                action="{{
+                                                    route(
+                                                        'guru.profil.photo'
+                                                    )
+                                                }}"
+                                                class="dropzone"
+                                            >
+
+                                                @csrf
+
+                                                <input
+                                                    type="hidden"
+                                                    name="id"
+                                                    value="{{ $user->id }}"
+                                                >
+
+                                                <div class="fallback">
+
+                                                    <input
+                                                        name="file"
+                                                        type="file"
+                                                    >
+
+                                                </div>
+
+                                            </form>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="form-group">
+
+                                        <div
+                                            class="
+                                                col-sm-offset-2
+                                                col-sm-10
+                                            "
+                                        >
+
+                                            <button
+                                                type="button"
+                                                id="btnupdate"
+                                                class="btn btn-primary"
+                                            >
+                                                Simpan
+                                            </button>
+
+
+                                            <img
+                                                src="{{
+                                                    asset(
+                                                        'assets/assets/images/facebook.gif'
+                                                    )
+                                                }}"
+                                                alt="Loading"
+                                                id="loading"
+                                                style="display:none;"
+                                            >
+
+
+                                            <div
+                                                id="notif"
+                                                style="display:none;"
+                                            ></div>
+
+                                        </div>
+
+                                    </div>
+
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    @endif
+
+                </div>
+
+
+                <div class="col-sm-4 col-md-4">
+
+                    <img
+                        src="{{
+                            ! empty($user->gambar)
+                                ? asset(
+                                    'img/'.$user->gambar
+                                )
+                                : asset(
+                                    'img/noimage.jpg'
+                                )
+                        }}"
+                        alt="{{ $user->nama }}"
+                        class="
+                            img-rounded
+                            img-thumbnail
+                            img-responsive
+                        "
+                    >
+
+                </div>
+
+
+                <div class="col-sm-8 col-md-8">
+
+                    <table class="table table-user-information">
+
+                        <tbody>
+
+                        <tr>
+
+                            <td width="140">
+                                Nama:
+                            </td>
+
+                            <td>
+                                {{ $user->nama }}
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <td>NIP:</td>
+
+                            <td>
+                                {{ $user->no_induk ?: '-' }}
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <td>Jenis Kelamin:</td>
+
+                            <td>
+
+                                @if ($user->jk === 'L')
+
+                                    Laki-laki
+
+                                @elseif ($user->jk === 'P')
+
+                                    Perempuan
+
+                                @else
+
+                                    -
+
+                                @endif
+
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <td>Email:</td>
+
+                            <td>
+                                {{ $user->email }}
+                            </td>
+
+                        </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
     </div>
-  </div>
+
 </div>
-<script src="{{ url('/assets/assets/vendor/jquery.min.js') }}"></script>
-<script src="{{ url('/lib/dropzone/dropzone.js') }}"></script>
-<script type="text/javascript">
-  $.ajaxSetup({
-    headers: {
-      'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-    }
-  });
-  
-  $(document).ready(function() {
-    'use strict';
-    $("#btnupdate").click(function(){
-      $("#loading").show();
-      var id = $("#id").val();
-      var nama = $("#nama").val();
-      var nis = $("#nis").val();
-      var jk = $("#jk").val();
-      var email = $("#email").val();
-      var password = $("#password").val();
-      var datastring = "nama="+nama+"&nis="+nis+"&jk="+jk+"&email="+email+"&password="+password+"&id="+id;
-      $.ajax({
-        type: "POST",
-        url: "{{ url('/updateprofil') }}",
-        data: datastring,
-        success: function(data){
-          if(data == "berhasil"){
-            $("#loading").hide();
-            $("#notif").removeClass('alert alert-danger').addClass('alert alert-info').html('Profil berhasil diupdate.').fadeIn(250);
-            $("#btnupdate").show();
-            $("#batal").show();
-            window.location.href = "{{ url('/detail-guru/'.$user->id) }}";
-          }else{
-            $("#loading").hide();
-            $("#notif").removeClass('alert alert-info').addClass('alert alert-danger').html(data).fadeIn(250);
-            $("#btnupdate").show();
-            $("#batal").show();
-          }
-        }
-      });
-    });
-  });
-</script>  
+
+
+
+<div class="col-sm-12 col-md-4 col-lg-4 dash-right">
+
+
+    <div class="panel panel-primary">
+
+
+        <div class="panel-heading">
+
+            <h4 class="panel-title">
+                Aktifitas Terkini
+            </h4>
+
+        </div>
+
+
+        <div class="panel-body">
+
+
+            <ul class="media-list user-list">
+
+
+                @forelse ($aktifitas as $data)
+
+
+                    @php
+
+                        $gambarAktifitas =
+                            ! empty($data->gambar)
+                                ? $data->gambar
+                                : 'noimage.jpg';
+
+                    @endphp
+
+
+                    <li class="media">
+
+
+                        <div class="media-left">
+
+                            <img
+                                class="
+                                    media-object
+                                    img-thumbnail
+                                "
+                                src="{{
+                                    asset(
+                                        'img/'.
+                                        $gambarAktifitas
+                                    )
+                                }}"
+                                alt="{{ $data->nama_user }}"
+                            >
+
+                        </div>
+
+
+                        <div class="media-body">
+
+
+                            <h4 class="media-heading nomargin">
+
+                                {{ $data->nama_user }}
+
+                            </h4>
+
+
+                            {{ $data->nama }}
+
+
+                            <small class="date">
+
+                                <i class="fa fa-clock-o"></i>
+
+                                {{
+                                    $data->created_at
+                                        ? \Illuminate\Support\Carbon::parse(
+                                            $data->created_at
+                                        )->format('d M Y')
+                                        : '-'
+                                }}
+
+                            </small>
+
+
+                        </div>
+
+                    </li>
+
+
+                @empty
+
+
+                    <li class="media">
+
+                        <div class="media-body">
+                            Belum ada aktivitas.
+                        </div>
+
+                    </li>
+
+
+                @endforelse
+
+
+            </ul>
+
+
+            <a
+                href="{{ url('/aktifitas') }}"
+                class="btn btn-success"
+                style="
+                    display:block;
+                    width:100%;
+                    margin-top:10px;
+                "
+            >
+                Selengkapnya
+            </a>
+
+
+        </div>
+
+    </div>
+
+</div>
+
 @endsection
+
+
+@push('scripts')
+
+<script src="{{ asset('lib/dropzone/dropzone.js') }}"></script>
+
+
+<script>
+
+$(document).ready(function () {
+
+    'use strict';
+
+
+    $('#btnupdate').on('click', function () {
+
+        const button = $(this);
+
+        button.hide();
+
+        $('#loading').show();
+
+        $('#notif').hide();
+
+
+        $.ajax({
+
+            type: 'POST',
+
+            url: '{{ route('guru.profil.update') }}',
+
+            data: {
+
+                id:
+                    {{ $user->id }},
+
+                nama:
+                    $('#nama').val(),
+
+                nis:
+                    $('#nis').val(),
+
+                jk:
+                    $('#jk').val(),
+
+                email:
+                    $('#email').val(),
+
+                password:
+                    $('#password').val()
+
+            },
+
+            success: function (data) {
+
+                $('#loading').hide();
+
+                button.show();
+
+
+                if (data === 'berhasil') {
+
+                    $('#notif')
+                        .removeClass(
+                            'alert alert-danger'
+                        )
+                        .addClass(
+                            'alert alert-info'
+                        )
+                        .html(
+                            'Profil berhasil diupdate.'
+                        )
+                        .show();
+
+
+                    setTimeout(function () {
+
+                        window.location.href =
+                            '{{
+                                route(
+                                    'guru.detail',
+                                    $user->id
+                                )
+                            }}';
+
+                    }, 500);
+
+                }
+
+            },
+
+            error: function (xhr) {
+
+                $('#loading').hide();
+
+                button.show();
+
+
+                let message =
+                    xhr.responseText ||
+                    'Gagal memperbarui Guru.';
+
+
+                if (
+                    xhr.responseJSON &&
+                    xhr.responseJSON.errors
+                ) {
+
+                    message =
+                        Object.values(
+                            xhr.responseJSON.errors
+                        )
+                            .flat()
+                            .join('<br>');
+
+                }
+
+
+                $('#notif')
+                    .removeClass(
+                        'alert alert-info'
+                    )
+                    .addClass(
+                        'alert alert-danger'
+                    )
+                    .html(message)
+                    .show();
+
+            }
+
+        });
+
+    });
+
+});
+
+</script>
+
+@endpush

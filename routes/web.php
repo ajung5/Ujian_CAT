@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GuruController;
+use App\Http\Controllers\DataguruController;
 
 /*
 |--------------------------------------------------------------------------
@@ -57,7 +58,43 @@ Route::middleware([
         )->name('guru.school.photo');
     });
 
-/*
+Route::middleware([
+    'auth',
+    'role:A,G',
+])->group(function () {
+
+    // route Guru lain...
+
+    Route::get(
+        '/data-guru',
+        [DataguruController::class, 'index']
+    )->name('guru.data');
+
+    Route::post(
+        '/get-user',
+        [DataguruController::class, 'getUser']
+    )->name('guru.search');
+
+    Route::post(
+        '/simpanformguru',
+        [DataguruController::class, 'store']
+    )->name('guru.store');
+
+    Route::get(
+        '/detail-guru/{id}',
+        [DataguruController::class, 'show']
+    )
+        ->whereNumber('id')
+        ->name('guru.detail');
+
+    Route::post(
+        '/hapusguru/{id}',
+        [DataguruController::class, 'destroy']
+    )
+        ->whereNumber('id')
+        ->name('guru.destroy');
+});
+    /*
 |--------------------------------------------------------------------------
 | Authentication
 |--------------------------------------------------------------------------
