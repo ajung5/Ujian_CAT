@@ -1,208 +1,315 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
+@extends('layouts.login')
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+@section('content')
 
-    <title>Login - Ujian CAT</title>
+<link
+    rel="icon"
+    href="{{ asset('img/favicon.png') }}"
+>
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+<hr class="prettyline">
 
-        body {
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f3f4f6;
-            font-family: Arial, Helvetica, sans-serif;
-            color: #1f2937;
-        }
+<div
+    class="bungkuslogin"
+    style="
+        background-color: rgba(255, 150, 13, 0.5);
+        color: #d5d9e2;
+        padding: 15px;
+    "
+>
 
-        .login-container {
-            width: 100%;
-            max-width: 420px;
-            padding: 32px;
-            background: #ffffff;
-            border-radius: 10px;
-            box-shadow:
-                0 10px 30px rgba(0, 0, 0, 0.08);
-        }
+    <center>
 
-        h1 {
-            margin-top: 0;
-            margin-bottom: 8px;
-            text-align: center;
-            font-size: 25px;
-        }
+        <h2>
+            Aplikasi Ujian Berbasis Komputer
+        </h2>
 
-        .school {
-            margin-bottom: 28px;
-            text-align: center;
-            color: #6b7280;
-        }
+        <h1>
+            <b>
+                {{ $school?->nama ?? 'Ujian CAT' }}
+            </b>
+        </h1>
 
-        .form-group {
-            margin-bottom: 18px;
-        }
+        <h3>
+            Silahkan Login untuk mengakses halaman Aplikasi Ujian
+        </h3>
 
-        label {
-            display: block;
-            margin-bottom: 7px;
-            font-weight: 600;
-        }
-
-        input[type="email"],
-        input[type="password"] {
-            width: 100%;
-            padding: 11px 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 15px;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: #2563eb;
-        }
-
-        .remember {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-
-        .remember label {
-            margin: 0;
-            font-weight: normal;
-        }
-
-        button {
-            width: 100%;
-            border: 0;
-            border-radius: 6px;
-            padding: 12px;
-            background: #2563eb;
-            color: white;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #1d4ed8;
-        }
-
-        .error {
-            margin-bottom: 20px;
-            padding: 12px;
-            background: #fee2e2;
-            border: 1px solid #fecaca;
-            border-radius: 6px;
-            color: #991b1b;
-        }
-
-        .error ul {
-            margin: 0;
-            padding-left: 20px;
-        }
-
-        .info {
-            margin-top: 24px;
-            text-align: center;
-            font-size: 13px;
-            color: #9ca3af;
-        }
-    </style>
-</head>
-
-<body>
-
-<div class="login-container">
-
-    <h1>Aplikasi Ujian Berbasis Komputer</h1>
-
-    <div class="school">
-        {{ $school?->nama ?? 'Ujian CAT' }}
-    </div>
-
-    @if ($errors->any())
-        <div class="error">
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
-    <form
-        method="POST"
-        action="{{ route('login.process') }}"
-    >
-        @csrf
-
-        <div class="form-group">
-            <label for="email">
-                Email
-            </label>
-
-            <input
-                id="email"
-                type="email"
-                name="email"
-                value="{{ old('email') }}"
-                autocomplete="email"
-                autofocus
-                required
+        <em>
+            Created by:
+            <a
+                href="http://www.tipa.co.id"
+                target="_blank"
+                title="Tipamedia | IT Learning, Consulting and Developing"
+                style="color: #97b5fc;"
             >
-        </div>
+                Tipamedia
+            </a>
+        </em>
 
-        <div class="form-group">
-            <label for="password">
-                Password
-            </label>
+        <br>
 
-            <input
-                id="password"
-                type="password"
-                name="password"
-                autocomplete="current-password"
-                required
+        <a href="{{ url('/') }}">
+            <button
+                type="button"
+                class="btn btn-success btn-lg"
+                data-toggle="tooltip"
+                title="Kembali kehalaman depan"
             >
-        </div>
+                <span class="glyphicon glyphicon-home"></span>
+                Home
+            </button>
+        </a>
 
-        <div class="remember">
-            <input
-                id="remember"
-                type="checkbox"
-                name="remember"
-                value="1"
-            >
-
-            <label for="remember">
-                Remember me
-            </label>
-        </div>
-
-        <button type="submit">
+        <button
+            class="btn btn-primary btn-lg"
+            data-toggle="modal"
+            data-target=".bs-modal-sm"
+            style="margin: 15px 0 15px 0;"
+            id="logtooltip"
+            title="Login ke halaman Anda"
+        >
+            <span class="glyphicon glyphicon-lock"></span>
             Login
         </button>
-    </form>
 
-    <div class="info">
-        Ujian CAT &mdash; Laravel 13 Migration
+    </center>
+
+    @if ($errors->any())
+
+        <div class="alert alert-danger">
+
+            <ul>
+
+                @foreach ($errors->all() as $error)
+
+                    <li>
+                        {{ $error }}
+                    </li>
+
+                @endforeach
+
+            </ul>
+
+        </div>
+
+    @endif
+
+</div>
+
+<hr class="prettyline">
+
+
+<div
+    class="modal fade bs-modal-sm"
+    id="myModal"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="mySmallModalLabel"
+    aria-hidden="true"
+>
+
+    <div class="modal-dialog modal-sm">
+
+        <div class="modal-content">
+
+            <br>
+
+            <div class="bs-example bs-example-tabs">
+
+                <ul
+                    id="myTab"
+                    class="nav nav-tabs"
+                >
+
+                    <li class="active">
+                        <a
+                            href="#signin"
+                            data-toggle="tab"
+                        >
+                            Sign In
+                        </a>
+                    </li>
+
+                    <li>
+                        <a
+                            href="#why"
+                            data-toggle="tab"
+                        >
+                            About?
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <div
+                    id="myTabContent"
+                    class="tab-content"
+                >
+
+                    <div
+                        class="tab-pane fade"
+                        id="why"
+                    >
+
+                        <p>
+                            Aplikasi ujian ini dikembangkan dengan desain
+                            responsive sehingga dapat diakses melalui
+                            Laptop, Tablet, maupun Smartphone.
+                        </p>
+
+                    </div>
+
+
+                    <div
+                        class="tab-pane fade active in"
+                        id="signin"
+                    >
+
+                        <form
+                            method="POST"
+                            action="{{ route('login.process') }}"
+                        >
+
+                            @csrf
+
+                            <fieldset>
+
+                                <div class="control-group">
+
+                                    <label
+                                        class="control-label"
+                                        for="email"
+                                    >
+                                        Email:
+                                    </label>
+
+                                    <div class="controls">
+
+                                        <input
+                                            type="email"
+                                            id="email"
+                                            name="email"
+                                            class="form-control"
+                                            value="{{ old('email') }}"
+                                            placeholder="Email"
+                                            autocomplete="email"
+                                            required
+                                            autofocus
+                                        >
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="control-group">
+
+                                    <label
+                                        class="control-label"
+                                        for="password"
+                                    >
+                                        Password:
+                                    </label>
+
+                                    <div class="controls">
+
+                                        <input
+                                            type="password"
+                                            name="password"
+                                            class="form-control"
+                                            id="password"
+                                            placeholder="Password"
+                                            autocomplete="current-password"
+                                            required
+                                        >
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="control-group">
+
+                                    <label
+                                        class="control-label"
+                                        for="remember"
+                                    >
+                                        &nbsp;
+                                    </label>
+
+                                    <div class="controls">
+
+                                        <label
+                                            class="checkbox inline"
+                                            for="remember"
+                                        >
+
+                                            <input
+                                                type="checkbox"
+                                                name="remember"
+                                                id="remember"
+                                                value="1"
+                                                style="margin: 0;"
+                                            >
+
+                                            <span
+                                                style="
+                                                    margin-left: 25px;
+                                                "
+                                            >
+                                                Remember me
+                                            </span>
+
+                                        </label>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="control-group">
+
+                                    <div class="controls">
+
+                                        <button
+                                            id="signin"
+                                            type="submit"
+                                            class="btn btn-success"
+                                        >
+                                            Login
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-danger"
+                                            data-dismiss="modal"
+                                        >
+                                            Batal
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            </fieldset>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
 
 </div>
 
-</body>
-</html>
+@endsection

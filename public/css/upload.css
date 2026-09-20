@@ -1,0 +1,84 @@
+.state-icon {
+    left: -5px;
+  }
+  .list-group-item-primary {
+    color: rgb(255, 255, 255);
+    background-color: rgb(66, 139, 202);
+  }
+  /* DEMO ONLY - REMOVES UNWANTED MARGIN */
+  .well .list-group {
+    margin-bottom: 0px;
+  }
+  h1 {
+    text-align: center;
+    background-color: #FEFFED;
+    height: 70px;
+    color: rgb(95, 89, 89);
+    margin: 0 0 -29px 0;
+    padding-top: 14px;
+    border-radius: 10px 10px 0 0;
+    font-size: 35px;
+  }
+  #image_preview {
+    font-size: 30px;
+    width: 100%;
+    text-align: center;
+    font-weight: bold;
+    color: #C0C0C0;
+    background-color: #FFFFFF;
+    overflow: auto;
+    padding: 15px 0;
+  }
+  #selectImage {
+    padding: 19px 21px 14px 15px;
+    width: 100%;
+    background-color: #FEFFED;
+    border-radius: 10px;
+  }
+  #loading {
+    display:none;
+    font-size:25px;
+    margin: 15px 0 0 0;
+  }
+  #message {
+    margin: 15px 0 0 0;
+  }
+  .inputfile {
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+  }
+  .inputfile + label {
+    font-size: 1.25em;
+    font-weight: 700;
+    color: white;
+    background-color: #444443;
+    display: inline-block;
+    cursor: pointer;
+    padding: 10px;
+  }
+  .inputfile:focus + label, .inputfile + label:hover {
+    background-color: red;
+  }
+  .inputfile:focus + label {
+    outline: 1px dotted #000;
+    outline: -webkit-focus-ring-color auto 5px;
+  }
+  #success {
+    color:green;
+  }
+  #invalid {
+    color:red;
+  }
+  /*#line {
+        margin-top: 274px;
+      }*/
+      #error {
+    color:red;
+  }
+  #error_message {
+    color:blue;
+  }
