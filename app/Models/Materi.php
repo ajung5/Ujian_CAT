@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Materi extends Model
 {
@@ -20,13 +19,15 @@ class Materi extends Model
         'sesi',
     ];
 
+    protected $casts = [
+        'hits' => 'integer',
+    ];
+
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'id_user');
-    }
-
-    public function soals(): HasMany
-    {
-        return $this->hasMany(Soal::class, 'materi');
+        return $this->belongsTo(
+            User::class,
+            'id_user'
+        );
     }
 }

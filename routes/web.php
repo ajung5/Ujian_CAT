@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GuruController;
 use App\Http\Controllers\DataguruController;
 use App\Http\Controllers\DatasiswaController;
+use App\Http\Controllers\MateriController;
 
 /*
 |--------------------------------------------------------------------------
@@ -202,6 +203,51 @@ Route::middleware([
             '/uploadcalonsiswa',
             [DatasiswaController::class, 'importCandidates']
         )->name('guru.siswa.candidate.import');
+
+        Route::get(
+            '/materi',
+            [MateriController::class, 'index']
+        )->name('guru.materi');
+
+
+        Route::get(
+            '/materi/ubah/{id}',
+            [MateriController::class, 'edit']
+        )
+            ->whereNumber('id')
+            ->name('guru.materi.edit');
+
+
+        Route::post(
+            '/simpan-materi',
+            [MateriController::class, 'save']
+        )->name('guru.materi.save');
+
+
+        Route::get(
+            '/materi/detail/{id}',
+            [MateriController::class, 'show']
+        )
+            ->whereNumber('id')
+            ->name('guru.materi.detail');
+
+
+        Route::post(
+            '/upload-gambar-materi',
+            [MateriController::class, 'uploadImage']
+        )->name('guru.materi.image');
+
+
+        Route::post(
+            '/hapus_materi',
+            [MateriController::class, 'destroy']
+        )->name('guru.materi.destroy');
+
+
+        Route::post(
+            '/get-materi',
+            [MateriController::class, 'search']
+        )->name('guru.materi.search');
 
     });
 
