@@ -8,6 +8,7 @@ use App\Http\Controllers\DatasiswaController;
 use App\Http\Controllers\MateriController;
 use App\Http\Controllers\SoalController;
 use App\Http\Controllers\SiswaController;
+use App\Http\Controllers\LatihanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -533,6 +534,25 @@ Route::middleware([
             '/updateprofilfoto',
             [SiswaController::class, 'updateProfilePhoto']
         )->name('siswa.profile.photo');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Materi & Latihan Siswa
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/latihan',
+            [LatihanController::class, 'index']
+        )->name('siswa.latihan');
+
+
+        Route::get(
+            '/latihan/read/{id}/{judul}',
+            [LatihanController::class, 'detail']
+        )
+            ->whereNumber('id')
+            ->name('siswa.latihan.detail');
 
     }
 );

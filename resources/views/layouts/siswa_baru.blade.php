@@ -88,7 +88,7 @@
   <ul class="sidebar-menu">
     <li <?php if ($url == "siswa") { echo "class='sidebar-menu-item active'"; } ?>> <a class="sidebar-menu-button" href="{{ route('siswa.index') }}"> <i class="sidebar-menu-icon fa fa-home" aria-hidden="true"></i> Home </a> </li>
     <li <?php if ($url == "profil-siswa") { echo "class='sidebar-menu-item active'"; } ?>> <a class="sidebar-menu-button" href="{{ route('siswa.profile')}}"> <i class="sidebar-menu-icon fa fa-user" aria-hidden="true"></i> Profil </a> </li>
-    <li <?php if ($url == "latihan") { echo "class='sidebar-menu-item active'"; } ?>> <a class="sidebar-menu-button" href="{{ url('/latihan') }}"> <i class="sidebar-menu-icon fa fa-pencil-square-o" aria-hidden="true"></i> Latihan Materi</a> </li>
+    <li <?php if ($url == "latihan") { echo "class='sidebar-menu-item active'"; } ?>> <a class="sidebar-menu-button" href="{{ route('siswa.latihan') }}"> <i class="sidebar-menu-icon fa fa-pencil-square-o" aria-hidden="true"></i> Latihan Materi</a> </li>
     <li <?php if ($url == "hasil-siswa") { echo "class='sidebar-menu-item active'"; } ?>> <a class="sidebar-menu-button" href="{{ route('siswa.results') }}"> <i class="sidebar-menu-icon fa fa-book" aria-hidden="true"></i> Hasil Ujian </a> </li>
     <li <?php if ($url == "soal-siswa") { echo "class='sidebar-menu-item active'"; } ?>> <a class="sidebar-menu-button" href="{{ route('siswa.soal') }}"> <i class="sidebar-menu-icon fa fa-list-alt" aria-hidden="true"></i> Soal Ujian</a> </li>
     <li class="sidebar-menu-item"> <a class="sidebar-menu-button" href="{{ url('/auth/logout') }}"> <i class="sidebar-menu-icon fa fa-sign-out" aria-hidden="true"></i> Logout </a> </li>
