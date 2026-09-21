@@ -126,7 +126,18 @@
                                 </li>
 
                                 <li>
-                                    <a href="{{ route('logout') }}">
+                                    <a
+                                        href="#"
+                                        onclick="
+                                            event.preventDefault();
+                                            document
+                                                .getElementById('logout-form')
+                                                .submit();
+                                        "
+                                    >
+                                        <i class="fa fa-sign-out"></i>
+                                        Logout
+                                    </a>
                                         <i class="fa fa-sign-out"></i>
                                         Log Out
                                     </a>
@@ -235,7 +246,18 @@
                     title="Log Out"
                 >
 
-                    <a href="{{ route('logout') }}">
+                         <a
+                            href="#"
+                            onclick="
+                                event.preventDefault();
+                                document
+                                    .getElementById('logout-form')
+                                    .submit();
+                            "
+                        >
+                            <i class="fa fa-sign-out"></i>
+                            Logout
+                        </a>
                         <i class="fa fa-sign-out"></i>
                     </a>
 
@@ -496,7 +518,18 @@
 
                         <li>
 
-                            <a href="{{ route('logout') }}">
+                            <a
+                                href="#"
+                                onclick="
+                                    event.preventDefault();
+                                    document
+                                        .getElementById('logout-form')
+                                        .submit();
+                                "
+                            >
+                                <i class="fa fa-sign-out"></i>
+                                Logout
+                            </a>
 
                                 <i class="fa fa-sign-out"></i>
 
@@ -597,6 +630,14 @@
 </script>
 
 @stack('scripts')
+<form
+    id="logout-form"
+    method="POST"
+    action="{{ route('logout') }}"
+    style="display:none;"
+>
+    @csrf
+</form>
 
 </body>
 </html>

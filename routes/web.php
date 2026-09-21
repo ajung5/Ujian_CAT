@@ -500,8 +500,7 @@ Route::middleware('guest')->group(function () {
 |
 */
 
-Route::match(
-    ['get', 'post'],
+Route::post(
     '/auth/logout',
     [AuthController::class, 'logout']
 )

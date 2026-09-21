@@ -206,3 +206,47 @@ test(
 
     }
 );
+
+test(
+    'logout hanya menerima post',
+    function () {
+
+        $user =
+            $this->createUser([
+                'status' => 'S',
+            ]);
+
+        $this
+            ->actingAs($user)
+            ->get('/auth/logout')
+            ->assertStatus(405);
+
+    }
+);
+
+
+test(
+    'user dapat logout menggunakan post',
+    function () {
+
+        $user =
+            $this->createUser([
+                'status' => 'S',
+            ]);
+
+        $response =
+            $this
+                ->actingAs($user)
+                ->post(
+                    route('logout')
+                );
+
+        $response
+            ->assertRedirect(
+                route('login')
+            );
+
+        $this->assertGuest();
+
+    }
+);

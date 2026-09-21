@@ -296,13 +296,10 @@ class DatasiswaController extends Controller
             ->limit(5)
             ->get();
 
-        /*
-         * Legacy menampilkan satu riwayat
-         * untuk setiap id_soal.
-         *
-         * Raw mysqli lama kita ganti
-         * menjadi query agregasi.
-         */
+       /*
+        * Gunakan query builder untuk menjaga
+        * kompatibilitas dengan Laravel 13.
+        */
         $ujians = Jawab::query()
             ->join(
                 'soals',

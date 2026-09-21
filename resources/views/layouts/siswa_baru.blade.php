@@ -70,7 +70,18 @@
     <!-- User dropdown -->
     <li class="nav-item dropdown"> <a class="nav-link active dropdown-toggle p-a-0" data-toggle="dropdown" href="#" role="button" aria-haspopup="false"> <img src="{{ url('/img/'.$foto) }}" alt="Avatar" class="img-circle" width="40"> </a>
       <div class="dropdown-menu dropdown-menu-right dropdown-menu-list" aria-labelledby="Preview">
-        <a class="dropdown-item" href="{{ url('/profil-siswa') }}"><i class="fa fa-user-circle" aria-hidden="true"></i> <span class="icon-text">Profile</span></a> <a class="dropdown-item" href="{{ url('/auth/logout') }}">Logout</a> </div>
+        <a class="dropdown-item" href="{{ url('/profil-siswa') }}"><i class="fa fa-user-circle" aria-hidden="true"></i> <span class="icon-text">Profile</span></a> <a
+    class="dropdown-item"
+    href="#"
+    onclick="
+        event.preventDefault();
+        document
+            .getElementById('logout-form')
+            .submit();
+    "
+>
+    Logout
+</a> </div>
     </li>
     <!-- // END User dropdown -->
     
@@ -91,7 +102,18 @@
     <li <?php if ($url == "latihan") { echo "class='sidebar-menu-item active'"; } ?>> <a class="sidebar-menu-button" href="{{ route('siswa.latihan') }}"> <i class="sidebar-menu-icon fa fa-pencil-square-o" aria-hidden="true"></i> Latihan Materi</a> </li>
     <li <?php if ($url == "hasil-siswa") { echo "class='sidebar-menu-item active'"; } ?>> <a class="sidebar-menu-button" href="{{ route('siswa.results') }}"> <i class="sidebar-menu-icon fa fa-book" aria-hidden="true"></i> Hasil Ujian </a> </li>
     <li <?php if ($url == "soal-siswa") { echo "class='sidebar-menu-item active'"; } ?>> <a class="sidebar-menu-button" href="{{ route('siswa.soal') }}"> <i class="sidebar-menu-icon fa fa-list-alt" aria-hidden="true"></i> Soal Ujian</a> </li>
-    <li class="sidebar-menu-item"> <a class="sidebar-menu-button" href="{{ url('/auth/logout') }}"> <i class="sidebar-menu-icon fa fa-sign-out" aria-hidden="true"></i> Logout </a> </li>
+    <li class="sidebar-menu-item"> <a
+    class="dropdown-item"
+    href="#"
+    onclick="
+        event.preventDefault();
+        document
+            .getElementById('logout-form')
+            .submit();
+    "
+>
+    Logout
+</a> <i class="sidebar-menu-icon fa fa-sign-out" aria-hidden="true"></i> Logout </a> </li>
   </ul>
   
   <!-- // END Components Menu --> 
@@ -137,5 +159,14 @@
 </script>
 
 @stack('scripts')
+
+<form
+    id="logout-form"
+    method="POST"
+    action="{{ route('logout') }}"
+    style="display:none;"
+>
+    @csrf
+</form>
 </body>
 </html>
