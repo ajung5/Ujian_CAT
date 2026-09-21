@@ -1,6 +1,6 @@
 @extends('layouts.siswa_baru')
 
-@section('title', 'Detail Soal')
+@section('title', 'Detail Soal' . ' - ' . $assessmentLabel)
 
 
 @push('styles')
@@ -70,14 +70,22 @@
 
 <li>
 
-    <a href="{{ route('siswa.soal') }}">
-        Soal Ujian
+    <a href="{{ $backUrl }}">
+
+        {{
+            $isTraining
+                ? 'Latihan Materi'
+                : 'Soal Ujian'
+        }}
+
     </a>
 
 </li>
 
 <li class="active">
-    Detail Soal
+
+    Detail {{ $assessmentLabel }}
+
 </li>
 
 @endsection
@@ -96,7 +104,9 @@
                 <div class="media-body">
 
                     <h4 class="card-title">
-                        Detail Soal
+
+                        Detail {{ $assessmentLabel }}
+
                     </h4>
 
                 </div>
@@ -285,8 +295,8 @@
 
                 {{
                     $hasStarted
-                        ? 'Lanjutkan Ujian'
-                        : 'Mulai Ujian'
+                        ? 'Lanjutkan '.$assessmentLabel
+                        : 'Mulai '.$assessmentLabel
                 }}
 
             </button>
@@ -325,11 +335,14 @@
     >
 
         <p>
-
             Dengan mengklik tombol
-            <b>Siap Ujian</b>,
-            waktu ujian akan berjalan.
 
+            <b>
+                Siap {{ $assessmentLabel }}
+            </b>,
+
+            waktu {{ strtolower($assessmentLabel) }}
+            akan berjalan.
         </p>
 
 
@@ -337,7 +350,8 @@
 
             <div class="alert alert-warning">
 
-                Ujian ini sudah pernah dimulai.
+                {{ $assessmentLabel }}
+                ini sudah pernah dimulai.
 
                 Waktu tetap berjalan walaupun
                 halaman ditutup.
@@ -355,8 +369,8 @@
 
             {{
                 $hasStarted
-                    ? 'Lanjutkan Ujian'
-                    : 'Siap Ujian'
+                    ? 'Lanjutkan '.$assessmentLabel
+                    : 'Siap '.$assessmentLabel
             }}
 
         </button>
@@ -803,7 +817,7 @@ $(document).ready(function () {
 
         window.location.href =
             response.redirect ||
-            '{{ route('siswa.soal') }}';
+            '{{ route('siswa.results') }}';
 
     }
 
@@ -876,15 +890,17 @@ $(document).ready(function () {
                     xhr.status === 409
                 ) {
 
-                    handleExpired({
-                        message:
-                            xhr.responseJSON
-                                ?.message ||
-                            'Ujian sudah berakhir.',
+                handleExpired({
 
-                        redirect:
-                            '{{ route('siswa.soal') }}'
-                    });
+                    message:
+                        xhr.responseJSON
+                            ?.message ||
+                        '{{ $assessmentLabel }} sudah berakhir.',
+
+                    redirect:
+                        '{{ route('siswa.results') }}'
+
+                });
 
                     return;
 
@@ -1086,7 +1102,7 @@ $(document).ready(function () {
             function () {
 
                 window.location.href =
-                    '{{ route('siswa.soal') }}';
+                    @json($backUrl);
 
             }
         );
@@ -1111,13 +1127,7 @@ $(document).ready(function () {
 
                     type: 'POST',
 
-                    url:
-                        '{{
-                            route(
-                                'siswa.exam.start',
-                                $soal->id
-                            )
-                        }}',
+                    url: @json($startUrl),
 
 
                     success: function (
@@ -1556,9 +1566,9 @@ $(document).ready(function () {
                 );
 
 
-                window.location.href =
-                    response.redirect ||
-                    '{{ route('siswa.soal') }}';
+            window.location.href =
+                response.redirect ||
+                '{{ route('siswa.results') }}';
 
             },
 

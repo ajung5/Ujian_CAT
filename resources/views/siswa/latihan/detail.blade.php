@@ -208,22 +208,17 @@
 
 
                                                     <hr>
-
-
-                                                    {{--
-                                                        Tahap 16B:
-                                                        tombol ini akan
-                                                        membuka engine
-                                                        latihan jenis=2.
-                                                    --}}
-
-                                                    <button
-                                                        type="button"
+                                                    <a
+                                                        href="{{
+                                                            route(
+                                                                'siswa.training',
+                                                                $soal->id
+                                                            )
+                                                        }}"
                                                         class="
                                                             btn
                                                             btn-primary
                                                         "
-                                                        disabled
                                                     >
 
                                                         <i
@@ -235,7 +230,7 @@
 
                                                         Mulai Latihan
 
-                                                    </button>
+                                                    </a>
 
                                                 </div>
 

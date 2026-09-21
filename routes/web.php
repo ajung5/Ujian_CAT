@@ -623,6 +623,20 @@ Route::middleware([
             [LatihanController::class, 'index']
         )->name('siswa.latihan');
 
+        Route::get(
+            '/latihan/soal/{id}',
+            [SiswaController::class, 'training']
+        )
+            ->whereNumber('id')
+            ->name('siswa.training');
+
+
+        Route::post(
+            '/latihan/soal/{id}/start',
+            [SiswaController::class, 'startExam']
+        )
+            ->whereNumber('id')
+            ->name('siswa.training.start');
 
         Route::get(
             '/latihan/read/{id}/{judul}',
