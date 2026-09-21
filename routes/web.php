@@ -388,6 +388,23 @@ Route::middleware([
             '/uploadsoal',
             [SoalController::class, 'importQuestions']
             )->name('guru.soal.import');
+            
+        /*
+        |--------------------------------------------------------------------------
+        | Hasil / Laporan Guru
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/hasil-guru',
+            [HasilController::class, 'index']
+        )->name('guru.results');
+
+
+        Route::post(
+            '/get-hasil-guru',
+            [HasilController::class, 'search']
+        )->name('guru.results.search');
 
     }
 );
@@ -412,22 +429,6 @@ Route::middleware('guest')->group(function () {
         ->middleware('throttle:5,1')
         ->name('login.process');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Hasil / Laporan Guru
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get(
-        '/hasil-guru',
-        [HasilController::class, 'index']
-    )->name('guru.results');
-
-
-    Route::post(
-        '/get-hasil-guru',
-        [HasilController::class, 'search']
-    )->name('guru.results.search');
 });
 
 
