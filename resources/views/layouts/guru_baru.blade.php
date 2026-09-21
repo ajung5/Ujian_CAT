@@ -119,7 +119,7 @@
                             <ul class="dropdown-menu pull-right">
 
                                 <li>
-                                    <a href="{{ url('/profil-guru') }}">
+                                    <a href="{{ route('guru.profil') }}">
                                         <i class="fa fa-user"></i>
                                         Profil
                                     </a>
@@ -137,9 +137,6 @@
                                     >
                                         <i class="fa fa-sign-out"></i>
                                         Logout
-                                    </a>
-                                        <i class="fa fa-sign-out"></i>
-                                        Log Out
                                     </a>
                                 </li>
 
@@ -176,7 +173,7 @@
 
                 <div class="media-left">
 
-                    <a href="{{ url('/profil-guru') }}">
+                    <a href="{{ route('guru.profil') }}">
 
                         @if (empty($user->gambar))
 
@@ -246,18 +243,15 @@
                     title="Log Out"
                 >
 
-                         <a
-                            href="#"
-                            onclick="
-                                event.preventDefault();
-                                document
-                                    .getElementById('logout-form')
-                                    .submit();
-                            "
-                        >
-                            <i class="fa fa-sign-out"></i>
-                            Logout
-                        </a>
+                    <a
+                        href="#"
+                        onclick="
+                            event.preventDefault();
+                            document
+                                .getElementById('logout-form')
+                                .submit();
+                        "
+                    >
                         <i class="fa fa-sign-out"></i>
                     </a>
 
@@ -342,7 +336,7 @@
                                     }}"
                                 >
 
-                                    <a href="{{ url('/data-guru') }}">
+                                    <a href="{{ route('guru.data') }}">
 
                                         <i class="fa fa-user"></i>
 
@@ -365,7 +359,7 @@
                                     }}"
                                 >
 
-                                    <a href="{{ url('/kelas') }}">
+                                    <a href="{{ route('guru.kelas') }}">
 
                                         <i class="fa fa-building"></i>
 
@@ -391,7 +385,7 @@
                                     }}"
                                 >
 
-                                    <a href="{{ url('/data-siswa') }}">
+                                    <a href="{{ route('guru.siswa') }}">
 
                                         <i class="fa fa-user"></i>
 
@@ -420,7 +414,8 @@
                                         'ubah-detail-soal',
                                         'edit-soal',
                                         'hasil-guru',
-                                        'detail-hasil'
+                                        'detail-hasil',
+                                        'detail-hasil-soal'
                                     ],
                                     true
                                 )
@@ -446,7 +441,7 @@
                                     class="{{ $url === 'materi' ? 'active' : '' }}"
                                 >
 
-                                    <a href="{{ url('/materi') }}">
+                                    <a href="{{ route('guru.materi') }}">
                                         Materi
                                     </a>
 
@@ -460,7 +455,8 @@
                                             [
                                                 'soal-guru',
                                                 'detail-soal',
-                                                'ubah-detail-soal'
+                                                'ubah-detail-soal',
+                                                'edit-soal'
                                             ],
                                             true
                                         )
@@ -469,7 +465,7 @@
                                     }}"
                                 >
 
-                                    <a href="{{ url('/soal-guru') }}">
+                                    <a href="{{ route('guru.soal') }}">
                                         Soal
                                     </a>
 
@@ -480,9 +476,11 @@
                                     class="{{
                                         in_array(
                                             $url,
-                                            ['hasil-guru',
-                                            'detail-hasil',
-                                            'detail-hasil-soal'],
+                                            [
+                                                'hasil-guru',
+                                                'detail-hasil',
+                                                'detail-hasil-soal'
+                                            ],
                                             true
                                         )
                                         ? 'active'
@@ -505,7 +503,7 @@
                             class="{{ $url === 'profil-guru' ? 'active' : '' }}"
                         >
 
-                            <a href="{{ url('/profil-guru') }}">
+                            <a href="{{ route('guru.profil') }}">
 
                                 <i class="fa fa-cog"></i>
 
@@ -528,13 +526,10 @@
                                 "
                             >
                                 <i class="fa fa-sign-out"></i>
-                                Logout
-                            </a>
 
-                                <i class="fa fa-sign-out"></i>
-
-                                Logout
-
+                                <span>
+                                    Logout
+                                </span>
                             </a>
 
                         </li>
@@ -629,7 +624,10 @@
 
 </script>
 
+
 @stack('scripts')
+
+
 <form
     id="logout-form"
     method="POST"
@@ -638,6 +636,7 @@
 >
     @csrf
 </form>
+
 
 </body>
 </html>
