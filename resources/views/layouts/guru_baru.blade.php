@@ -458,7 +458,9 @@
                                     class="{{
                                         in_array(
                                             $url,
-                                            ['hasil-guru', 'detail-hasil'],
+                                            ['hasil-guru',
+                                            'detail-hasil',
+                                            'detail-hasil-soal'],
                                             true
                                         )
                                         ? 'active'
