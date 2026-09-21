@@ -466,7 +466,7 @@
                                     }}"
                                 >
 
-                                    <a href="{{ url('/hasil-guru') }}">
+                                    <a href="{{ route('guru.results') }}">
                                         Laporan
                                     </a>
 
