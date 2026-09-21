@@ -14,6 +14,13 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use App\Models\Detailsoal;
+use Illuminate\Support\Str;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class HasilController extends Controller
 {
@@ -579,6 +586,323 @@ class HasilController extends Controller
             );
     }
 
+    private function classResultRows(int $idKelas,int $idSoal) {
+    return Jawab::query()
+        ->join(
+            'users',
+            'jawabs.id_user',
+            '=',
+            'users.id'
+        )
+        ->select(
+            'jawabs.id_user',
+            'users.no_induk',
+            'users.nama',
+            'users.sekolah_asal',
+
+            DB::raw(
+                "
+                SUM(
+                    CASE
+                        WHEN CAST(
+                            COALESCE(
+                                NULLIF(jawabs.score, ''),
+                                '0'
+                            )
+                            AS DECIMAL(10,2)
+                        ) <> 0
+                        THEN 1
+                        ELSE 0
+                    END
+                ) as jawaban_benar
+                "
+            ),
+
+            DB::raw(
+                "
+                SUM(
+                    CAST(
+                        COALESCE(
+                            NULLIF(jawabs.score, ''),
+                            '0'
+                        )
+                        AS DECIMAL(10,2)
+                    )
+                ) as nilai
+                "
+            )
+        )
+        ->where(
+            'jawabs.id_kelas',
+            $idKelas
+        )
+        ->where(
+            'jawabs.id_soal',
+            $idSoal
+        )
+        ->where(
+            'jawabs.status',
+            'Y'
+        )
+        ->groupBy(
+            'jawabs.id_user',
+            'users.no_induk',
+            'users.nama',
+            'users.sekolah_asal'
+        )
+        ->orderBy(
+            'users.nama'
+        )
+        ->get();
+    }
+
+    public function exportClassResults(int $id,int $idSoal): StreamedResponse {
+        $soal =
+            $this->findAccessiblePackage(
+                $idSoal
+            );
+
+        $kelas =
+            Kelas::findOrFail(
+                $id
+            );
+
+        $results =
+            $this->classResultRows(
+                $kelas->id,
+                $soal->id
+            );
+
+        $jumlahSoal =
+            Detailsoal::query()
+                ->where(
+                    'id_soal',
+                    $soal->id
+                )
+                ->where(
+                    'status',
+                    'Y'
+                )
+                ->count();
+
+        $spreadsheet =
+            new Spreadsheet();
+
+        $sheet =
+            $spreadsheet
+                ->getActiveSheet();
+
+        $sheet->setTitle(
+            'Rekap Nilai'
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Informasi Paket
+        |--------------------------------------------------------------------------
+        */
+
+        $sheet->setCellValue(
+            'A1',
+            'Paket Soal'
+        );
+
+        $sheet->setCellValue(
+            'B1',
+            $soal->paket
+        );
+
+        $sheet->setCellValue(
+            'A2',
+            'Kelas'
+        );
+
+        $sheet->setCellValue(
+            'B2',
+            $kelas->nama
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Header
+        |--------------------------------------------------------------------------
+        */
+
+        $headers = [
+            'NIS',
+            'Nama',
+            'Jumlah Soal',
+            'Jawaban Benar',
+            'Nilai',
+        ];
+
+        $sheet->fromArray(
+            $headers,
+            null,
+            'A4'
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Data
+        |--------------------------------------------------------------------------
+        */
+
+        $row = 5;
+
+        foreach (
+            $results
+            as $result
+        ) {
+            $sheet->setCellValue(
+                'A'.$row,
+                (string) $result->no_induk
+            );
+
+            $sheet->setCellValue(
+                'B'.$row,
+                $result->nama
+            );
+
+            $sheet->setCellValue(
+                'C'.$row,
+                $jumlahSoal
+            );
+
+            $sheet->setCellValue(
+                'D'.$row,
+                (int)
+                $result->jawaban_benar
+            );
+
+            $sheet->setCellValue(
+                'E'.$row,
+                (float)
+                $result->nilai
+            );
+
+            $row++;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Formatting
+        |--------------------------------------------------------------------------
+        */
+
+        $lastRow =
+            max(
+                5,
+                $row - 1
+            );
+
+        $sheet
+            ->getStyle('A1:A2')
+            ->getFont()
+            ->setBold(true);
+
+        $sheet
+            ->getStyle('A4:E4')
+            ->getFont()
+            ->setBold(true);
+
+        $sheet
+            ->getStyle(
+                'A4:E'.$lastRow
+            )
+            ->getBorders()
+            ->getAllBorders()
+            ->setBorderStyle(
+                Border::BORDER_THIN
+            );
+
+        $sheet
+            ->getStyle(
+                'A4:E'.$lastRow
+            )
+            ->getAlignment()
+            ->setVertical(
+                Alignment::VERTICAL_CENTER
+            );
+
+        $sheet
+            ->getStyle(
+                'A4:A'.$lastRow
+            )
+            ->getAlignment()
+            ->setHorizontal(
+                Alignment::HORIZONTAL_CENTER
+            );
+
+        $sheet
+            ->getStyle(
+                'C4:E'.$lastRow
+            )
+            ->getAlignment()
+            ->setHorizontal(
+                Alignment::HORIZONTAL_CENTER
+            );
+
+        $sheet->getColumnDimension('A')
+            ->setWidth(18);
+
+        $sheet->getColumnDimension('B')
+            ->setWidth(32);
+
+        $sheet->getColumnDimension('C')
+            ->setWidth(15);
+
+        $sheet->getColumnDimension('D')
+            ->setWidth(18);
+
+        $sheet->getColumnDimension('E')
+            ->setWidth(12);
+
+        $sheet->freezePane(
+            'A5'
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Download
+        |--------------------------------------------------------------------------
+        */
+
+        $filename =
+            Str::slug(
+                'rekap-'.$kelas->nama.'-'.$soal->paket
+            ).
+            '.xlsx';
+
+        return response()->streamDownload(
+            function () use (
+                $spreadsheet
+            ) {
+                $writer =
+                    new Xlsx(
+                        $spreadsheet
+                    );
+
+                $writer->save(
+                    'php://output'
+                );
+
+                $spreadsheet
+                    ->disconnectWorksheets();
+            },
+            $filename,
+            [
+                'Content-Type' =>
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ]
+        );
+    }
+
     private function findAccessiblePackage(int $id): Soal {
         return Soal::query()
             ->whereKey($id)
@@ -616,6 +940,33 @@ class HasilController extends Controller
         )
         ->limit(3)
         ->get();
+    }
+
+    public function displayClassResults(int $id,int $idSoal): View {
+        $soal =
+            $this->findAccessiblePackage(
+                $idSoal
+            );
+
+        $kelas =
+            Kelas::findOrFail(
+                $id
+            );
+
+        $results =
+            $this->classResultRows(
+                $kelas->id,
+                $soal->id
+            );
+
+        return view(
+            'guru.tampil',
+            compact(
+                'soal',
+                'kelas',
+                'results'
+            )
+        );
     }
 
     private function assessmentLabel(Soal $soal): string {

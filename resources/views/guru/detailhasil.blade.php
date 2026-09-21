@@ -149,33 +149,57 @@
                                 Detail
 
                             </a>
+                            <a
+                                href="{{
+                                    route(
+                                        'guru.results.class.export',
+                                        [
+                                            'id' =>
+                                                $jawab->id_kelas,
 
-
-                            <button
-                                type="button"
+                                            'idSoal' =>
+                                                $soal->id,
+                                        ]
+                                    )
+                                }}"
                                 class="
                                     btn
                                     btn-xs
                                     btn-success
                                 "
-                                disabled
-                                title="
-                                    Export Excel
-                                    tersedia pada
-                                    Tahap 17C
-                                "
                             >
 
-                                <i
-                                    class="
-                                        fa
-                                        fa-file-excel-o
-                                    "
-                                ></i>
+                                <i class="fa fa-file-excel-o"></i>
 
                                 Rekap Nilai
 
-                            </button>
+                            </a>
+                            <a
+                                href="{{
+                                    route(
+                                        'guru.results.class.display',
+                                        [
+                                            'id' =>
+                                                $jawab->id_kelas,
+
+                                            'idSoal' =>
+                                                $soal->id,
+                                        ]
+                                    )
+                                }}"
+                                class="
+                                    btn
+                                    btn-xs
+                                    btn-primary
+                                "
+                                target="_blank"
+                            >
+
+                                <i class="fa fa-desktop"></i>
+
+                                Tampil
+
+                            </a>
 
 
                             <button

@@ -438,6 +438,32 @@ Route::middleware([
             'guru.results.class.destroy'
         );
 
+        Route::get(
+            '/downloadlaporanperkelas/{id}/{idSoal}',
+            [
+                HasilController::class,
+                'exportClassResults'
+            ]
+        )
+            ->whereNumber('id')
+            ->whereNumber('idSoal')
+            ->name(
+                'guru.results.class.export'
+            );
+
+
+        Route::get(
+            '/tampilhasil/{id}/{idSoal}',
+            [
+                HasilController::class,
+                'displayClassResults'
+            ]
+        )
+            ->whereNumber('id')
+            ->whereNumber('idSoal')
+            ->name(
+                'guru.results.class.display'
+            );
     }
 );
 
