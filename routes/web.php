@@ -387,6 +387,11 @@ Route::middleware('guest')->group(function () {
     )
         ->middleware('throttle:5,1')
         ->name('login.process');
+
+    Route::post(
+        '/uploadsoal',
+        [SoalController::class, 'importQuestions']
+        )->name('guru.soal.import');
 });
 
 

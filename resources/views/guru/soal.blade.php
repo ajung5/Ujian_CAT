@@ -34,6 +34,63 @@
 
     @endif
 
+    @if ($errors->any())
+
+        <div class="alert alert-danger">
+
+            @foreach (
+                $errors->all()
+                as $error
+            )
+
+                <div>
+                    {{ $error }}
+                </div>
+
+            @endforeach
+
+        </div>
+
+    @endif
+
+
+    @if (
+        session('import_errors') &&
+        count(
+            session('import_errors')
+        )
+    )
+
+        <div class="alert alert-warning">
+
+            <b>
+                Beberapa baris tidak diimport:
+            </b>
+
+            <ul
+                style="
+                    margin-top:10px;
+                    margin-bottom:0;
+                "
+            >
+
+                @foreach (
+                    session('import_errors')
+                    as $error
+                )
+
+                    <li>
+                        {{ $error }}
+                    </li>
+
+                @endforeach
+
+            </ul>
+
+        </div>
+
+    @endif
+
 
     <div class="panel panel-default">
 
@@ -91,14 +148,132 @@
                 Download Format Excel
 
             </a>
+            <button
+                type="button"
+                class="btn btn-success"
+                id="btnupload"
+            >
+                <i class="fa fa-cloud-upload"></i>
+                Upload Excel
+            </button>
+            <div
+                id="uploadexcel"
+                style="
+                    margin-top:15px;
+                    display:none;
+                "
+            >
+
+                <div class="well">
+
+                    <form
+                        action="{{
+                            route(
+                                'guru.soal.import'
+                            )
+                        }}"
+                        method="POST"
+                        enctype="multipart/form-data"
+                        class="form-horizontal"
+                    >
+
+                        @csrf
 
 
-            {{--
-                Upload Excel akan dimigrasikan
-                setelah CRUD Paket + Detail Soal stabil.
-            --}}
+                        <div class="form-group">
+
+                            <label
+                                class="
+                                    col-sm-2
+                                    control-label
+                                "
+                                for="file"
+                            >
+                                File Excel
+                            </label>
 
 
+                            <div class="col-sm-10">
+
+                                <input
+                                    type="file"
+                                    name="file"
+                                    id="file"
+                                    class="form-control"
+                                    accept=".xls,.xlsx"
+                                    required
+                                >
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <div
+                                class="
+                                    col-sm-offset-2
+                                    col-sm-10
+                                "
+                            >
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary"
+                                >
+
+                                    <i
+                                        class="
+                                            fa
+                                            fa-cloud-upload
+                                        "
+                                    ></i>
+
+                                    Upload
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            class="
+                                alert
+                                alert-warning
+                            "
+                        >
+
+                            <b>PERHATIAN:</b>
+
+                            Gunakan format Excel yang
+                            disediakan.
+
+                            Jangan mengubah urutan kolom.
+
+                            Kolom:
+
+                            <b>
+                                ID Paket,
+                                Soal,
+                                A,
+                                B,
+                                C,
+                                D,
+                                E,
+                                Kunci,
+                                Score
+                            </b>.
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
             <div
                 id="wrapsoal"
                 style="
@@ -106,7 +281,6 @@
                     display:none;
                 "
             >
-
                 <div class="well">
 
                     <div class="form-horizontal">
@@ -481,6 +655,44 @@ $(document).ready(function () {
         function () {
 
             $('#wrapsoal')
+                .slideToggle();
+
+        }
+    );
+
+    $('#btnupload').on(
+        'click',
+        function () {
+
+            $('#uploadexcel')
+                .slideToggle();
+
+        }
+    );
+
+    /* kedua panel tidak terbuka bersamaan */
+    $('#btnsoal').on(
+        'click',
+        function () {
+
+            $('#uploadexcel')
+                .slideUp();
+
+            $('#wrapsoal')
+                .slideToggle();
+
+        }
+    );
+
+
+    $('#btnupload').on(
+        'click',
+        function () {
+
+            $('#wrapsoal')
+                .slideUp();
+
+            $('#uploadexcel')
                 .slideToggle();
 
         }

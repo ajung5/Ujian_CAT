@@ -18,6 +18,11 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
+use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\RichText\RichText;
+use Throwable;
+
 class SoalController extends Controller
 {
     /**
@@ -1173,6 +1178,472 @@ class SoalController extends Controller
         return response('ok');
     }
 
+    public function importQuestions(Request $request): RedirectResponse {
+        $validated = $request->validate(
+            [
+                'file' => [
+                    'required',
+                    'file',
+                    'extensions:xls,xlsx',
+                    'max:10240',
+                ],
+            ],
+            [
+                'file.required' =>
+                    'File Excel belum dipilih.',
+
+                'file.extensions' =>
+                    'File harus menggunakan format XLS atau XLSX.',
+
+                'file.max' =>
+                    'Ukuran file maksimal 10 MB.',
+            ]
+        );
+
+        $file = $request->file('file');
+
+        try {
+
+            /*
+            * PhpSpreadsheet otomatis mendeteksi
+            * XLS lama maupun XLSX.
+            */
+            $reader =
+                IOFactory::createReaderForFile(
+                    $file->getRealPath()
+                );
+
+            /*
+            * Kita hanya membutuhkan data cell.
+            */
+            $reader->setReadDataOnly(true);
+
+            $spreadsheet =
+                $reader->load(
+                    $file->getRealPath()
+                );
+
+            $sheet =
+                $spreadsheet->getActiveSheet();
+
+            $highestRow =
+                $sheet->getHighestDataRow();
+
+        } catch (Throwable $exception) {
+
+            report($exception);
+
+            return back()
+                ->withErrors([
+                    'import' =>
+                        'File Excel tidak dapat dibaca. '.
+                        'Pastikan file XLS/XLSX valid.',
+                ]);
+        }
+
+
+        /*
+        * Paket soal yang diperbolehkan.
+        *
+        * Admin:
+        * seluruh paket.
+        *
+        * Guru:
+        * hanya paket miliknya.
+        */
+        $paketQuery =
+            Soal::query();
+
+        if (
+            auth()->user()->status === 'G'
+        ) {
+            $paketQuery->where(
+                'id_user',
+                auth()->id()
+            );
+        }
+
+        $paketValid =
+            $paketQuery
+                ->pluck('id')
+                ->mapWithKeys(
+                    fn ($id) => [
+                        (string) $id => true,
+                    ]
+                )
+                ->all();
+
+
+        $sukses = 0;
+        $gagal = 0;
+        $kosong = 0;
+
+        $errors = [];
+
+
+        /*
+        * Baris 1 = header.
+        * Data dimulai baris 2.
+        */
+        for (
+            $row = 2;
+            $row <= $highestRow;
+            $row++
+        ) {
+
+            $idSoal =
+                $this->spreadsheetCell(
+                    $sheet
+                        ->getCell(
+                            'A'.$row
+                        )
+                        ->getValue()
+                );
+
+            $soal =
+                $this->spreadsheetCell(
+                    $sheet
+                        ->getCell(
+                            'B'.$row
+                        )
+                        ->getValue()
+                );
+
+            $pila =
+                $this->spreadsheetCell(
+                    $sheet
+                        ->getCell(
+                            'C'.$row
+                        )
+                        ->getValue()
+                );
+
+            $pilb =
+                $this->spreadsheetCell(
+                    $sheet
+                        ->getCell(
+                            'D'.$row
+                        )
+                        ->getValue()
+                );
+
+            $pilc =
+                $this->spreadsheetCell(
+                    $sheet
+                        ->getCell(
+                            'E'.$row
+                        )
+                        ->getValue()
+                );
+
+            $pild =
+                $this->spreadsheetCell(
+                    $sheet
+                        ->getCell(
+                            'F'.$row
+                        )
+                        ->getValue()
+                );
+
+            $pile =
+                $this->spreadsheetCell(
+                    $sheet
+                        ->getCell(
+                            'G'.$row
+                        )
+                        ->getValue()
+                );
+
+            $kunci =
+                strtoupper(
+                    $this->spreadsheetCell(
+                        $sheet
+                            ->getCell(
+                                'H'.$row
+                            )
+                            ->getValue()
+                    )
+                );
+
+            $score =
+                $this->spreadsheetCell(
+                    $sheet
+                        ->getCell(
+                            'I'.$row
+                        )
+                        ->getValue()
+                );
+
+
+            /*
+            * Lewati baris kosong.
+            */
+            if (
+                $idSoal === '' &&
+                $soal === '' &&
+                $pila === '' &&
+                $pilb === '' &&
+                $pilc === '' &&
+                $pild === '' &&
+                $pile === '' &&
+                $kunci === '' &&
+                $score === ''
+            ) {
+
+                $kosong++;
+
+                continue;
+            }
+
+
+            $rowErrors = [];
+
+
+            /*
+            * Validasi paket.
+            */
+            if ($idSoal === '') {
+
+                $rowErrors[] =
+                    'ID Paket Soal kosong.';
+
+            } elseif (
+                ! isset(
+                    $paketValid[$idSoal]
+                )
+            ) {
+
+                $rowErrors[] =
+                    'ID Paket Soal '.
+                    $idSoal.
+                    ' tidak ditemukan atau '.
+                    'tidak dapat diakses.';
+
+            }
+
+
+            /*
+            * Validasi pertanyaan.
+            */
+            if ($soal === '') {
+
+                $rowErrors[] =
+                    'Soal kosong.';
+
+            }
+
+
+            /*
+            * Pilihan A-E tetap wajib
+            * seperti business process legacy.
+            */
+            if ($pila === '') {
+                $rowErrors[] =
+                    'Pilihan A kosong.';
+            }
+
+            if ($pilb === '') {
+                $rowErrors[] =
+                    'Pilihan B kosong.';
+            }
+
+            if ($pilc === '') {
+                $rowErrors[] =
+                    'Pilihan C kosong.';
+            }
+
+            if ($pild === '') {
+                $rowErrors[] =
+                    'Pilihan D kosong.';
+            }
+
+            if ($pile === '') {
+                $rowErrors[] =
+                    'Pilihan E kosong.';
+            }
+
+
+            /*
+            * Kunci A-E.
+            */
+            if (
+                ! in_array(
+                    $kunci,
+                    [
+                        'A',
+                        'B',
+                        'C',
+                        'D',
+                        'E',
+                    ],
+                    true
+                )
+            ) {
+
+                $rowErrors[] =
+                    'Kunci jawaban harus A, B, C, D, atau E.';
+
+            }
+
+
+            /*
+            * Score legacy varchar(50).
+            */
+            if ($score === '') {
+
+                $rowErrors[] =
+                    'Score kosong.';
+
+            } elseif (
+                mb_strlen($score) > 50
+            ) {
+
+                $rowErrors[] =
+                    'Score melebihi 50 karakter.';
+
+            }
+
+
+            if ($rowErrors !== []) {
+
+                $gagal++;
+
+                $errors[] =
+                    'Baris '.$row.': '.
+                    implode(
+                        ' ',
+                        $rowErrors
+                    );
+
+                continue;
+            }
+
+
+            try {
+
+                DB::transaction(
+                    function () use (
+                        $idSoal,
+                        $soal,
+                        $pila,
+                        $pilb,
+                        $pilc,
+                        $pild,
+                        $pile,
+                        $kunci,
+                        $score
+                    ) {
+
+                        $detail =
+                            new Detailsoal();
+
+                        $detail->id_soal =
+                            $idSoal;
+
+                        /*
+                        * Kolom legacy NOT NULL.
+                        */
+                        $detail->jenis = '';
+
+                        $detail->soal =
+                            $soal;
+
+                        $detail->audio =
+                            null;
+
+                        $detail->pila =
+                            $pila;
+
+                        $detail->pilb =
+                            $pilb;
+
+                        $detail->pilc =
+                            $pilc;
+
+                        $detail->pild =
+                            $pild;
+
+                        $detail->pile =
+                            $pile;
+
+                        $detail->kunci =
+                            $kunci;
+
+                        $detail->score =
+                            $score;
+
+                        $detail->id_user =
+                            auth()->id();
+
+                        /*
+                        * Sesuai import legacy:
+                        * hasil import langsung tampil.
+                        */
+                        $detail->status = 'Y';
+
+                        /*
+                        * Import legacy tidak
+                        * menggunakan sesi.
+                        */
+                        $detail->sesi =
+                            null;
+
+                        $detail->save();
+                    }
+                );
+
+                $sukses++;
+
+            } catch (Throwable $exception) {
+
+                report($exception);
+
+                $gagal++;
+
+                $errors[] =
+                    'Baris '.$row.
+                    ': gagal disimpan ke database.';
+
+            }
+
+        }
+
+
+        /*
+        * Lepaskan workbook dari memory.
+        */
+        $spreadsheet
+            ->disconnectWorksheets();
+
+        unset($spreadsheet);
+
+
+        $message =
+            'Import soal selesai. '.
+            'Berhasil: '.$sukses.
+            ', Ditolak: '.$gagal.'.';
+
+        if ($kosong > 0) {
+
+            $message .=
+                ' Baris kosong dilewati: '.
+                $kosong.'.';
+
+        }
+
+
+        return redirect()
+            ->route('guru.soal')
+            ->with(
+                'success',
+                $message
+            )
+            ->with(
+                'import_errors',
+                $errors
+            );
+    }
+
 
     /**
      * Authorization Paket Soal.
@@ -1209,5 +1680,53 @@ class SoalController extends Controller
         );
 
         return $detail;
+    }
+
+    private function spreadsheetCell(mixed $value): string {
+        if ($value === null) {
+            return '';
+        }
+
+        /*
+        * Cell rich text.
+        */
+        if (
+            $value instanceof RichText
+        ) {
+            $value =
+                $value->getPlainText();
+        }
+
+        if (is_bool($value)) {
+            return $value
+                ? '1'
+                : '0';
+        }
+
+        /*
+        * Angka ID/score tidak boleh
+        * menjadi format scientific.
+        */
+        if (
+            is_int($value) ||
+            is_float($value)
+        ) {
+            return rtrim(
+                rtrim(
+                    number_format(
+                        $value,
+                        10,
+                        '.',
+                        ''
+                    ),
+                    '0'
+                ),
+                '.'
+            );
+        }
+
+        return trim(
+            (string) $value
+        );
     }
 }
