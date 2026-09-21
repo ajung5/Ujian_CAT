@@ -6,6 +6,7 @@ use App\Http\Controllers\GuruController;
 use App\Http\Controllers\DataguruController;
 use App\Http\Controllers\DatasiswaController;
 use App\Http\Controllers\MateriController;
+use App\Http\Controllers\SoalController;
 
 /*
 |--------------------------------------------------------------------------
@@ -249,7 +250,60 @@ Route::middleware([
             [MateriController::class, 'search']
         )->name('guru.materi.search');
 
-    });
+        /*
+        |--------------------------------------------------------------------------
+        | Paket Soal
+        |--------------------------------------------------------------------------
+        */
+        Route::get(
+            '/soal-guru',
+            [SoalController::class, 'index']
+        )->name('guru.soal');
+
+
+        Route::post(
+            '/get-soal-guru',
+            [SoalController::class, 'search']
+        )->name('guru.soal.search');
+
+
+        Route::post(
+            '/simpanformsoal',
+            [SoalController::class, 'store']
+        )->name('guru.soal.store');
+
+
+        Route::get(
+            '/edit-soal/{id}',
+            [SoalController::class, 'edit']
+        )
+            ->whereNumber('id')
+            ->name('guru.soal.edit');
+
+
+        Route::post(
+            '/updateformsoal',
+            [SoalController::class, 'update']
+        )->name('guru.soal.update');
+
+
+        Route::get(
+            '/hapus-soal/{id}',
+            [SoalController::class, 'deleteConfirm']
+        )
+            ->whereNumber('id')
+            ->name('guru.soal.delete-confirm');
+
+
+        Route::post(
+            '/eksekusi-hapus-paket-soal/{id}',
+            [SoalController::class, 'destroy']
+        )
+            ->whereNumber('id')
+            ->name('guru.soal.destroy');
+
+    }
+);
 
     /*
 |--------------------------------------------------------------------------
