@@ -20,6 +20,35 @@
 
 @section('content')
 
+  @if (session('error'))
+
+      <div class="col-md-12">
+
+          <div class="alert alert-danger">
+
+              {{ session('error') }}
+
+          </div>
+
+      </div>
+
+  @endif
+
+
+  @if (session('success'))
+
+      <div class="col-md-12">
+
+          <div class="alert alert-success">
+
+              {{ session('success') }}
+
+          </div>
+
+      </div>
+
+  @endif
+
 <div class="col-md-12">
 
     @if (
@@ -149,33 +178,19 @@
                             </tbody>
 
                         </table>
-
-
-                        {{--
-                            Link Mulai Ujian akan
-                            diaktifkan pada Tahap 14B.
-                        --}}
-
-                        <button
-                            type="button"
-                            class="
-                                btn
-                                btn-primary
-                            "
-                            disabled
+                        <a
+                            href="{{
+                                route(
+                                    'siswa.exam',
+                                    $dataSoal->id_soal
+                                )
+                            }}"
+                            class="btn btn-primary"
                         >
-
-                            <i
-                                class="
-                                    fa
-                                    fa-pencil
-                                "
-                            ></i>
+                            <i class="fa fa-pencil"></i>
 
                             Mulai Ujian
-
-                        </button>
-
+                        </a>
                     </div>
 
                 </div>

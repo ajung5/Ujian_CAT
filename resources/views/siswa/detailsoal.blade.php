@@ -1,470 +1,1631 @@
-<?php
-	header('Content-Type: text/html; charset=utf-8');
-	if (Auth::user()->status == "S" or Auth::user()->status == "C") {
+@extends('layouts.siswa_baru')
 
-	include(app_path() . '/functions/koneksi.php');
+@section('title', 'Detail Soal')
 
-	$id_kelas = $user->id_kelas;
-	$conn = new mysqli($hostdb, $userdb, $passdb, $namedb);
 
-	if ($conn->connect_error) {
-	    die("Connection failed: " . $conn->connect_error);
-	}
-	$sql = "SELECT * FROM kelas WHERE id = '$id_kelas'";
-	$result = $conn->query($sql);
-	if ($result->num_rows > 0) {
-	    while($row = $result->fetch_assoc()) {
-	        $kelas_siswa = $row["nama"];
-	    }
-	} else {
-	    $kelas_siswa = "Maaf, Anda belum mendapat kelas";
-	}
-	
-	$q_cekdistribusisoal = "SELECT * FROM distribusisoals WHERE id_soal = '$idsoal' AND id_kelas = '$id_kelas'";
-	$result = $conn->query($q_cekdistribusisoal);
-	if ($result->num_rows > 0) {
-	    $jumlah_kelas = $result->num_rows;
-	} else {
-	    header("Refresh: 0;../soal-siswa");
-	}
+@push('styles')
 
-	$q_cekjenissoal = "SELECT * FROM detailsoals WHERE id_soal = '$idsoal' GROUP BY id_soal";
-	$result = $conn->query($q_cekjenissoal);
-	if ($result->num_rows > 0) {
-	    while($row = $result->fetch_assoc()) {
-	        $jenis_soal = $row["jenis"];
-	    }
-	} else {
-	    $jenis_soal = "";
-	}
-
-	$q_cekjawabsoal = "SELECT * FROM jawabs WHERE id_soal = '$idsoal' AND id_user = '$user->id' AND status = 'Y'";
-	$result = $conn->query($q_cekjawabsoal);
-	if ($result->num_rows > 0) {
-	    
-	    if ($jenis_soal == 1 AND $result->num_rows >= 1) {
-	    	$sudahmengerjakan = 1;
-	    }else{
-	    	$sudahmengerjakan = 0;
-	    }
-	    
-	}else{
-		$sudahmengerjakan = 0;
-	}
-
-	$sql_soal = "SELECT * FROM detailsoals WHERE id_soal = '$idsoal' AND status='Y' ORDER BY RAND()";
-	
-?>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Detail Soal - Aplikasi Ujian Berbasis Komputer</title>
-<meta name="csrf-token" content="{{ csrf_token() }}" />
-<link rel="icon" href="{{ url('img/favicon.png') }}">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-<link rel="stylesheet" href="{!! url('css/anythingslider.css') !!}">
-<link rel="stylesheet" href="{!! url('css/theme-minimalist-round.css') !!}">
-<link rel="stylesheet" href="{!! url('css/flipclock.css') !!}">
 <style>
-.wrapsoal {
-	min-height: 150px;
-	padding: 15px 100px 75px 15px;
-	line-height: 25px;
+
+#defaultCountdown {
+    font-size: 28px;
+    font-weight: bold;
+    text-align: center;
+    color: #003284;
 }
-#soal {
-	padding: 0 0 15px 0;
+
+.pagination {
+    background: #fff;
+    color: #000 !important;
 }
+
+.page {
+    display: inline-block;
+    padding: 4px 10px;
+    margin: 8px 4px 0 0;
+    border-radius: 3px;
+    border: 1px solid #c0c0c0;
+    background: #e9e9e9;
+    font-weight: bold;
+    text-decoration: none;
+    color: #717171;
+}
+
+.page.active {
+    background: #616161;
+    color: #fff;
+}
+
+.page.current {
+    outline: 3px solid #003284;
+    outline-offset: 2px;
+}
+
+.benar {
+    padding: 15px;
+    background: #045ff2;
+    color: #fff;
+}
+
+#question-navigation {
+    margin-top: 15px;
+    padding: 12px 0;
+    border-top: 1px solid #e3e9f2;
+}
+
 </style>
-<script src="{{ url('/assets/assets/vendor/jquery.min.js') }}"></script>
-<script src="{{ url('/js/jquery.backstretch.min.js') }}"></script>
-<script src="{!! url('js/jquery.anythingslider.js') !!}"></script>
-<script src="{!! url('js/flipclock.js') !!}"></script>
 
-<div class="container" style="margin: 15px auto 0 auto">
-  <div class="col-md-12 content">
-    <ol class="breadcrumb">
-      <li><a href="{!! url('/siswa') !!}">Home</a></li>
-      <li><a href="{!! url('/soal-siswa') !!}">Soal</a></li>
-      <li class="active">Detail Soal</li>
-    </ol>
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <h3 class="panel-title">Detail Soal</h3>
-      </div>
-      <div class="panel-body">
-        <table class="table">
-          <tbody>
-          
-          @if($distribusisoal->count())
-          @foreach($distribusisoal as $distribusisoal)
-          <?php
-				$conn = new mysqli($hostdb, $userdb, $passdb, $namedb);
-				if ($conn->connect_error) {
-				    die("Connection failed: " . $conn->connect_error);
-				}
-				$sql = "SELECT * FROM soals WHERE id = '$idsoal' LIMIT 1";
-			?>
-          @endforeach
-          @endif
-          <?php
-				$result = $conn->query($sql);
-				if ($result->num_rows > 0) {
-				    while($row = $result->fetch_assoc()) {
-				    	$id_guru = $row['id_user'];
-				    	$id_soal = $row['id'];
-				    	$paket_soal = $row['paket'];
-				    	$waktu_soal = $row['waktu'];
-				    	$deksripsi_soal = $row['deskripsi'];
-				    	$kkm_soal = $row['kkm'];
-			?>
-          <tr>
-            <td width="150px">Test</td>
-            <td>: {{ $paket_soal }}</td>
-          </tr>
-          <tr>
-            <td>Jumlah Soal</td>
-            <td>:
-              <?php
-						$conn = new mysqli($hostdb, $userdb, $passdb, $namedb);
-						if ($conn->connect_error) {
-						    die("Connection failed: " . $conn->connect_error);
-						}
-						$sqljs = "SELECT * FROM detailsoals WHERE id_soal = '$idsoal' AND status = 'Y'";
-						$resultjs = $conn->query($sqljs);
-						if ($resultjs->num_rows > 0) {
-						    echo $resultjs->num_rows;
-						} else {
-						    echo "0";
-						}
-					?></td>
-          </tr>
-          <tr>
-            <td>KKM</td>
-            <td>: {{ $kkm_soal }}</td>
-          </tr>
-          <tr>
-            <td>Waktu</td>
-            <td>:
-              <?=  $waktu_soal / 60; ?>
-              menit</td>
-          </tr>
-          <tr>
-            <td>Deskripsi</td>
-            <td>: {!! $deksripsi_soal !!}</td>
-          </tr>
-          <?php }} ?>
-            </tbody>
-          
-        </table>
-        <div class="alert alert-success">
-          <p style="font-size:18px; margin-bottom:10px;">Sebelum mulai mengerjakan, baca dan ikuti instruksi dibawah ini:</p>
-          <ul>
-            <li><b style="color: #F00;">Jangan</b> <i>refresh</i> halaman, atau jawaban akan hilang.</li>
-            <li>Selalu perhatikan waktu ujian, karena sistem akan mengumpulkan jawaban secara otomatis saat waktu ujian telah habis.</li>
-          </ul>
-        </div>
-        <?php if ($sudahmengerjakan == 0) { ?>
-        <button type="button" id="btnmulai" class="btn btn-primary btn-lg">Mulai Ujian</button>
-        <?php }else{ ?>
-        <div class="alert alert-danger" style="font-size:20px; font-weight:bold"><span class="glyphicon glyphicon-remove-sign"></span> Anda sudah mengerjakan soal ini......</div>
-        <?php	} ?>
-      </div>
-    </div>
-    <!-- </div> -->
-    <div id="soal" class="container" style="background: #fff; overflow-y: scroll;">
-      <div class="col-md-12">
-        <div class="alert alert-danger" style="font-size: 14px; font-weight: bold;" id="wrapwaktu"><span class="glyphicon glyphicon-time"></span> <span id="waktuujian"></span></div>
-        <div class="message"></div>
-        <br class="clearfix">
-        <ul id="slider" class="wrapslidersoal">
-		<?php 
-		$conn->set_charset("utf8");
-		$result = $conn->query($sql_soal);
-		$no = 1;
-		if ($result->num_rows > 0) {
-		    while($row = $result->fetch_assoc()) {
-		?>
-          <li>
-            <div class="wrapsoal">
-              <input type="hidden" name="id_soaljawab" id="id_soaljawab" value="{{ $row['id_soal'] }}">
-              <input type="hidden" name="id_userjawab" id="id_userjawab" value="{{ Auth::user()->id }}">
-              <input type="hidden" name="id_soal{{ $row['id'] }}" id="id_soal{{ $row['id'] }}" value="{{ $row['id_soal'] }}">
-              <input type="hidden" name="no_soal_id{{ $row['id'] }}" id="no_soal_id{{ $row['id'] }}" value="{{ $row['id'] }}">
-              <input type="hidden" name="id_user{{ $row['id'] }}" id="id_user{{ $row['id'] }}" value="{{ Auth::user()->id }}" >
-              <table>
-                <tbody>
-                  <tr>
-                    <td valign="top" width="25px"><b>{{ $no++ }}.</b></td>
-                    <td colspan="2">
-                    	<?php $datasoal = $row['soal']; ?>
-                    	
-                    	{!! $datasoal !!}
-                    	<?php if($row['audio'] != ""){ $audio = $row['audio']; ?>
-                    	<p>
-                    		<audio controls>
-			                  <source src="{{ url('/assets/audios/'.$audio) }}" type="audio/mpeg">
-			                  Your browser does not support the audio element.
-			                </audio>
-                    	</p>
-                    	<?php } ?>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td colspan="3" height="15px"></td>
-                  </tr>
-                  <tr id="pila{{ $row['id'] }}">
-                    <td valign="top" width="25px">&nbsp;</td>
-                    <td valign="top" width="25px"><input type="radio" name="pil{{ $row['id'] }}" id="pil{{ $row['id'] }}" value="A"></td>
-                    <td>{!! $row['pila'] !!}</td>
-                  </tr>
-                  <tr>
-                    <td colspan="3" height="10px"></td>
-                  </tr>
-                  <tr id="pilb{{ $row['id'] }}">
-                    <td valign="top" width="25px">&nbsp;</td>
-                    <td valign="top" width="25px"><input type="radio" name="pil{{ $row['id'] }}" id="pil{{ $row['id'] }}" value="B"></td>
-                    <td>{!! $row['pilb'] !!}</td>
-                  </tr>
-                  <tr>
-                    <td colspan="3" height="10px"></td>
-                  </tr>
-                  <tr id="pilc{{ $row['id'] }}">
-                    <td valign="top" width="25px">&nbsp;</td>
-                    <td valign="top" width="25px"><input type="radio" name="pil{{ $row['id'] }}" id="pil{{ $row['id'] }}" value="C"></td>
-                    <td>{!! $row['pilc'] !!}</td>
-                  </tr>
-                  <tr>
-                    <td colspan="3" height="10px"></td>
-                  </tr>
-                  <tr id="pild{{ $row['id'] }}">
-                    <td valign="top" width="25px">&nbsp;</td>
-                    <td valign="top" width="25px"><input type="radio" name="pil{{ $row['id'] }}" id="pil{{ $row['id'] }}" value="D"></td>
-                    <td>{!! $row['pild'] !!}</td>
-                  </tr>
-                  <tr>
-                    <td colspan="3" height="10px"></td>
-                  </tr>
-                  <tr id="pile{{ $row['id'] }}">
-                    <td valign="top" width="25px">&nbsp;</td>
-                    <td valign="top" width="25px"><input type="radio" name="pil{{ $row['id'] }}" id="pil{{ $row['id'] }}" value="E"></td>
-                    <td>{!! $row['pile'] !!}</td>
-                  </tr>
-                </tbody>
-              </table>
+@endpush
+
+
+@section('breadcrumb')
+
+<li>
+
+    <a href="{{ route('siswa.index') }}">
+        Home
+    </a>
+
+</li>
+
+<li>
+
+    <a href="{{ route('siswa.soal') }}">
+        Soal Ujian
+    </a>
+
+</li>
+
+<li class="active">
+    Detail Soal
+</li>
+
+@endsection
+
+
+@section('content')
+
+<div class="col-md-12">
+
+    <div class="card">
+
+        <div class="card-header bg-white">
+
+            <div class="media">
+
+                <div class="media-body">
+
+                    <h4 class="card-title">
+                        Detail Soal
+                    </h4>
+
+                </div>
+
             </div>
-            <script type="text/javascript">
-				$.ajaxSetup({
-			      headers: {
-			        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-			      }
-			    });
-				$(document).ready(function(){
-					$("input[name=pil{{ $row['id'] }}]").click(function(){
-						var pilihan = $("input[name=pil{{ $row['id'] }}]:checked").val();
-						var id_soal = $("#id_soal{{ $row['id'] }}").val();
-						var no_soal_id = $("#no_soal_id{{ $row['id'] }}").val();
-						var id_user = $("#id_user{{ $row['id'] }}").val();
-						var datastring = "pilihan="+pilihan+"&id_soal="+id_soal+"&no_soal_id="+no_soal_id+"&id_user="+id_user;
-				        $.ajax({
-				          type: "POST",
-				          url: "{!! url('simpanjawabankliksiswa') !!}",
-				          data: datastring,
-				          success: function(data){
-				          	if(data == "A"){
-				          		$("#pilb{{ $row['id'] }}").removeClass('alert alert-info');
-				          		$("#pilc{{ $row['id'] }}").removeClass('alert alert-info');
-				          		$("#pild{{ $row['id'] }}").removeClass('alert alert-info');
-				          		$("#pile{{ $row['id'] }}").removeClass('alert alert-info');
-				            	$("#pila{{ $row['id'] }}").addClass('alert alert-info');
-				            }
-				            if(data == "B"){
-				            	$("#pilc{{ $row['id'] }}").removeClass('alert alert-info');
-				          		$("#pild{{ $row['id'] }}").removeClass('alert alert-info');
-				          		$("#pile{{ $row['id'] }}").removeClass('alert alert-info');
-				            	$("#pila{{ $row['id'] }}").removeClass('alert alert-info');
-				            	$("#pilb{{ $row['id'] }}").addClass('alert alert-info');
-				            }
-				            if(data == "C"){
-				            	$("#pild{{ $row['id'] }}").removeClass('alert alert-info');
-				          		$("#pile{{ $row['id'] }}").removeClass('alert alert-info');
-				            	$("#pila{{ $row['id'] }}").removeClass('alert alert-info');
-				            	$("#pilb{{ $row['id'] }}").removeClass('alert alert-info');
-				            	$("#pilc{{ $row['id'] }}").addClass('alert alert-info');
-				            }
-				            if(data == "D"){
-				            	$("#pile{{ $row['id'] }}").removeClass('alert alert-info');
-				            	$("#pila{{ $row['id'] }}").removeClass('alert alert-info');
-				            	$("#pilb{{ $row['id'] }}").removeClass('alert alert-info');
-				            	$("#pilc{{ $row['id'] }}").removeClass('alert alert-info');
-				            	$("#pild{{ $row['id'] }}").addClass('alert alert-info');
-				            }
-				            if(data == "E"){
-				            	$("#pila{{ $row['id'] }}").removeClass('alert alert-info');
-				            	$("#pilb{{ $row['id'] }}").removeClass('alert alert-info');
-				            	$("#pilc{{ $row['id'] }}").removeClass('alert alert-info');
-				            	$("#pild{{ $row['id'] }}").removeClass('alert alert-info');
-				            	$("#pile{{ $row['id'] }}").addClass('alert alert-info');
-				            }
-				            console(data);
-				          }
-				        });
-						//alert(pilihan);
-					});
-				});
-			</script> 
-          </li>
-          <?php
-		}
-	} else {
-	    echo "Maaf, Soal belum dibuat...";
-	}
-	$conn->close();
-	?>
-        </ul>
-        <center>
-          <input type="button" name="kirimjawaban" id="btnjawab" value="Kirim Jawaban" class="btn btn-primary pull-right">
-          <div class="clearfix"></div>
-          <div style="height: 10px;"></div>
-          <div class="alert alert-success" id="jawabbagus" style="font-size:20px; text-align:center">Ujian telah telah selesai dikerjakan dan dilakukan dengan baik.</div>
-          <div class="alert alert-danger" id="jawabjelek" style="font-size:20px; text-align:center">Ujian telah telah selesai dikerjakan dan dilakukan dengan baik.</div>
-        </center>
-      </div>
+
+        </div>
+
+
+        <div style="padding:15px;">
+
+            <table class="table table-bordered">
+
+                <tbody>
+
+                <tr>
+
+                    <td style="width:110px;">
+                        Paket Soal
+                    </td>
+
+                    <td style="width:15px;">
+                        :
+                    </td>
+
+                    <td>
+                        {{ $soal->paket }}
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <td>
+                        Deskripsi
+                    </td>
+
+                    <td>
+                        :
+                    </td>
+
+                    <td>
+                        {{ $soal->deskripsi }}
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <td>
+                        Jumlah
+                    </td>
+
+                    <td>
+                        :
+                    </td>
+
+                    <td>
+                        {{ count($questionOrder) }}
+                        soal
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <td>
+                        KKM
+                    </td>
+
+                    <td>
+                        :
+                    </td>
+
+                    <td>
+                        {{ $soal->kkm }}
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <td>
+                        Waktu
+                    </td>
+
+                    <td>
+                        :
+                    </td>
+
+                    <td>
+
+                        {{
+                            number_format(
+                                ((int) $soal->waktu)
+                                / 60,
+                                0
+                            )
+                        }}
+
+                        menit
+
+                        @if ($hasStarted)
+
+                            <br>
+
+                            <strong>
+                                Sisa waktu sekitar
+                                {{
+                                    ceil(
+                                        $remainingSeconds
+                                        / 60
+                                    )
+                                }}
+                                menit.
+                            </strong>
+
+                        @endif
+
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+
+            <div class="alert alert-info">
+
+                <p
+                    style="
+                        font-size:18px;
+                        margin-bottom:10px;
+                    "
+                >
+
+                    Sebelum mulai mengerjakan,
+                    baca dan ikuti instruksi
+                    berikut:
+
+                </p>
+
+                <ul>
+
+                    <li>
+                        Jangan refresh halaman
+                        selama ujian jika tidak
+                        diperlukan.
+                    </li>
+
+                    <li>
+                        Waktu tetap berjalan
+                        setelah ujian dimulai.
+                    </li>
+
+                    <li>
+                        Jawaban disimpan setiap
+                        kali Anda memilih opsi.
+                    </li>
+
+                    <li>
+                        Saat waktu habis,
+                        jawaban akan difinalisasi
+                        otomatis.
+                    </li>
+
+                </ul>
+
+            </div>
+
+
+            <button
+                type="button"
+                id="trigger_soal"
+                class="
+                    btn
+                    btn-primary
+                    btn-lg
+                "
+            >
+
+                {{
+                    $hasStarted
+                        ? 'Lanjutkan Ujian'
+                        : 'Mulai Ujian'
+                }}
+
+            </button>
+
+        </div>
+
     </div>
-    <footer class="col-md-12 pull-left footer" style="background:#fff">
-      <p class="col-md-12">
-      <hr class="divider">
-      Copyright &COPY; 2016 {{ $school->nama }} Design by: <a href="http://www.tipa.co.id" target="_blank">Tipamedia</a>
-      </p>
-    </footer>
-  </div>
-  <script>
-	$.backstretch("{{ url('/img/bg_ujian.jpg') }}", {speed: 150});
-	function disableF5(e) {
-		if (e.which == 116) e.preventDefault();
-	};
-	$(document).bind("keydown", disableF5)
-	function preventBack(){window.history.forward();}
-	   	setTimeout("preventBack()", 0);
-	   	window.onunload = function(){null};
-	   	function Disable() {
-		if (event.button == 2){
-			alert("klik kanan tidak diaktifkan.")
-		}
-	}
-	document.onmousedown = Disable;
 
-	var clock;		
-	$(document).ready(function() {
-		$("#jawabbagus").hide();
-	  	$("#jawabjelek").hide();
-	  	$("#btnjawab").click(function(){
-	  		if (!confirm('Yakin jawaban akan dikirim?')) return false;
-		    
-		    var id_soaljawab = $("#id_soaljawab").val();
-		    var id_userjawab = $("#id_userjawab").val();
-		    var datastring = "id_soaljawab="+id_soaljawab+"&id_userjawab="+id_userjawab;
-		    $.ajax({
-		    	url: "{{ url('/kirimjawaban') }}",
-		    	type: 'POST',
-		    	data: datastring,
-		    	success: function(data){
-		    		$("#btnjawab").hide();
-	    			$("#jawabjelek").hide();
-	    			$("#jawabbagus").show();
-	    			setTimeout(function() {
-						    window.location.href = "{{ url('/siswa') }}"
-							}, 15);
-		    		/*if(data >= {{ $kkm_soal }}){
-		    			$("#btnjawab").hide();
-	  					$("#jawabjelek").hide();
-		    			$("#jawabbagus").show();
-		    			setTimeout(function() {
-						    window.location.href = "../hasil-siswa"
-							}, 8);
-		    		}else if(data < $kkm_soal){
-		    			$("#btnjawab").hide();
-		    			$("#jawabbagus").hide();
-		    			$("#jawabjelek").show();
-		    			setTimeout(function() {
-					    	window.location.href = "../hasil-siswa"
-							}, 8);
-		    		}else{
-		    			$("#btnjawab").hide();
-		    			$("#jawabjelek").hide();
-		    			$("#jawabbagus").show();
-		    		}*/
-	        }
-		    })
-	  	});
-
-			clock = $('#waktuujian').FlipClock({{ $waktu_soal }}, {
-        clockFace: 'MinuteCounter',
-        countdown: true,
-        autoStart: false,
-        callbacks: {
-        	start: function() {
-        		alert ('Ujian dimulai......');
-        	},
-        	stop: function() {
-        		window.location.href = "../hasil-siswa";
-        	}
-        }
-	    });
-
-	    $('#soal').click(function(e) {
-	    	clock.start();
-	    });
-		});
-	
-    var elem = document.getElementById("soal");
-    var btnelem = document.getElementById("btnmulai");
-
-    window.onload = function() {
-    	if (!window.screenTop && !window.screenY) {
-    		$('#slider').anythingSlider({
-					easing : 'easeInOutBack',
-					resizeContents : false,
-					buildStartStop : false,
-					onSlideBegin: function(e,slider) {
-						slider.navWindow( slider.targetPage );
-					}
-				});
-	    	$("#soal").hide();
-	        console.log('not fullscreen');
-	    } else {
-	    	$('#slider').anythingSlider({
-				easing : 'easeInOutBack',
-				resizeContents : false,
-				buildStartStop : false,
-				onSlideBegin: function(e,slider) {
-					slider.navWindow( slider.targetPage );
-				}
-			});
-	    	$("#soal").hide();
-	        console.log('fullscreen');
-	    }
-    }
-
-    btnelem.onclick = function() {
-    	$("#soal").show();
-        req = elem.requestFullScreen || elem.webkitRequestFullScreen || elem.mozRequestFullScreen;
-        req.call(elem);
-    }
-   
-    $(document).on('webkitfullscreenchange mozfullscreenchange fullscreenchange', function(e)    
-		{
-	    if (!window.screenTop && !window.screenY) {
-	    	$("#soal").show();
-	        console.log('not fullscreen');
-	    } else {
-	    	$("#soal").hide();
-	        console.log('fullscreen');
-	    }
-	});
-
-  </script>
 </div>
-<?php
-	}else{
-		return redirect('url(guru)');
-	}
-?>
+
+
+<div
+    id="wrap_soal"
+    style="
+        display:none;
+        position:fixed;
+        z-index:9999;
+        top:0;
+        left:0;
+        background:#f2f7ff;
+        height:100%;
+        width:100%;
+        overflow-y:auto;
+    "
+>
+
+    <div
+        class="container"
+        id="wrap-siap-ujian"
+        style="
+            margin:50px auto 0 auto;
+            padding:15px;
+            background:#fff;
+            text-align:center;
+        "
+    >
+
+        <p>
+
+            Dengan mengklik tombol
+            <b>Siap Ujian</b>,
+            waktu ujian akan berjalan.
+
+        </p>
+
+
+        @if ($hasStarted)
+
+            <div class="alert alert-warning">
+
+                Ujian ini sudah pernah dimulai.
+
+                Waktu tetap berjalan walaupun
+                halaman ditutup.
+
+            </div>
+
+        @endif
+
+
+        <button
+            type="button"
+            id="siap-ujian"
+            class="btn btn-success"
+        >
+
+            {{
+                $hasStarted
+                    ? 'Lanjutkan Ujian'
+                    : 'Siap Ujian'
+            }}
+
+        </button>
+
+
+        <button
+            type="button"
+            id="batal-ujian"
+            class="btn btn-danger"
+        >
+            Batal
+        </button>
+
+    </div>
+
+
+    <div
+        class="
+            container-fluid
+            wrap_ujian
+        "
+        style="display:none;"
+    >
+
+        <div class="row">
+
+            <div
+                class="col-md-12"
+                style="
+                    background:#003284;
+                    padding:10px;
+                    color:#fff;
+                "
+            >
+
+                Hai {{ $user->nama }},
+                Selamat mengerjakan
+                {{ $soal->paket }}
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div
+        class="
+            container
+            wrap_ujian
+        "
+        style="display:none;"
+    >
+
+        <div style="height:15px;"></div>
+
+
+        <div class="row">
+
+            <div
+                class="
+                    col-md-8
+                    col-sm-12
+                "
+                style="
+                    padding:
+                    0 10px 0 0;
+                "
+            >
+
+                <div
+                    id="wrap-soal"
+                    style="
+                        border:
+                        1px solid #e3e9f2;
+                        background:#fff;
+                        padding:10px;
+                        min-height:200px;
+                    "
+                >
+
+                    <div
+                        class="
+                            text-center
+                            text-muted
+                        "
+                        style="padding:50px;"
+                    >
+
+                        Memuat soal...
+
+                    </div>
+
+                </div>
+
+
+                <div id="question-navigation">
+
+                    <button
+                        type="button"
+                        id="soal-sebelumnya"
+                        class="btn btn-default"
+                    >
+
+                        <i
+                            class="
+                                fa
+                                fa-chevron-left
+                            "
+                        ></i>
+
+                        Sebelumnya
+
+                    </button>
+
+
+                    <button
+                        type="button"
+                        id="soal-berikutnya"
+                        class="
+                            btn
+                            btn-default
+                            pull-right
+                        "
+                    >
+
+                        Berikutnya
+
+                        <i
+                            class="
+                                fa
+                                fa-chevron-right
+                            "
+                        ></i>
+
+                    </button>
+
+
+                    <div class="clearfix"></div>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="
+                    col-md-4
+                    col-sm-12
+                "
+            >
+
+                <div class="card">
+
+                    <div
+                        class="
+                            card-header
+                            bg-white
+                        "
+                    >
+
+                        <div id="defaultCountdown">
+                            --:--:--
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class="
+                            card-header
+                            bg-white
+                        "
+                    >
+
+                        <h4 class="card-title">
+                            Nomor Soal
+                        </h4>
+
+                    </div>
+
+
+                    <div style="padding:0 15px;">
+
+                        <div class="pagination">
+
+                            @foreach (
+                                $questionOrder
+                                as $index => $questionId
+                            )
+
+                                <a
+                                    href="#"
+                                    class="
+                                        page
+                                        question-number
+                                        {{
+                                            in_array(
+                                                $questionId,
+                                                $answeredIds,
+                                                true
+                                            )
+                                                ? 'active'
+                                                : ''
+                                        }}
+                                    "
+                                    id="get-soal{{
+                                        $questionId
+                                    }}"
+                                    data-question-id="{{
+                                        $questionId
+                                    }}"
+                                >
+
+                                    {{ $index + 1 }}
+
+                                </a>
+
+                            @endforeach
+
+                        </div>
+
+
+                        <hr>
+
+
+                        <button
+                            type="button"
+                            id="kirim"
+                            class="
+                                btn
+                                btn-primary
+                                pull-right
+                            "
+                        >
+                            Selesai
+                        </button>
+
+
+                        <div class="clearfix"></div>
+
+                        <hr>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@endsection
+
+
+@push('scripts')
+
+<script>
+
+$(document).ready(function () {
+
+    'use strict';
+
+
+    const examId =
+        {{ (int) $soal->id }};
+
+
+    const questionIds =
+        @json(
+            array_values(
+                $questionOrder
+            )
+        );
+
+
+    const answeredIds =
+        @json(
+            array_values(
+                $answeredIds
+            )
+        );
+
+
+    let currentQuestionId =
+        null;
+
+    let remainingSeconds =
+        {{ (int) $remainingSeconds }};
+
+    let timerInterval =
+        null;
+
+    let syncInterval =
+        null;
+
+    let isSavingAnswer =
+        false;
+
+    let isLoadingQuestion =
+        false;
+
+    let examFinished =
+        false;
+
+
+    function formatTime(seconds) {
+
+        seconds =
+            Math.max(
+                0,
+                parseInt(
+                    seconds,
+                    10
+                ) || 0
+            );
+
+
+        const hours =
+            Math.floor(
+                seconds / 3600
+            );
+
+        const minutes =
+            Math.floor(
+                (seconds % 3600)
+                / 60
+            );
+
+        const secs =
+            seconds % 60;
+
+
+        return [
+            String(hours)
+                .padStart(2, '0'),
+
+            String(minutes)
+                .padStart(2, '0'),
+
+            String(secs)
+                .padStart(2, '0')
+
+        ].join(':');
+
+    }
+
+
+    function renderTimer() {
+
+        $('#defaultCountdown')
+            .text(
+                formatTime(
+                    remainingSeconds
+                )
+            );
+
+    }
+
+
+    function getCurrentIndex() {
+
+        return questionIds
+            .indexOf(
+                parseInt(
+                    currentQuestionId,
+                    10
+                )
+            );
+
+    }
+
+
+    function updateNavigation() {
+
+        const index =
+            getCurrentIndex();
+
+
+        $('.question-number')
+            .removeClass('current');
+
+
+        if (
+            currentQuestionId !== null
+        ) {
+            $('#get-soal' +
+                currentQuestionId
+            ).addClass('current');
+        }
+
+
+        $('#soal-sebelumnya')
+            .prop(
+                'disabled',
+                index <= 0 ||
+                isSavingAnswer ||
+                isLoadingQuestion
+            );
+
+
+        $('#soal-berikutnya')
+            .prop(
+                'disabled',
+                index < 0 ||
+                index >=
+                    questionIds.length - 1 ||
+                isSavingAnswer ||
+                isLoadingQuestion
+            );
+
+    }
+
+
+    function handleExpired(
+        response
+    ) {
+
+        if (examFinished) {
+            return;
+        }
+
+
+        examFinished = true;
+
+
+        clearInterval(
+            timerInterval
+        );
+
+        clearInterval(
+            syncInterval
+        );
+
+
+        alert(
+            response.message ||
+            'Waktu ujian telah habis.'
+        );
+
+
+        window.location.href =
+            response.redirect ||
+            '{{ route('siswa.soal') }}';
+
+    }
+
+
+    function loadQuestion(
+        questionId
+    ) {
+
+        questionId =
+            parseInt(
+                questionId,
+                10
+            );
+
+
+        if (
+            isLoadingQuestion ||
+            isSavingAnswer ||
+            ! questionIds.includes(
+                questionId
+            )
+        ) {
+            return;
+        }
+
+
+        isLoadingQuestion =
+            true;
+
+        updateNavigation();
+
+
+        $.ajax({
+
+            type: 'POST',
+
+            url:
+                '{{ url('/get-soal') }}/'
+                + questionId,
+
+            success: function (html) {
+
+                currentQuestionId =
+                    questionId;
+
+
+                $('#wrap-soal')
+                    .hide()
+                    .html(html)
+                    .fadeIn(200);
+
+
+                isLoadingQuestion =
+                    false;
+
+                updateNavigation();
+
+            },
+
+
+            error: function (xhr) {
+
+                isLoadingQuestion =
+                    false;
+
+                updateNavigation();
+
+
+                if (
+                    xhr.status === 409
+                ) {
+
+                    handleExpired({
+                        message:
+                            xhr.responseJSON
+                                ?.message ||
+                            'Ujian sudah berakhir.',
+
+                        redirect:
+                            '{{ route('siswa.soal') }}'
+                    });
+
+                    return;
+
+                }
+
+
+                alert(
+                    'Soal gagal dimuat.'
+                );
+
+            }
+
+        });
+
+    }
+
+
+    function firstQuestionToOpen() {
+
+        for (
+            const id
+            of questionIds
+        ) {
+
+            if (
+                ! answeredIds.includes(
+                    id
+                )
+            ) {
+                return id;
+            }
+
+        }
+
+
+        return questionIds[0];
+
+    }
+
+
+    function syncTimer() {
+
+        if (examFinished) {
+            return;
+        }
+
+
+        $.ajax({
+
+            type: 'POST',
+
+            url:
+                '{{ route('siswa.exam.time') }}',
+
+            data: {
+                id_soal: examId
+            },
+
+
+            success: function (response) {
+
+                if (
+                    response.expired ||
+                    response.finished
+                ) {
+
+                    handleExpired(
+                        response
+                    );
+
+                    return;
+                }
+
+
+                remainingSeconds =
+                    parseInt(
+                        response
+                            .remaining_seconds,
+                        10
+                    );
+
+                renderTimer();
+
+            },
+
+
+            error: function (xhr) {
+
+                if (
+                    xhr.status === 409 &&
+                    xhr.responseJSON
+                ) {
+
+                    handleExpired(
+                        xhr.responseJSON
+                    );
+
+                }
+
+            }
+
+        });
+
+    }
+
+
+    function startLocalTimer() {
+
+        clearInterval(
+            timerInterval
+        );
+
+        clearInterval(
+            syncInterval
+        );
+
+
+        renderTimer();
+
+
+        timerInterval =
+            setInterval(
+                function () {
+
+                    remainingSeconds--;
+
+                    renderTimer();
+
+
+                    if (
+                        remainingSeconds <= 0
+                    ) {
+
+                        clearInterval(
+                            timerInterval
+                        );
+
+                        syncTimer();
+
+                    }
+
+                },
+                1000
+            );
+
+
+        /*
+         * Server menjadi sumber waktu utama.
+         */
+        syncInterval =
+            setInterval(
+                syncTimer,
+                10000
+            );
+
+    }
+
+
+    $('#trigger_soal')
+        .on(
+            'click',
+            function () {
+
+                const element =
+                    document.getElementById(
+                        'wrap_soal'
+                    );
+
+
+                $('#wrap_soal')
+                    .show();
+
+
+                if (
+                    element
+                        .requestFullscreen
+                ) {
+
+                    element
+                        .requestFullscreen()
+                        .catch(
+                            function () {
+                                /*
+                                 * Fullscreen gagal bukan
+                                 * alasan menghentikan ujian.
+                                 */
+                            }
+                        );
+
+                }
+
+            }
+        );
+
+
+    $('#batal-ujian')
+        .on(
+            'click',
+            function () {
+
+                window.location.href =
+                    '{{ route('siswa.soal') }}';
+
+            }
+        );
+
+
+    $('#siap-ujian')
+        .on(
+            'click',
+            function () {
+
+                const button =
+                    $(this);
+
+
+                button.prop(
+                    'disabled',
+                    true
+                );
+
+
+                $.ajax({
+
+                    type: 'POST',
+
+                    url:
+                        '{{
+                            route(
+                                'siswa.exam.start',
+                                $soal->id
+                            )
+                        }}',
+
+
+                    success: function (
+                        response
+                    ) {
+
+                        remainingSeconds =
+                            parseInt(
+                                response
+                                    .remaining_seconds,
+                                10
+                            );
+
+
+                        $('#wrap-siap-ujian')
+                            .hide();
+
+
+                        $('.wrap_ujian')
+                            .fadeIn(250);
+
+
+                        startLocalTimer();
+
+
+                        loadQuestion(
+                            firstQuestionToOpen()
+                        );
+
+                    },
+
+
+                    error: function (xhr) {
+
+                        button.prop(
+                            'disabled',
+                            false
+                        );
+
+
+                        if (
+                            xhr.responseJSON &&
+                            (
+                                xhr.responseJSON
+                                    .expired ||
+                                xhr.responseJSON
+                                    .finished
+                            )
+                        ) {
+
+                            handleExpired(
+                                xhr.responseJSON
+                            );
+
+                            return;
+
+                        }
+
+
+                        alert(
+                            xhr.responseJSON
+                                ?.message ||
+                            'Ujian gagal dimulai.'
+                        );
+
+                    }
+
+                });
+
+            }
+        );
+
+
+    $(document)
+        .on(
+            'click',
+            '.question-number',
+            function (event) {
+
+                event.preventDefault();
+
+
+                loadQuestion(
+                    $(this)
+                        .data(
+                            'question-id'
+                        )
+                );
+
+            }
+        );
+
+
+    $('#soal-sebelumnya')
+        .on(
+            'click',
+            function () {
+
+                const index =
+                    getCurrentIndex();
+
+
+                if (index > 0) {
+
+                    loadQuestion(
+                        questionIds[
+                            index - 1
+                        ]
+                    );
+
+                }
+
+            }
+        );
+
+
+    $('#soal-berikutnya')
+        .on(
+            'click',
+            function () {
+
+                const index =
+                    getCurrentIndex();
+
+
+                if (
+                    index >= 0 &&
+                    index <
+                        questionIds.length - 1
+                ) {
+
+                    loadQuestion(
+                        questionIds[
+                            index + 1
+                        ]
+                    );
+
+                }
+
+            }
+        );
+
+
+    $(document)
+        .on(
+            'change',
+            '#wrap-soal input[type=radio]',
+            function () {
+
+                if (
+                    isSavingAnswer ||
+                    isLoadingQuestion
+                ) {
+                    return;
+                }
+
+
+                const radio =
+                    $(this);
+
+                const container =
+                    $('#wrap-soal');
+
+
+                const pilihan =
+                    radio.val();
+
+                const idSoal =
+                    container
+                        .find(
+                            '.question-id-soal'
+                        )
+                        .first()
+                        .val();
+
+                const detailId =
+                    container
+                        .find(
+                            '.question-detail-id'
+                        )
+                        .first()
+                        .val();
+
+
+                isSavingAnswer =
+                    true;
+
+
+                container
+                    .find(
+                        'input[type=radio]'
+                    )
+                    .prop(
+                        'disabled',
+                        true
+                    );
+
+
+                updateNavigation();
+
+
+                $.ajax({
+
+                    type: 'POST',
+
+                    url:
+                        '{{
+                            route(
+                                'siswa.exam.answer'
+                            )
+                        }}',
+
+                    data: {
+
+                        pilihan:
+                            pilihan,
+
+                        id_soal:
+                            idSoal,
+
+                        no_soal_id:
+                            detailId
+
+                    },
+
+
+                    success: function (
+                        response
+                    ) {
+
+                        container
+                            .find(
+                                'tr[id^="wrap_pil_"]'
+                            )
+                            .removeClass(
+                                'benar'
+                            );
+
+
+                        radio
+                            .closest('tr')
+                            .addClass(
+                                'benar'
+                            );
+
+
+                        $('#get-soal' +
+                            detailId
+                        )
+                            .addClass(
+                                'active'
+                            );
+
+
+                        if (
+                            ! answeredIds
+                                .includes(
+                                    parseInt(
+                                        detailId,
+                                        10
+                                    )
+                                )
+                        ) {
+
+                            answeredIds
+                                .push(
+                                    parseInt(
+                                        detailId,
+                                        10
+                                    )
+                                );
+
+                        }
+
+
+                        remainingSeconds =
+                            parseInt(
+                                response
+                                    .remaining_seconds,
+                                10
+                            );
+
+
+                        renderTimer();
+
+
+                        isSavingAnswer =
+                            false;
+
+
+                        container
+                            .find(
+                                'input[type=radio]'
+                            )
+                            .prop(
+                                'disabled',
+                                false
+                            );
+
+
+                        updateNavigation();
+
+
+                        const index =
+                            getCurrentIndex();
+
+
+                        if (
+                            index >= 0 &&
+                            index <
+                                questionIds.length - 1
+                        ) {
+
+                            setTimeout(
+                                function () {
+
+                                    loadQuestion(
+                                        questionIds[
+                                            index + 1
+                                        ]
+                                    );
+
+                                },
+                                300
+                            );
+
+                        }
+
+                    },
+
+
+                    error: function (xhr) {
+
+                        isSavingAnswer =
+                            false;
+
+
+                        container
+                            .find(
+                                'input[type=radio]'
+                            )
+                            .prop(
+                                'disabled',
+                                false
+                            );
+
+
+                        updateNavigation();
+
+
+                        if (
+                            xhr.responseJSON &&
+                            xhr.responseJSON
+                                .expired
+                        ) {
+
+                            handleExpired(
+                                xhr.responseJSON
+                            );
+
+                            return;
+
+                        }
+
+
+                        alert(
+                            xhr.responseJSON
+                                ?.message ||
+                            'Jawaban gagal disimpan.'
+                        );
+
+                    }
+
+                });
+
+            }
+        );
+
+
+    function finishExam(
+        askConfirmation
+    ) {
+
+        if (examFinished) {
+            return;
+        }
+
+
+        if (
+            askConfirmation &&
+            ! confirm(
+                'Yakin jawaban akan dikirim?'
+            )
+        ) {
+            return;
+        }
+
+
+        examFinished =
+            true;
+
+
+        $('#kirim')
+            .prop(
+                'disabled',
+                true
+            );
+
+
+        $.ajax({
+
+            type: 'POST',
+
+            url:
+                '{{
+                    route(
+                        'siswa.exam.finish'
+                    )
+                }}',
+
+            data: {
+                id_soal: examId
+            },
+
+
+            success: function (
+                response
+            ) {
+
+                clearInterval(
+                    timerInterval
+                );
+
+                clearInterval(
+                    syncInterval
+                );
+
+
+                window.location.href =
+                    response.redirect ||
+                    '{{ route('siswa.soal') }}';
+
+            },
+
+
+            error: function (xhr) {
+
+                examFinished =
+                    false;
+
+
+                $('#kirim')
+                    .prop(
+                        'disabled',
+                        false
+                    );
+
+
+                alert(
+                    xhr.responseJSON
+                        ?.message ||
+                    'Jawaban gagal dikirim.'
+                );
+
+            }
+
+        });
+
+    }
+
+
+    $('#kirim')
+        .on(
+            'click',
+            function () {
+
+                finishExam(true);
+
+            }
+        );
+
+
+    /*
+     * Saat browser keluar fullscreen,
+     * ujian tetap berjalan.
+     */
+    document.addEventListener(
+        'fullscreenchange',
+        function () {
+
+            if (
+                examFinished
+            ) {
+                return;
+            }
+
+
+            $('#wrap_soal')
+                .show();
+
+        }
+    );
+
+
+    renderTimer();
+
+});
+
+</script>
+
+@endpush

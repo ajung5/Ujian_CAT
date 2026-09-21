@@ -430,11 +430,51 @@ Route::middleware([
             [SiswaController::class, 'index']
         )->name('siswa.index');
 
-
         Route::get(
             '/soal-siswa',
             [SiswaController::class, 'exams']
         )->name('siswa.soal');
+
+        Route::get(
+            '/soal-siswa/{id}',
+            [SiswaController::class, 'exam']
+        )
+            ->whereNumber('id')
+            ->name('siswa.exam');
+
+
+        Route::post(
+            '/ujian/{id}/start',
+            [SiswaController::class, 'startExam']
+        )
+            ->whereNumber('id')
+            ->name('siswa.exam.start');
+
+
+        Route::post(
+            '/get-soal/{id}',
+            [SiswaController::class, 'question']
+        )
+            ->whereNumber('id')
+            ->name('siswa.exam.question');
+
+
+        Route::post(
+            '/simpanjawabankliksiswa',
+            [SiswaController::class, 'saveAnswer']
+        )->name('siswa.exam.answer');
+
+
+        Route::post(
+            '/countexamtime',
+            [SiswaController::class, 'syncTime']
+        )->name('siswa.exam.time');
+
+
+        Route::post(
+            '/kirimjawaban',
+            [SiswaController::class, 'finishExam']
+        )->name('siswa.exam.finish');
 
     }
 );

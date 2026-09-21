@@ -21,6 +21,8 @@
 <!-- App CSS -->
 <link type="text/css" href="{{ url('/assets/assets/libs/font-awesome/css/font-awesome.min.css') }}" rel="stylesheet">
 <link type="text/css" href="{{ url('/assets/assets/css/style.min.css') }}" rel="stylesheet">
+
+@stack('styles')
 </head>
 
 <body class="layout-container ls-top-navbar si-l3-md-up" onkeydown="return (event.keyCode != 116)">
@@ -133,5 +135,7 @@
     }
   });
 </script>
+
+@stack('scripts')
 </body>
 </html>
