@@ -617,4 +617,12 @@ class HasilController extends Controller
         ->limit(3)
         ->get();
     }
+
+    private function assessmentLabel(Soal $soal): string {
+    return (string) $soal->jenis === '2'
+        ? 'Latihan'
+        : 'Ujian';
+    }
+
+    
 }
