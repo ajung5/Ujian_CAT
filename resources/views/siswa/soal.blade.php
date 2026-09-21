@@ -1,35 +1,207 @@
-@extends('layouts/siswa_baru')
+@extends('layouts.siswa_baru')
+
 @section('title', 'Soal Ujian')
+
+
 @section('breadcrumb')
-  <li><a href="{{ url('/siswa') }}">Home</a></li>
-  <li class="active">Soal Ujian</li>
+
+    <li>
+        <a href="{{ route('siswa.index') }}">
+            Home
+        </a>
+    </li>
+
+    <li class="active">
+        Soal Ujian
+    </li>
+
 @endsection
+
+
 @section('content')
-<?php include(app_path().'/functions/koneksi.php'); ?>
-<div class="card-columns">
-  @if($distribusisoal->count())
-  @foreach($distribusisoal as $data_soal)
-  <?php
-    $id_user = Auth::user()->id;
-    $cek_jawab = $conn->query("SELECT * FROM jawabs WHERE id_soal='$data_soal->id_soal' AND id_user='$id_user' AND status='Y'")->num_rows;
-    if ($cek_jawab == 0) {
-  ?>
-  <div class="card">
-    <div class="card-header bg-white center">
-      <h4 class="card-title"><a href="{{ url('/soal-siswa/'.$data_soal->id_soal) }}">{{ $data_soal->paket }}</a></h4>
-    </div>
-    <div class="card-block">
-      <p class="m-b-0" style="color: #a6aab2">
-        {{ $data_soal->deskripsi }}
-      </p>
-    </div>
-  </div>
-  <?php } ?>
-  @endforeach
-  @else
-  <div class="alert alert-info">
-    <i class="fa fa-info-circle" aria-hidden="true"></i> Belum ada paket soal untuk dikerjakan.
-  </div>
-  @endif
+
+<div class="col-md-12">
+
+    @if (
+        empty($user->id_kelas)
+    )
+
+        <div class="alert alert-warning">
+
+            <i
+                class="
+                    fa
+                    fa-exclamation-triangle
+                "
+            ></i>
+
+            Anda belum memiliki kelas.
+
+            Silakan hubungi Guru atau
+            Administrator.
+
+        </div>
+
+    @elseif (
+        $distribusisoal->count()
+    )
+
+        <div class="card-columns">
+
+            @foreach (
+                $distribusisoal
+                as $dataSoal
+            )
+
+                <div class="card">
+
+                    <div
+                        class="
+                            card-header
+                            bg-white
+                            center
+                        "
+                    >
+
+                        <h4 class="card-title">
+
+                            {{ $dataSoal->paket }}
+
+                        </h4>
+
+                    </div>
+
+
+                    <div class="card-block">
+
+                        <p
+                            class="m-b-0"
+                            style="
+                                color:#a6aab2;
+                            "
+                        >
+
+                            {{
+                                $dataSoal->deskripsi
+                            }}
+
+                        </p>
+
+
+                        <hr>
+
+
+                        <table
+                            class="
+                                table
+                                table-condensed
+                            "
+                        >
+
+                            <tbody>
+
+                            <tr>
+
+                                <td>
+                                    KKM
+                                </td>
+
+                                <td>
+                                    :
+                                </td>
+
+                                <td>
+                                    {{
+                                        $dataSoal->kkm
+                                    }}
+                                </td>
+
+                            </tr>
+
+
+                            <tr>
+
+                                <td>
+                                    Waktu
+                                </td>
+
+                                <td>
+                                    :
+                                </td>
+
+                                <td>
+
+                                    {{
+                                        number_format(
+                                            ((int)
+                                            $dataSoal->waktu)
+                                            / 60,
+                                            0
+                                        )
+                                    }}
+
+                                    menit
+
+                                </td>
+
+                            </tr>
+
+                            </tbody>
+
+                        </table>
+
+
+                        {{--
+                            Link Mulai Ujian akan
+                            diaktifkan pada Tahap 14B.
+                        --}}
+
+                        <button
+                            type="button"
+                            class="
+                                btn
+                                btn-primary
+                            "
+                            disabled
+                        >
+
+                            <i
+                                class="
+                                    fa
+                                    fa-pencil
+                                "
+                            ></i>
+
+                            Mulai Ujian
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            @endforeach
+
+        </div>
+
+    @else
+
+        <div class="alert alert-info">
+
+            <i
+                class="
+                    fa
+                    fa-info-circle
+                "
+            ></i>
+
+            Belum ada paket soal
+            untuk dikerjakan.
+
+        </div>
+
+    @endif
+
 </div>
+
 @endsection

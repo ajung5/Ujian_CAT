@@ -7,6 +7,7 @@ use App\Http\Controllers\DataguruController;
 use App\Http\Controllers\DatasiswaController;
 use App\Http\Controllers\MateriController;
 use App\Http\Controllers\SoalController;
+use App\Http\Controllers\SiswaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -416,36 +417,24 @@ Route::match(
 
 /*
 |--------------------------------------------------------------------------
-| Temporary Role Test
+| Area Siswa
 |--------------------------------------------------------------------------
-|
-| Route ini nanti akan diganti dengan GuruController dan SiswaController
-| hasil migrasi.
-|
 */
 
-Route::get(
-    '/guru',
-    [GuruController::class, 'index']
-)
-    ->middleware(['auth', 'role:A,G'])
-    ->name('guru.index');
+Route::middleware([
+    'auth',
+    'role:S,C',
+    ])->group(function () {
+        Route::get(
+            '/siswa',
+            [SiswaController::class, 'index']
+        )->name('siswa.index');
 
 
-Route::get('/siswa', function () {
+        Route::get(
+            '/soal-siswa',
+            [SiswaController::class, 'exams']
+        )->name('siswa.soal');
 
-    $user = auth()->user();
-
-    return response()->json([
-        'authenticated' => true,
-        'area' => 'siswa',
-        'id' => $user->id,
-        'nama' => $user->nama,
-        'email' => $user->email,
-        'status' => $user->status,
-        'id_kelas' => $user->id_kelas,
-    ]);
-
-})
-    ->middleware(['auth', 'role:S,C'])
-    ->name('siswa.index');
+    }
+);
