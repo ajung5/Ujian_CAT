@@ -21,9 +21,15 @@ Route::get('/', function () {
     }
 
     return match (auth()->user()->status) {
-        'A', 'G' => redirect('/guru'),
-        'S', 'C' => redirect('/siswa'),
-        default => abort(403, 'Role pengguna tidak dikenali.'),
+        'A', 'G' =>
+            redirect()->route('guru.index'),
+        'S', 'C' =>
+            redirect()->route('siswa.index'),
+        default =>
+            abort(
+                403,
+                'Role pengguna tidak dikenali.'
+            ),
     };
 });
 
@@ -31,6 +37,16 @@ Route::middleware([
     'auth',
     'role:A,G',
     ])->group(function () {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Dashboard Guru / Admin
+        |--------------------------------------------------------------------------
+        */
+        Route::get(
+            '/guru',
+            [GuruController::class, 'index']
+        )->name('guru.index');
 
         Route::get(
             '/profil-guru',

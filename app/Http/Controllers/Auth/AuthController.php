@@ -14,8 +14,7 @@ class AuthController extends Controller
     /**
      * Tampilkan form login.
      */
-    public function showLoginForm(): View|RedirectResponse
-    {
+    public function showLoginForm(): View|RedirectResponse{
         if (Auth::check()) {
             return $this->redirectByRole(Auth::user()->status);
         }
@@ -28,8 +27,7 @@ class AuthController extends Controller
     /**
      * Proses login user legacy.
      */
-    public function login(Request $request): RedirectResponse
-    {
+    public function login(Request $request): RedirectResponse{
         $request->merge([
             'email' => strtolower(trim((string) $request->input('email'))),
         ]);
@@ -80,8 +78,7 @@ class AuthController extends Controller
     /**
      * Logout.
      */
-    public function logout(Request $request): RedirectResponse
-    {
+    public function logout(Request $request): RedirectResponse{
         Auth::logout();
 
         $request->session()->invalidate();
@@ -93,12 +90,14 @@ class AuthController extends Controller
     /**
      * Redirect berdasarkan status user legacy.
      */
-    private function redirectByRole(?string $status): RedirectResponse
-    {
+    private function redirectByRole(?string $status): RedirectResponse {
         return match ($status) {
-            'A', 'G' => redirect('/guru'),
-            'S', 'C' => redirect('/siswa'),
-            default => redirect()->route('login'),
+            'A', 'G' =>
+                redirect()->route('guru.index'),
+            'S', 'C' =>
+                redirect()->route('siswa.index'),
+            default =>
+                redirect()->route('login'),
         };
     }
 }
