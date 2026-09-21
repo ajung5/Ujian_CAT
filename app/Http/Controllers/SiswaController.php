@@ -14,6 +14,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -22,8 +24,7 @@ class SiswaController extends Controller
     /**
      * Dashboard siswa.
      */
-    public function index(): View
-    {
+    public function index(): View{
         $user = $this->studentWithClass();
 
         $school = School::first();
@@ -37,6 +38,162 @@ class SiswaController extends Controller
         );
     }
 
+    /**
+     * Profil siswa.
+     */
+    public function profile(): View{
+        $user =
+            $this->studentWithClass();
+
+        $school =
+            School::first();
+
+        return view(
+            'siswa.profil',
+            compact(
+                'user',
+                'school'
+            )
+        );
+    }
+
+    /**
+     * Upload foto profil siswa.
+     *
+     * Business rule legacy:
+     * - JPG/JPEG/PNG
+     * - maksimal 1 MB
+     */
+    public function updateProfilePhoto(Request $request): JsonResponse {
+        $validated =
+            $request->validate(
+                [
+                    'file' => [
+                        'required',
+                        'image',
+                        'mimes:jpg,jpeg,png',
+                        'max:1024',
+                    ],
+                ],
+                [
+                    'file.required' =>
+                        'Foto belum dipilih.',
+
+                    'file.image' =>
+                        'File harus berupa gambar.',
+
+                    'file.mimes' =>
+                        'Foto harus berupa JPG, JPEG, atau PNG.',
+
+                    'file.max' =>
+                        'Ukuran foto maksimal 1 MB.',
+                ]
+            );
+
+
+        $user = User::query()
+            ->whereKey(
+                auth()->id()
+            )
+            ->whereIn(
+                'status',
+                ['S', 'C']
+            )
+            ->firstOrFail();
+
+
+        $file =
+            $request->file('file');
+
+
+        $extension =
+            strtolower(
+                $file->extension()
+            );
+
+
+        $filename =
+            Str::uuid().
+            '.'.
+            $extension;
+
+
+        File::ensureDirectoryExists(
+            public_path('img')
+        );
+
+
+        $file->move(
+            public_path('img'),
+            $filename
+        );
+
+
+        $oldImage = null;
+
+
+        if (
+            ! empty($user->gambar)
+        ) {
+            $oldImage =
+                public_path(
+                    'img/'.
+                    basename(
+                        $user->gambar
+                    )
+                );
+        }
+
+
+        $user->gambar =
+            $filename;
+
+        $user->save();
+
+
+        /*
+        * File lama baru dihapus setelah
+        * database berhasil disimpan.
+        */
+        if (
+            $oldImage &&
+            File::exists(
+                $oldImage
+            )
+        ) {
+            File::delete(
+                $oldImage
+            );
+        }
+
+
+        Log::info(
+            'student.profile.photo.updated',
+            [
+                'user_id' =>
+                    $user->id,
+
+                'ip' =>
+                    $request->ip(),
+            ]
+        );
+
+
+        return response()->json([
+            'success' => true,
+
+            'message' =>
+                'Foto profil berhasil diperbarui.',
+
+            'filename' =>
+                $filename,
+
+            'url' =>
+                asset(
+                    'img/'.$filename
+                ),
+        ]);
+    }
 
     /**
      * Daftar ujian yang tersedia.

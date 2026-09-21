@@ -517,5 +517,22 @@ Route::middleware([
             ->whereNumber('id')
             ->name('siswa.results.detail');
 
+        /*
+        |--------------------------------------------------------------------------
+        | Profil Siswa
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/profil-siswa',
+            [SiswaController::class, 'profile']
+        )->name('siswa.profile');
+
+
+        Route::post(
+            '/updateprofilfoto',
+            [SiswaController::class, 'updateProfilePhoto']
+        )->name('siswa.profile.photo');
+
     }
 );
