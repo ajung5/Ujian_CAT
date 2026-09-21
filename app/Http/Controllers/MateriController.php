@@ -40,7 +40,7 @@ class MateriController extends Controller
          * Dipakai untuk menghubungkan upload gambar
          * dengan materi yang belum disimpan.
          */
-        $sesiBaru = (string) Str::uuid();
+        $sesiBaru = Str::random(32);
 
         return view(
             'guru.materi',
@@ -105,7 +105,7 @@ class MateriController extends Controller
                 'sesi' => [
                     'required',
                     'string',
-                    'max:255',
+                    'size:32',
                 ],
 
                 'judul' => [
@@ -233,15 +233,14 @@ class MateriController extends Controller
     /**
      * Upload / replace gambar Materi.
      */
-    public function uploadImage(
-        Request $request
-    ): Response {
+    public function uploadImage(Request $request): Response
+    {
         $validated = $request->validate(
             [
                 'sesi' => [
                     'required',
                     'string',
-                    'max:255',
+                    'size:32',
                 ],
 
                 'file' => [
