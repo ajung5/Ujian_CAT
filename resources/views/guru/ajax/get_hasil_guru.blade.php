@@ -146,28 +146,19 @@
 
 
             <td>
+              <a
+                  href="{{
+                      route(
+                          'guru.results.detail',
+                          $jawab->id_soal
+                      )
+                  }}"
+                  class="btn btn-xs btn-primary"
+              >
+                  <i class="fa fa-search"></i>
 
-                {{--
-                    Tahap 17B akan
-                    mengaktifkan tombol Detail.
-                --}}
-
-                <button
-                    type="button"
-                    class="
-                        btn
-                        btn-xs
-                        btn-primary
-                    "
-                    disabled
-                >
-
-                    <i class="fa fa-search"></i>
-
-                    Detail
-
-                </button>
-
+                  Detail
+              </a>
             </td>
 
         </tr>
