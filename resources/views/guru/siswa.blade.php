@@ -41,7 +41,63 @@
 
     @endif
 
+    @if ($errors->any())
 
+        <div class="alert alert-danger">
+
+            <b>Import gagal:</b>
+
+            <ul style="margin-top:10px;">
+
+                @foreach ($errors->all() as $error)
+
+                    <li>
+                        {{ $error }}
+                    </li>
+
+                @endforeach
+
+            </ul>
+
+        </div>
+
+    @endif
+
+    @if (
+        session('import_errors') &&
+        count(session('import_errors')) > 0
+    )
+
+        <div class="alert alert-warning">
+
+            <b>
+                Beberapa baris tidak diimport:
+            </b>
+
+            <ul
+                style="
+                    margin-top:10px;
+                    max-height:250px;
+                    overflow:auto;
+                "
+            >
+
+                @foreach (
+                    session('import_errors')
+                    as $importError
+                )
+
+                    <li>
+                        {{ $importError }}
+                    </li>
+
+                @endforeach
+
+            </ul>
+
+        </div>
+
+    @endif
     <div class="panel panel-default">
 
         <div
@@ -75,26 +131,37 @@
                 target="_blank"
                 class="btn btn-success"
             >
-
                 <i class="fa fa-download"></i>
-
                 Excel
-
             </a>
+            <button
+                type="button"
+                class="btn btn-success"
+                data-toggle="collapse"
+                data-target="#uploadexcel"
+            >
+                <i class="fa fa-upload"></i>
 
-
+                Siswa via Excel
+            </button>
             <a
                 href="{{ asset('readfile/datacalon.xls') }}"
                 target="_blank"
                 class="btn btn-success"
             >
-
                 <i class="fa fa-download"></i>
-
                 Excel Calon Siswa
-
             </a>
+            <button
+                type="button"
+                class="btn btn-success"
+                data-toggle="collapse"
+                data-target="#uploadexcelcalonsiswa"
+            >
+                <i class="fa fa-upload"></i>
 
+                Calon Siswa via Excel
+            </button>
 
             <form
                 method="POST"
@@ -363,7 +430,208 @@
                 </div>
 
             </div>
+            
+            <div
+                class="collapse"
+                id="uploadexcel"
+                style="margin:15px 0 0 0;"
+            >
 
+                <div class="well">
+
+                    <form
+                        action="{{ route('guru.siswa.import') }}"
+                        method="POST"
+                        enctype="multipart/form-data"
+                        class="form-horizontal"
+                    >
+
+                        @csrf
+
+
+                        <div class="form-group">
+
+                            <label
+                                class="col-sm-2 control-label"
+                                for="file_excel_siswa"
+                            >
+                                File Excel
+                            </label>
+
+
+                            <div class="col-sm-10">
+
+                                <input
+                                    type="file"
+                                    name="file"
+                                    id="file_excel_siswa"
+                                    class="form-control"
+                                    accept=".xls,.xlsx"
+                                    required
+                                >
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <div
+                                class="
+                                    col-sm-offset-2
+                                    col-sm-10
+                                "
+                            >
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary"
+                                >
+                                    <i class="fa fa-upload"></i>
+
+                                    Upload Data Siswa
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="alert alert-warning">
+
+                            <b>PERHATIAN:</b>
+
+                            Gunakan format Excel yang telah
+                            disediakan.
+
+                            Jangan menambah, menghapus,
+                            atau memindahkan kolom.
+
+                            NIS dan email harus unik.
+
+                        </div>
+
+
+                        <div class="alert alert-info">
+
+                            Format kolom:
+
+                            <strong>
+                                ID Kelas | Nama | NIS |
+                                JK | Email | Password
+                            </strong>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+            <div
+                class="collapse"
+                id="uploadexcelcalonsiswa"
+                style="margin:15px 0 0 0;"
+            >
+
+                <div class="well">
+
+                    <form
+                        action="{{
+                            route(
+                                'guru.siswa.candidate.import'
+                            )
+                        }}"
+                        method="POST"
+                        enctype="multipart/form-data"
+                        class="form-horizontal"
+                    >
+
+                        @csrf
+
+
+                        <div class="form-group">
+
+                            <label
+                                class="col-sm-2 control-label"
+                                for="file_excel_calon"
+                            >
+                                File Excel Calon
+                            </label>
+
+
+                            <div class="col-sm-10">
+
+                                <input
+                                    type="file"
+                                    name="filecalon"
+                                    id="file_excel_calon"
+                                    class="form-control"
+                                    accept=".xls,.xlsx"
+                                    required
+                                >
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <div
+                                class="
+                                    col-sm-offset-2
+                                    col-sm-10
+                                "
+                            >
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary"
+                                >
+                                    <i class="fa fa-upload"></i>
+
+                                    Upload Calon Siswa
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="alert alert-warning">
+
+                            <b>PERHATIAN:</b>
+
+                            Gunakan template calon siswa
+                            yang telah disediakan.
+
+                            ID Pendaftaran dan email
+                            harus unik.
+
+                        </div>
+
+
+                        <div class="alert alert-info">
+
+                            Format kolom:
+
+                            <strong>
+                                ID Kelas | Nama |
+                                ID Pendaftaran |
+                                JK | Sekolah Asal |
+                                Email | Password
+                            </strong>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
 
             <hr>
 

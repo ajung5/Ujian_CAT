@@ -16,6 +16,11 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\UploadedFile;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\RichText\RichText;
+use Throwable;
 
 class DatasiswaController extends Controller
 {
@@ -507,9 +512,8 @@ class DatasiswaController extends Controller
      * Legacy maksimal 1 MB dan hanya
      * JPEG/JPG/PNG.
      */
-    public function updatePhoto(
-        Request $request
-    ): Response {
+    public function updatePhoto(Request $request): Response
+    {
         $validated = $request->validate(
             [
                 'id_siswa' => [
@@ -602,9 +606,8 @@ class DatasiswaController extends Controller
      * User, jawaban dan state timer ujian
      * ikut dihapus.
      */
-    public function destroy(
-        Request $request
-    ): Response {
+    public function destroy(Request $request): Response
+    {
         $validated = $request->validate([
             'id_siswa' => [
                 'required',
@@ -741,5 +744,536 @@ class DatasiswaController extends Controller
                 'success',
                 'Seluruh calon siswa berhasil dihapus.'
             );
+    }
+
+        /**
+     * Import Siswa dari Excel. Format legacy data.xls:
+     * A = ID Kelas
+     * B = Nama
+     * C = NIS
+     * D = Jenis Kelamin
+     * E = Email
+     * F = Password
+     */
+    public function importStudents(Request $request): RedirectResponse
+    {
+        $request->validate(
+            [
+                'file' => [
+                    'required',
+                    'file',
+                    'mimes:xls,xlsx',
+                    'max:5120',
+                ],
+            ],
+            [
+                'file.required' =>
+                    'File Excel siswa wajib dipilih.',
+
+                'file.mimes' =>
+                    'File harus berformat XLS atau XLSX.',
+
+                'file.max' =>
+                    'Ukuran file maksimal 5 MB.',
+            ]
+        );
+
+        return $this->importUsersFromSpreadsheet(
+            $request->file('file'),
+            'S'
+        );
+    }
+
+        /**
+     * Import Calon Siswa dari Excel.
+     *
+     * Format legacy datacalon.xls:
+     *
+     * A = ID Kelas
+     * B = Nama
+     * C = ID Pendaftaran / NIS
+     * D = Jenis Kelamin
+     * E = Sekolah Asal
+     * F = Email
+     * G = Password
+     */
+    public function importCandidates(Request $request): RedirectResponse
+    {
+        $request->validate(
+            [
+                'filecalon' => [
+                    'required',
+                    'file',
+                    'mimes:xls,xlsx',
+                    'max:5120',
+                ],
+            ],
+            [
+                'filecalon.required' =>
+                    'File Excel calon siswa wajib dipilih.',
+
+                'filecalon.mimes' =>
+                    'File harus berformat XLS atau XLSX.',
+
+                'filecalon.max' =>
+                    'Ukuran file maksimal 5 MB.',
+            ]
+        );
+
+        return $this->importUsersFromSpreadsheet(
+            $request->file('filecalon'),
+            'C'
+        );
+    }
+
+        /**
+     * Import user dari spreadsheet legacy.
+     *
+     * Status:
+     * S = Siswa
+     * C = Calon Siswa
+     */
+    private function importUsersFromSpreadsheet(UploadedFile $file, string $status): RedirectResponse
+    {
+        if (! in_array($status, ['S', 'C'], true)) {
+            abort(400, 'Status import tidak valid.');
+        }
+
+        try {
+            /*
+            * Biarkan IOFactory mendeteksi XLS/XLSX.
+            */
+            $reader = IOFactory::createReaderForFile(
+                $file->getRealPath()
+            );
+
+            /*
+            * Kita hanya membutuhkan data.
+            * Formatting, gambar dan chart tidak diperlukan.
+            */
+            $reader->setReadDataOnly(true);
+
+            $spreadsheet = $reader->load(
+                $file->getRealPath()
+            );
+
+            $sheet = $spreadsheet->getActiveSheet();
+
+            $highestRow = $sheet->getHighestDataRow();
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return back()
+                ->withErrors([
+                    'import' =>
+                        'File Excel tidak dapat dibaca. '.
+                        'Pastikan file menggunakan format '.
+                        'XLS/XLSX yang valid.',
+                ]);
+        }
+
+        /*
+        * Cache referensi untuk menghindari query DB
+        * berulang pada setiap baris.
+        */
+        $kelasValid = Kelas::query()
+            ->pluck('id')
+            ->mapWithKeys(
+                fn ($id) => [
+                    (string) $id => true,
+                ]
+            )
+            ->all();
+
+        $existingEmails = User::query()
+            ->whereNotNull('email')
+            ->pluck('email')
+            ->map(
+                fn ($email) =>
+                    strtolower(
+                        trim((string) $email)
+                    )
+            )
+            ->filter()
+            ->mapWithKeys(
+                fn ($email) => [
+                    $email => true,
+                ]
+            )
+            ->all();
+
+        $existingNis = User::query()
+            ->whereNotNull('no_induk')
+            ->where('no_induk', '!=', '')
+            ->pluck('no_induk')
+            ->map(
+                fn ($nis) =>
+                    trim((string) $nis)
+            )
+            ->filter()
+            ->mapWithKeys(
+                fn ($nis) => [
+                    $nis => true,
+                ]
+            )
+            ->all();
+
+        $sukses = 0;
+        $gagal = 0;
+        $kosong = 0;
+
+        $errors = [];
+
+        /*
+        * Baris pertama adalah header.
+        *
+        * Data dimulai dari baris 2,
+        * sesuai Excel legacy.
+        */
+        for ($row = 2; $row <= $highestRow; $row++) {
+            $idKelas = $this->spreadsheetCell(
+                $sheet->getCell('A'.$row)->getValue()
+            );
+
+            $nama = $this->spreadsheetCell(
+                $sheet->getCell('B'.$row)->getValue()
+            );
+
+            $nis = $this->spreadsheetCell(
+                $sheet->getCell('C'.$row)->getValue()
+            );
+
+            $jk = strtoupper(
+                $this->spreadsheetCell(
+                    $sheet->getCell('D'.$row)->getValue()
+                )
+            );
+
+            /*
+            * Posisi kolom berbeda antara
+            * siswa dan calon siswa.
+            */
+            if ($status === 'S') {
+                $sekolahAsal = '';
+
+                $email = strtolower(
+                    $this->spreadsheetCell(
+                        $sheet
+                            ->getCell('E'.$row)
+                            ->getValue()
+                    )
+                );
+
+                $password = $this->spreadsheetCell(
+                    $sheet
+                        ->getCell('F'.$row)
+                        ->getValue()
+                );
+            } else {
+                $sekolahAsal =
+                    $this->spreadsheetCell(
+                        $sheet
+                            ->getCell('E'.$row)
+                            ->getValue()
+                    );
+
+                $email = strtolower(
+                    $this->spreadsheetCell(
+                        $sheet
+                            ->getCell('F'.$row)
+                            ->getValue()
+                    )
+                );
+
+                $password =
+                    $this->spreadsheetCell(
+                        $sheet
+                            ->getCell('G'.$row)
+                            ->getValue()
+                    );
+            }
+
+            /*
+            * Lewati baris benar-benar kosong.
+            */
+            if (
+                $idKelas === '' &&
+                $nama === '' &&
+                $nis === '' &&
+                $jk === '' &&
+                $email === '' &&
+                $password === ''
+            ) {
+                $kosong++;
+
+                continue;
+            }
+
+            $rowErrors = [];
+
+            /*
+            * ID kelas.
+            */
+            if ($idKelas === '') {
+                $rowErrors[] =
+                    'ID kelas kosong.';
+            } elseif (
+                ! isset($kelasValid[$idKelas])
+            ) {
+                $rowErrors[] =
+                    'ID kelas '.$idKelas.
+                    ' tidak ditemukan.';
+            }
+
+            /*
+            * Nama.
+            */
+            if ($nama === '') {
+                $rowErrors[] =
+                    'Nama kosong.';
+            } elseif (
+                mb_strlen($nama) > 150
+            ) {
+                $rowErrors[] =
+                    'Nama melebihi 150 karakter.';
+            }
+
+            /*
+            * NIS / ID pendaftaran.
+            */
+            if ($nis === '') {
+                $rowErrors[] =
+                    $status === 'C'
+                        ? 'ID Pendaftaran kosong.'
+                        : 'NIS kosong.';
+            } elseif (
+                mb_strlen($nis) > 50
+            ) {
+                $rowErrors[] =
+                    'NIS/ID Pendaftaran '.
+                    'melebihi 50 karakter.';
+            } elseif (
+                isset($existingNis[$nis])
+            ) {
+                $rowErrors[] =
+                    'NIS/ID Pendaftaran '.$nis.
+                    ' sudah terdaftar.';
+            }
+
+            /*
+            * Jenis kelamin.
+            */
+            if (
+                ! in_array(
+                    $jk,
+                    ['L', 'P'],
+                    true
+                )
+            ) {
+                $rowErrors[] =
+                    'Jenis kelamin harus L atau P.';
+            }
+
+            /*
+            * Email.
+            */
+            if ($email === '') {
+                $rowErrors[] =
+                    'Email kosong.';
+            } elseif (
+                ! filter_var(
+                    $email,
+                    FILTER_VALIDATE_EMAIL
+                )
+            ) {
+                $rowErrors[] =
+                    'Format email tidak valid.';
+            } elseif (
+                mb_strlen($email) > 255
+            ) {
+                $rowErrors[] =
+                    'Email melebihi 255 karakter.';
+            } elseif (
+                isset($existingEmails[$email])
+            ) {
+                $rowErrors[] =
+                    'Email '.$email.
+                    ' sudah terdaftar.';
+            }
+
+            /*
+            * Password Excel legacy memang berasal
+            * dari spreadsheet.
+            *
+            * Pada versi baru password kosong ditolak
+            * agar tidak menghasilkan akun dengan
+            * password kosong.
+            */
+            if ($password === '') {
+                $rowErrors[] =
+                    'Password kosong.';
+            }
+
+            /*
+            * Sekolah asal calon siswa.
+            *
+            * Tetap boleh kosong karena database
+            * legacy menggunakan string kosong.
+            */
+            if (
+                mb_strlen($sekolahAsal) > 255
+            ) {
+                $rowErrors[] =
+                    'Sekolah asal melebihi 255 karakter.';
+            }
+
+            if ($rowErrors !== []) {
+                $gagal++;
+
+                $errors[] =
+                    'Baris '.$row.': '.
+                    implode(
+                        ' ',
+                        $rowErrors
+                    );
+
+                continue;
+            }
+
+            try {
+                DB::transaction(
+                    function () use (
+                        $idKelas,
+                        $nama,
+                        $nis,
+                        $jk,
+                        $status,
+                        $email,
+                        $password,
+                        $sekolahAsal
+                    ) {
+                        $siswa = new User();
+
+                        $siswa->id_kelas =
+                            $idKelas;
+
+                        $siswa->nama =
+                            $nama;
+
+                        $siswa->no_induk =
+                            $nis;
+
+                        $siswa->jk =
+                            $jk;
+
+                        $siswa->status =
+                            $status;
+
+                        /*
+                        * Kolom legacy NOT NULL.
+                        */
+                        $siswa->gambar = '';
+
+                        $siswa->email =
+                            $email;
+
+                        $siswa->password =
+                            Hash::make(
+                                $password
+                            );
+
+                        $siswa->sekolah_asal =
+                            $status === 'C'
+                                ? $sekolahAsal
+                                : '';
+
+                        $siswa->save();
+                    }
+                );
+
+                /*
+                * Tambahkan ke cache agar duplicate
+                * di baris berikutnya pada Excel
+                * yang sama juga ditolak.
+                */
+                $existingEmails[$email] = true;
+
+                $existingNis[$nis] = true;
+
+                $sukses++;
+            } catch (Throwable $exception) {
+                report($exception);
+
+                $gagal++;
+
+                $errors[] =
+                    'Baris '.$row.
+                    ': gagal disimpan ke database.';
+            }
+        }
+
+        /*
+        * Bebaskan workbook dari memory.
+        */
+        $spreadsheet->disconnectWorksheets();
+
+        unset($spreadsheet);
+
+        $jenisImport =
+            $status === 'S'
+                ? 'siswa'
+                : 'calon siswa';
+
+        Aktifitas::create([
+            'id_user' => auth()->id(),
+
+            'nama' =>
+                'Import Excel '.$jenisImport.
+                ': '.$sukses.' berhasil, '.
+                $gagal.' ditolak.',
+        ]);
+
+        return redirect()
+            ->route('guru.siswa')
+            ->with(
+                'success',
+                'Import Excel '.$jenisImport.
+                ' selesai. Berhasil: '.
+                $sukses.
+                ', Ditolak: '.
+                $gagal.'.'
+            )
+            ->with(
+                'import_errors',
+                $errors
+            );
+    }
+
+    /**
+     * Normalisasi nilai cell Excel menjadi string.
+     */
+    private function spreadsheetCell(mixed $value): string
+    {
+        if ($value === null) {
+            return '';
+        }
+
+        if ($value instanceof RichText) {
+            $value = $value->getPlainText();
+        }
+
+        if (is_bool($value)) {
+            return $value ? '1' : '0';
+        }
+
+        /*
+        * Jangan menjalankan formula Excel.
+        *
+        * getValue() dipakai, bukan
+        * getCalculatedValue().
+        */
+        return trim(
+            (string) $value
+        );
     }
 }

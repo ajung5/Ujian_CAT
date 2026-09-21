@@ -192,6 +192,17 @@ Route::middleware([
             [DatasiswaController::class, 'destroyCandidates']
         )->name('guru.siswa.candidates.destroy');
 
+        Route::post(
+            '/uploadsiswa',
+            [DatasiswaController::class, 'importStudents']
+        )->name('guru.siswa.import');
+
+
+        Route::post(
+            '/uploadcalonsiswa',
+            [DatasiswaController::class, 'importCandidates']
+        )->name('guru.siswa.candidate.import');
+
     });
 
     /*
