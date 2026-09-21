@@ -365,6 +365,11 @@ Route::middleware([
             [SoalController::class, 'destroyDistribution']
         )->name('guru.soal.distribution.destroy');
 
+       Route::post(
+            '/uploadsoal',
+            [SoalController::class, 'importQuestions']
+            )->name('guru.soal.import');
+
     }
 );
 
@@ -387,11 +392,6 @@ Route::middleware('guest')->group(function () {
     )
         ->middleware('throttle:5,1')
         ->name('login.process');
-
-    Route::post(
-        '/uploadsoal',
-        [SoalController::class, 'importQuestions']
-        )->name('guru.soal.import');
 });
 
 

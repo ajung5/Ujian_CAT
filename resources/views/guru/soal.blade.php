@@ -643,10 +643,9 @@ $(document).ready(function () {
 
     $('#benar').hide();
 
-
     /*
     |--------------------------------------------------------------------------
-    | Toggle form Paket Soal
+    | Toggle Form Paket Soal & Upload Excel
     |--------------------------------------------------------------------------
     */
 
@@ -654,31 +653,12 @@ $(document).ready(function () {
         'click',
         function () {
 
-            $('#wrapsoal')
-                .slideToggle();
-
-        }
-    );
-
-    $('#btnupload').on(
-        'click',
-        function () {
-
             $('#uploadexcel')
-                .slideToggle();
-
-        }
-    );
-
-    /* kedua panel tidak terbuka bersamaan */
-    $('#btnsoal').on(
-        'click',
-        function () {
-
-            $('#uploadexcel')
+                .stop(true, true)
                 .slideUp();
 
             $('#wrapsoal')
+                .stop(true, true)
                 .slideToggle();
 
         }
@@ -690,9 +670,11 @@ $(document).ready(function () {
         function () {
 
             $('#wrapsoal')
+                .stop(true, true)
                 .slideUp();
 
             $('#uploadexcel')
+                .stop(true, true)
                 .slideToggle();
 
         }
