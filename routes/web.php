@@ -388,7 +388,7 @@ Route::middleware([
             '/uploadsoal',
             [SoalController::class, 'importQuestions']
             )->name('guru.soal.import');
-            
+
         /*
         |--------------------------------------------------------------------------
         | Hasil / Laporan Guru
@@ -405,6 +405,38 @@ Route::middleware([
             '/get-hasil-guru',
             [HasilController::class, 'search']
         )->name('guru.results.search');
+
+        Route::get(
+            '/detail-hasil/{id}',
+            [HasilController::class, 'detail']
+        )
+            ->whereNumber('id')
+            ->name('guru.results.detail');
+
+
+        Route::get(
+            '/detail-hasil-soal/{id}/{idSoal}',
+            [HasilController::class, 'classDetail']
+        )
+            ->whereNumber('id')
+            ->whereNumber('idSoal')
+            ->name('guru.results.class-detail');
+
+
+        Route::post(
+            '/hapusjawabsiswa',
+            [HasilController::class, 'destroyStudentResult']
+        )->name(
+            'guru.results.student.destroy'
+        );
+
+
+        Route::post(
+            '/hapusjawabkelas',
+            [HasilController::class, 'destroyClassResults']
+        )->name(
+            'guru.results.class.destroy'
+        );
 
     }
 );
