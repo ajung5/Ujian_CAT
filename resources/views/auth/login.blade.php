@@ -34,18 +34,6 @@
             Silahkan Login untuk mengakses halaman Aplikasi Ujian
         </h3>
 
-        <em>
-            Created by:
-            <a
-                href="http://www.tipa.co.id"
-                target="_blank"
-                title="Tipamedia | IT Learning, Consulting and Developing"
-                style="color: #97b5fc;"
-            >
-                Tipamedia
-            </a>
-        </em>
-
         <br>
 
         <a href="{{ url('/') }}">
