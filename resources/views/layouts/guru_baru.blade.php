@@ -567,15 +567,8 @@
                             Copyright &copy;
                             2016 - {{ date('Y') }}
 
-                            <a
-                                href="http://www.tipa.co.id"
-                                target="_blank"
-                            >
-                                Tipamedia
-                            </a>
-
                             <span class="pull-right">
-                                versi 1.1
+                                V 2.0
                             </span>
 
                         </div>

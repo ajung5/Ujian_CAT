@@ -395,14 +395,9 @@
                 Copyright
                 2016 -
                 {{ date('Y') }}
-
-                <a
-                    href="https://tipa.co.id"
-                    title="Tipamedia"
-                    target="_blank"
-                >
-                    Tipamedia
-                </a>
+                <span class="pull-right">
+                    V 2.0
+                </span>
 
             </div>
 
