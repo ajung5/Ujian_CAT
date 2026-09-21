@@ -41,8 +41,7 @@ class SiswaController extends Controller
     /**
      * Daftar ujian yang tersedia.
      */
-    public function exams(): View
-    {
+    public function exams(): View{
         $user = $this->studentWithClass();
 
         $school = School::first();
@@ -145,9 +144,7 @@ class SiswaController extends Controller
     /**
      * Halaman persiapan + engine ujian.
      */
-    public function exam(
-        int $id
-    ): View|RedirectResponse {
+    public function exam(int $id): View|RedirectResponse {
         $user = $this->studentWithClass();
 
         $school = School::first();
@@ -307,13 +304,10 @@ class SiswaController extends Controller
         );
     }
 
-
     /**
      * Mulai atau lanjutkan ujian.
      */
-    public function startExam(
-        int $id
-    ): JsonResponse {
+    public function startExam(int $id): JsonResponse {
         $soal =
             $this->findDistributedExam(
                 $id
@@ -499,9 +493,7 @@ class SiswaController extends Controller
     /**
      * Load satu soal melalui AJAX.
      */
-    public function question(
-        int $id
-    ): View {
+    public function question(int $id): View {
         $detailsoal =
             Detailsoal::query()
                 ->whereKey($id)
@@ -620,9 +612,7 @@ class SiswaController extends Controller
     /**
      * Simpan / ubah jawaban siswa.
      */
-    public function saveAnswer(
-        Request $request
-    ): JsonResponse {
+    public function saveAnswer(Request $request): JsonResponse {
         $validated =
             $request->validate([
                 'pilihan' => [
@@ -874,9 +864,7 @@ class SiswaController extends Controller
      * URL legacy tetap:
      * POST /countexamtime
      */
-    public function syncTime(
-        Request $request
-    ): JsonResponse {
+    public function syncTime(Request $request): JsonResponse {
         $validated =
             $request->validate([
                 'id_soal' => [
@@ -1013,9 +1001,7 @@ class SiswaController extends Controller
      * URL legacy tetap:
      * POST /kirimjawaban
      */
-    public function finishExam(
-        Request $request
-    ): JsonResponse {
+    public function finishExam(Request $request): JsonResponse {
         $validated =
             $request->validate([
                 'id_soal' => [
@@ -1041,7 +1027,7 @@ class SiswaController extends Controller
                 'finished' => true,
 
                 'redirect' =>
-                    route('siswa.soal'),
+                    route('siswa.results'),
             ]);
         }
 
@@ -1168,16 +1154,397 @@ class SiswaController extends Controller
                 $score,
 
             'redirect' =>
-                route('siswa.soal'),
+                route('siswa.results'),
         ]);
+    }
+
+    /**
+     * Daftar hasil ujian siswa.
+     */
+    public function results(): View{
+        $user =
+            $this->studentWithClass();
+
+        $school =
+            School::first();
+
+        $results =
+            $this->studentResultsQuery()
+                ->paginate(10);
+
+        return view(
+            'siswa.hasil',
+            compact(
+                'user',
+                'school',
+                'results'
+            )
+        );
+    }
+
+    /**
+     * Pencarian hasil ujian.
+     */
+    public function searchResults(
+        Request $request
+    ): View {
+        $validated =
+            $request->validate([
+                'q' => [
+                    'nullable',
+                    'string',
+                    'max:150',
+                ],
+            ]);
+
+        $q =
+            trim(
+                (string)
+                ($validated['q'] ?? '')
+            );
+
+        /*
+        * Search AJAX tidak perlu pagination.
+        * Batasi 50 record.
+        */
+        $results =
+            $this->studentResultsQuery($q)
+                ->limit(50)
+                ->get();
+
+        return view(
+            'siswa.ajax.get_hasil',
+            compact('results')
+        );
     }
 
 
     /**
+     * Review detail hasil ujian.
+     */
+    public function resultDetail(
+        int $id
+    ): View|RedirectResponse {
+        $user =
+            $this->studentWithClass();
+
+        $school =
+            School::first();
+
+        $soal =
+            Soal::query()
+                ->whereKey($id)
+                ->firstOrFail();
+
+
+        /*
+        * User hanya boleh membuka review
+        * hasil miliknya sendiri yang final.
+        */
+        $hasFinalAnswer =
+            Jawab::query()
+                ->where(
+                    'id_soal',
+                    $soal->id
+                )
+                ->where(
+                    'id_user',
+                    auth()->id()
+                )
+                ->where(
+                    'status',
+                    'Y'
+                )
+                ->exists();
+
+
+        $hasDraftAnswer =
+            Jawab::query()
+                ->where(
+                    'id_soal',
+                    $soal->id
+                )
+                ->where(
+                    'id_user',
+                    auth()->id()
+                )
+                ->where(
+                    'status',
+                    'N'
+                )
+                ->exists();
+
+
+        if (
+            ! $hasFinalAnswer ||
+            $hasDraftAnswer
+        ) {
+            return redirect()
+                ->route('siswa.results')
+                ->with(
+                    'error',
+                    'Review jawaban hanya tersedia setelah ujian selesai.'
+                );
+        }
+
+
+        /*
+        * LEFT JOIN dipertahankan agar soal
+        * tanpa jawaban pada data legacy
+        * tetap dapat ditampilkan.
+        *
+        * Pada engine 14B baru, soal tidak
+        * dijawab sudah memiliki record Y
+        * dengan pilihan kosong.
+        */
+        $jawabs =
+            Detailsoal::query()
+                ->leftJoin(
+                    'jawabs',
+                    function ($join) use ($soal) {
+
+                        $join
+                            ->on(
+                                'detailsoals.id',
+                                '=',
+                                'jawabs.no_soal_id'
+                            )
+                            ->where(
+                                'jawabs.id_soal',
+                                '=',
+                                $soal->id
+                            )
+                            ->where(
+                                'jawabs.id_user',
+                                '=',
+                                auth()->id()
+                            )
+                            ->where(
+                                'jawabs.status',
+                                '=',
+                                'Y'
+                            );
+
+                    }
+                )
+                ->select(
+                    'detailsoals.id as detail_id',
+                    'detailsoals.soal',
+                    'detailsoals.audio',
+                    'detailsoals.pila',
+                    'detailsoals.pilb',
+                    'detailsoals.pilc',
+                    'detailsoals.pild',
+                    'detailsoals.pile',
+                    'detailsoals.kunci',
+                    'detailsoals.score as max_score',
+                    'jawabs.pilihan as jawaban',
+                    'jawabs.score as score_diperoleh',
+                    'jawabs.created_at as dijawab_pada',
+                    'jawabs.updated_at as diubah_pada'
+                )
+                ->where(
+                    'detailsoals.id_soal',
+                    $soal->id
+                )
+                ->orderBy(
+                    'detailsoals.id'
+                )
+                ->get();
+
+
+        $jumlahSoal =
+            $jawabs->count();
+
+        $benar = 0;
+
+        $salah = 0;
+
+        $tidakDijawab = 0;
+
+        $nilai = 0.0;
+
+
+        foreach ($jawabs as $jawab) {
+
+            $pilihan =
+                strtoupper(
+                    trim(
+                        (string)
+                        $jawab->jawaban
+                    )
+                );
+
+            $kunci =
+                strtoupper(
+                    trim(
+                        (string)
+                        $jawab->kunci
+                    )
+                );
+
+            $nilai +=
+                (float)
+                ($jawab->score_diperoleh ?? 0);
+
+
+            if ($pilihan === '') {
+
+                $tidakDijawab++;
+
+            } elseif (
+                $pilihan === $kunci
+            ) {
+
+                $benar++;
+
+            } else {
+
+                $salah++;
+
+            }
+        }
+
+
+        $lulus =
+            $nilai >=
+            (float) $soal->kkm;
+
+
+        $jenis =
+            (int) $soal->jenis === 1
+                ? 'Ujian'
+                : 'Latihan';
+
+
+        Log::info(
+            'exam.review.opened',
+            [
+                'user_id' =>
+                    auth()->id(),
+
+                'id_soal' =>
+                    $soal->id,
+
+                'score' =>
+                    $nilai,
+
+                'correct' =>
+                    $benar,
+
+                'wrong' =>
+                    $salah,
+
+                'unanswered' =>
+                    $tidakDijawab,
+
+                'ip' =>
+                    request()->ip(),
+            ]
+        );
+
+
+        return view(
+            'siswa.detail',
+            compact(
+                'user',
+                'school',
+                'soal',
+                'jawabs',
+                'jumlahSoal',
+                'benar',
+                'salah',
+                'tidakDijawab',
+                'nilai',
+                'lulus',
+                'jenis'
+            )
+        );
+    }
+
+
+    /**
+     * Query agregasi hasil milik siswa.
+     */
+    private function studentResultsQuery(
+        ?string $search = null
+    ) {
+        $query =
+            Jawab::query()
+                ->join(
+                    'soals',
+                    'jawabs.id_soal',
+                    '=',
+                    'soals.id'
+                )
+                ->select(
+                    'soals.id as id_soal',
+                    'soals.paket',
+                    'soals.deskripsi',
+                    'soals.kkm',
+                    'soals.jenis as jenis_soal',
+
+                    DB::raw(
+                        "
+                        SUM(
+                            CAST(
+                                COALESCE(
+                                    NULLIF(
+                                        jawabs.score,
+                                        ''
+                                    ),
+                                    '0'
+                                )
+                                AS DECIMAL(10,2)
+                            )
+                        )
+                        as total_score
+                        "
+                    ),
+
+                    DB::raw(
+                        'MAX(jawabs.updated_at) as completed_at'
+                    )
+                )
+                ->where(
+                    'jawabs.id_user',
+                    auth()->id()
+                )
+                ->where(
+                    'jawabs.status',
+                    'Y'
+                );
+
+
+        if (
+            $search !== null &&
+            $search !== ''
+        ) {
+            $query->where(
+                'soals.paket',
+                'like',
+                '%'.$search.'%'
+            );
+        }
+
+
+        return $query
+            ->groupBy(
+                'soals.id',
+                'soals.paket',
+                'soals.deskripsi',
+                'soals.kkm',
+                'soals.jenis'
+            )
+            ->orderByDesc(
+                'completed_at'
+            );
+    }
+
+    /**
      * User + kelas.
      */
-    private function studentWithClass(): User
-    {
+    private function studentWithClass(): User{
         return User::query()
             ->leftJoin(
                 'kelas',
@@ -1201,13 +1568,9 @@ class SiswaController extends Controller
      * Paket harus merupakan ujian
      * yang didistribusikan ke kelas siswa.
      */
-    private function findDistributedExam(
-        int $id
-    ): Soal {
+    private function findDistributedExam(int $id): Soal {
         $user =
             auth()->user();
-
-
         if (
             empty($user->id_kelas)
         ) {
@@ -1239,9 +1602,7 @@ class SiswaController extends Controller
     /**
      * Sudah final?
      */
-    private function isExamFinished(
-        int $idSoal
-    ): bool {
+    private function isExamFinished(int $idSoal): bool {
         return Jawab::query()
             ->where(
                 'id_soal',
@@ -1262,9 +1623,7 @@ class SiswaController extends Controller
     /**
      * Sisa waktu tanpa mengubah DB.
      */
-    private function previewRemainingSeconds(
-        Countexamtime $counter
-    ): int {
+    private function previewRemainingSeconds(Countexamtime $counter): int {
         $remaining =
             max(
                 0,
@@ -1298,9 +1657,7 @@ class SiswaController extends Controller
      * Sinkronisasi sisa waktu
      * sekaligus update checkpoint DB.
      */
-    private function refreshCounter(
-        Countexamtime $counter
-    ): int {
+    private function refreshCounter(Countexamtime $counter): int {
         $remaining =
             $this->previewRemainingSeconds(
                 $counter
@@ -1323,9 +1680,7 @@ class SiswaController extends Controller
      * Soal yang tidak dijawab tetap dibuat
      * dengan pilihan kosong + score 0.
      */
-    private function finalizeExamRecords(
-        Soal $soal
-    ): void {
+    private function finalizeExamRecords(Soal $soal): void {
         $user =
             auth()->user();
 
@@ -1411,9 +1766,7 @@ class SiswaController extends Controller
     /**
      * Key urutan soal di session.
      */
-    private function examOrderSessionKey(
-        int $idSoal
-    ): string {
+    private function examOrderSessionKey(int $idSoal): string {
         return
             'exam_order.'.
             auth()->id().
@@ -1425,10 +1778,7 @@ class SiswaController extends Controller
     /**
      * Validasi urutan soal dari session.
      */
-    private function isQuestionOrderValid(
-        mixed $order,
-        array $available
-    ): bool {
+    private function isQuestionOrderValid(mixed $order,array $available): bool {
         if (! is_array($order)) {
             return false;
         }

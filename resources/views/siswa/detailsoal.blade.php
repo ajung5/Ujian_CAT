@@ -803,7 +803,7 @@ $(document).ready(function () {
 
         window.location.href =
             response.redirect ||
-            '{{ route('siswa.soal') }}';
+            '{{ route('siswa.results') }}';
 
     }
 

@@ -1,8 +1,8 @@
 @extends('layouts/siswa_baru')
 @section('title', 'Review Hasil Ujian')
 @section('breadcrumb')
-  <li><a href="{{ url('/siswa') }}">Home</a></li>
-  <li><a href="{{ url('/hasil-siswa') }}">Hasil Ujian</a></li>
+  <li><a href="{{ route('siswa.index') }}">Home</a></li>
+  <li><a href="{{ route('siswa.results') }}">Hasil Ujian</a></li>
   <li class="active">Review Jawaban</li>
 @endsection
 
@@ -115,7 +115,7 @@
 
 <div class="col-md-12">
   <div class="review-back">
-    <a href="{{ url('/hasil-siswa') }}" class="btn btn-default">
+    <a href="{{ route('siswa.results') }}" class="btn btn-default">
       <i class="fa fa-chevron-left"></i> Kembali ke Hasil Ujian
     </a>
   </div>
@@ -317,7 +317,7 @@
   @endif
 
   <div style="margin-bottom: 25px;">
-    <a href="{{ url('/hasil-siswa') }}" class="btn btn-default">
+    <a href="{{ route('siswa.results') }}" class="btn btn-default">
       <i class="fa fa-chevron-left"></i> Kembali ke Hasil Ujian
     </a>
   </div>

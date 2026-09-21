@@ -492,5 +492,30 @@ Route::middleware([
             [SiswaController::class, 'finishExam']
         )->name('siswa.exam.finish');
 
+        /*
+        |--------------------------------------------------------------------------
+        | Hasil Ujian Siswa
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/hasil-siswa',
+            [SiswaController::class, 'results']
+        )->name('siswa.results');
+
+
+        Route::post(
+            '/get-hasil',
+            [SiswaController::class, 'searchResults']
+        )->name('siswa.results.search');
+
+
+        Route::get(
+            '/hasil-siswa/detail/{id}',
+            [SiswaController::class, 'resultDetail']
+        )
+            ->whereNumber('id')
+            ->name('siswa.results.detail');
+
     }
 );
