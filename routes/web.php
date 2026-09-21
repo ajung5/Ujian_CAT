@@ -301,6 +301,69 @@ Route::middleware([
         )
             ->whereNumber('id')
             ->name('guru.soal.destroy');
+        
+        /*
+        |--------------------------------------------------------------------------
+        | Detail Soal
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/detail-soal/{id}',
+            [SoalController::class, 'detail']
+        )
+            ->whereNumber('id')
+            ->name('guru.soal.detail');
+
+
+        Route::post(
+            '/simpanformdetailsoal',
+            [SoalController::class, 'storeDetail']
+        )->name('guru.soal.detail.store');
+
+
+        Route::get(
+            '/ubah-detail-soal/{id}',
+            [SoalController::class, 'editDetail']
+        )
+            ->whereNumber('id')
+            ->name('guru.soal.detail.edit');
+
+
+        Route::post(
+            '/ubahformdetailsoal',
+            [SoalController::class, 'updateDetail']
+        )->name('guru.soal.detail.update');
+
+
+        Route::post(
+            '/hapusdetailsoal',
+            [SoalController::class, 'destroyDetail']
+        )->name('guru.soal.detail.destroy');
+
+
+        Route::post(
+            '/upload_file_audio',
+            [SoalController::class, 'uploadAudio']
+        )->name('guru.soal.audio.upload');
+
+
+        Route::post(
+            '/hapus_audio',
+            [SoalController::class, 'destroyAudio']
+        )->name('guru.soal.audio.destroy');
+
+
+        Route::post(
+            '/simpandistribusikelas',
+            [SoalController::class, 'storeDistribution']
+        )->name('guru.soal.distribution.store');
+
+
+        Route::post(
+            '/hapusdistribusikelas',
+            [SoalController::class, 'destroyDistribution']
+        )->name('guru.soal.distribution.destroy');
 
     }
 );
