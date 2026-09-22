@@ -25,9 +25,12 @@ use Throwable;
 class DatasiswaController extends Controller
 {
     /**
-     * Daftar siswa dan calon siswa.
+     * Data siswa dipisahkan berdasarkan tab:
+     *
+     * siswa = status S
+     * calon = status C
      */
-    public function index(): View
+    public function index(Request $request): View
     {
         $user = auth()->user();
 
@@ -37,6 +40,16 @@ class DatasiswaController extends Controller
             ->orderBy('nama')
             ->get();
 
+        $activeTab =
+            $request->query('tab') === 'calon'
+                ? 'calon'
+                : 'siswa';
+
+        $statusAktif =
+            $activeTab === 'calon'
+                ? 'C'
+                : 'S';
+
         $users = User::query()
             ->leftJoin(
                 'kelas',
@@ -44,9 +57,9 @@ class DatasiswaController extends Controller
                 '=',
                 'kelas.id'
             )
-            ->whereIn(
+            ->where(
                 'users.status',
-                ['S', 'C']
+                $statusAktif
             )
             ->select([
                 'users.id',
@@ -61,7 +74,8 @@ class DatasiswaController extends Controller
                 'kelas.nama as nama_kelas',
             ])
             ->orderBy('users.nama')
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
         $jumlahSiswa = User::query()
             ->where('status', 'S')
@@ -77,18 +91,39 @@ class DatasiswaController extends Controller
             'kelas',
             'users',
             'jumlahSiswa',
-            'jumlahCalonSiswa'
+            'jumlahCalonSiswa',
+            'activeTab',
+            'statusAktif'
         ));
     }
 
     /**
-     * Cari siswa.
+     * Cari data berdasarkan tab aktif.
      */
     public function search(Request $request): View
     {
+        $validated = $request->validate([
+            'q' => [
+                'nullable',
+                'string',
+                'max:150',
+            ],
+
+            'status' => [
+                'required',
+                Rule::in(['S', 'C']),
+            ],
+        ]);
+
         $q = trim(
-            (string) $request->input('q', '')
+            (string) (
+                $validated['q']
+                ?? ''
+            )
         );
+
+        $statusAktif =
+            $validated['status'];
 
         $users = User::query()
             ->leftJoin(
@@ -97,17 +132,32 @@ class DatasiswaController extends Controller
                 '=',
                 'kelas.id'
             )
-            ->whereIn(
+            ->where(
                 'users.status',
-                ['S', 'C']
+                $statusAktif
             )
             ->when(
                 $q !== '',
                 function ($query) use ($q) {
                     $query->where(
-                        'users.nama',
-                        'like',
-                        '%'.$q.'%'
+                        function ($search) use ($q) {
+                            $search
+                                ->where(
+                                    'users.nama',
+                                    'like',
+                                    '%'.$q.'%'
+                                )
+                                ->orWhere(
+                                    'users.no_induk',
+                                    'like',
+                                    '%'.$q.'%'
+                                )
+                                ->orWhere(
+                                    'users.email',
+                                    'like',
+                                    '%'.$q.'%'
+                                );
+                        }
                     );
                 }
             )
@@ -128,7 +178,11 @@ class DatasiswaController extends Controller
 
         return view(
             'guru.ajax.get_siswa',
-            compact('users', 'q')
+            compact(
+                'users',
+                'q',
+                'statusAktif'
+            )
         );
     }
 
@@ -911,7 +965,12 @@ class DatasiswaController extends Controller
         ]);
 
         return redirect()
-            ->route('guru.siswa')
+            ->route(
+                'guru.siswa',
+                [
+                    'tab' => 'calon',
+                ]
+            )
             ->with(
                 'success',
                 'Seluruh calon siswa berhasil dihapus.'
@@ -1396,7 +1455,14 @@ class DatasiswaController extends Controller
         ]);
 
         return redirect()
-            ->route('guru.siswa')
+            ->route(
+                'guru.siswa',
+                [
+                    'tab' => $status === 'C'
+                            ? 'calon'
+                            : 'siswa',
+                ]
+            )
             ->with(
                 'success',
                 'Import Excel '.$jenisImport.
