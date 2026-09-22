@@ -265,6 +265,8 @@
         </li>
 
 
+        @if (auth()->user()->status === 'S')
+
         <!-- Latihan -->
         <li
             class="
@@ -338,6 +340,9 @@
                 Soal Ujian
             </a>
         </li>
+
+
+        @endif
 
 
         <!-- Logout -->

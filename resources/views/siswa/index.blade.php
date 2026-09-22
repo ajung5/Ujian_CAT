@@ -61,44 +61,78 @@
             </p>
 
 
-            @if (
-                ! empty($user->nama_kelas)
-            )
-
-                <p>
-
-                    Kelas Anda:
-
-                    <b>
-                        {{ $user->nama_kelas }}
-                    </b>
-
-                </p>
-
-            @else
+            @if ($user->status === 'C')
 
                 <div class="alert alert-warning">
 
-                    Anda belum terdaftar pada
-                    kelas.
+                    <strong>
+                        Status Anda masih Calon Siswa.
+                    </strong>
 
-                    Hubungi Guru atau Administrator.
+                    Akses ujian, hasil ujian, materi,
+                    dan latihan akan tersedia setelah
+                    Anda diterima menjadi siswa oleh
+                    Guru atau Administrator.
 
                 </div>
 
+
+                @if (! empty($user->nama_kelas))
+
+                    <p>
+
+                        Kelas sementara / tujuan:
+
+                        <b>
+                            {{ $user->nama_kelas }}
+                        </b>
+
+                    </p>
+
+                @endif
+
+            @else
+
+                @if (
+                    ! empty($user->nama_kelas)
+                )
+
+                    <p>
+
+                        Kelas Anda:
+
+                        <b>
+                            {{ $user->nama_kelas }}
+                        </b>
+
+                    </p>
+
+                @else
+
+                    <div class="alert alert-warning">
+
+                        Anda belum terdaftar pada
+                        kelas.
+
+                        Hubungi Guru atau Administrator.
+
+                    </div>
+
+                @endif
+
+
+                <a
+                    href="{{ route('siswa.soal') }}"
+                    class="btn btn-primary"
+                >
+
+                    <i class="fa fa-list-alt"></i>
+
+                    Lihat Soal Ujian
+
+                </a>
+
             @endif
-
-
-            <a
-                href="{{ route('siswa.soal') }}"
-                class="btn btn-primary"
-            >
-
-                <i class="fa fa-list-alt"></i>
-
-                Lihat Soal Ujian
-
-            </a>
 
         </div>
 
