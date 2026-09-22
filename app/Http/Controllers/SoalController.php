@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Illuminate\Http\JsonResponse;
 
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -390,45 +391,35 @@ class SoalController extends Controller
     }
 
     /**
-     * Halaman konfirmasi delete.
-     *
-     * GET hanya menampilkan konfirmasi.
-     */
-    public function deleteConfirm(int $id): View {
-        $soal =
-            $this->findAccessibleSoal(
-                $id
-            );
-
-        return view(
-            'guru.hapussoal',
-            compact('soal')
-        );
-    }
-
-    /**
      * Eksekusi delete Paket Soal.
      *
      * Dibuat POST agar GET tidak melakukan
      * perubahan data.
      */
-    public function destroy(
-        int $id
-    ): RedirectResponse {
+    public function destroy(Request $request,int $id): JsonResponse|RedirectResponse {
+
         $soal =
             $this->findAccessibleSoal(
                 $id
             );
 
         /*
-         * Untuk tahap ini kita mempertahankan
-         * perilaku controller legacy:
-         * hanya record paket soal yang dihapus.
-         *
-         * Cascade detail/distribusi/jawaban akan
-         * ditentukan pada tahap integritas data.
-         */
+        * Pertahankan behavior database legacy:
+        * saat ini hanya record paket soal
+        * yang dihapus.
+        */
         $soal->delete();
+
+
+        if ($request->expectsJson()) {
+
+            return response()->json([
+                'message' =>
+                    'Paket soal berhasil dihapus.',
+            ]);
+
+        }
+
 
         return redirect()
             ->route('guru.soal')

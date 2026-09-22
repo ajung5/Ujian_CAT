@@ -189,24 +189,25 @@
                     <i class="fa fa-search"></i>
 
                 </a>
-
-
-                <a
-                    href="{{
-                        route(
-                            'guru.soal.delete-confirm',
-                            $soal->id
-                        )
-                    }}"
+                <button
+                    type="button"
                     class="
                         btn
                         btn-xs
                         btn-danger
+                        js-delete-soal
                     "
-                    target="_blank"
+                    data-url="{{
+                        route(
+                            'guru.soal.destroy',
+                            $soal->id
+                        )
+                    }}"
+                    data-paket="{{ $soal->paket }}"
                     title="Hapus Soal"
                 >
-
+                    <i class="fa fa-trash"></i>
+                </button>
                     <i class="fa fa-trash"></i>
 
                 </a>

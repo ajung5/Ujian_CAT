@@ -306,14 +306,6 @@ Route::middleware([
         )->name('guru.soal.update');
 
 
-        Route::get(
-            '/hapus-soal/{id}',
-            [SoalController::class, 'deleteConfirm']
-        )
-            ->whereNumber('id')
-            ->name('guru.soal.delete-confirm');
-
-
         Route::post(
             '/eksekusi-hapus-paket-soal/{id}',
             [SoalController::class, 'destroy']

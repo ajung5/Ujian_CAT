@@ -33,6 +33,7 @@
         </div>
 
     @endif
+    <div id="soal-notification"></div>
 
     @if ($errors->any())
 
@@ -915,6 +916,128 @@ $(document).ready(function () {
                     alert(
                         'Gagal mencari paket soal.'
                     );
+
+                }
+
+            });
+
+        }
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Hapus Paket Soal
+    |--------------------------------------------------------------------------
+    */
+
+    $(document).on(
+        'click',
+        '.js-delete-soal',
+        function () {
+
+            const button =
+                $(this);
+
+            const paket =
+                button.data('paket');
+
+            const url =
+                button.data('url');
+
+            if (
+                ! window.confirm(
+                    'Yakin akan menghapus paket soal "' +
+                    paket +
+                    '"?'
+                )
+            ) {
+                return;
+            }
+
+            button.prop(
+                'disabled',
+                true
+            );
+
+
+            $.ajax({
+
+                type: 'POST',
+
+                url: url,
+
+                headers: {
+                    Accept:
+                        'application/json'
+                },
+
+
+                success: function (response) {
+
+                    const row =
+                        button.closest('tr');
+
+                    row.fadeOut(
+                        200,
+                        function () {
+                            $(this).remove();
+                        }
+                    );
+
+
+                    $('#soal-notification')
+                        .html(
+                            '<div class="alert alert-success">' +
+                            $('<div>')
+                                .text(
+                                    response.message ||
+                                    'Paket soal berhasil dihapus.'
+                                )
+                                .html() +
+                            '</div>'
+                        )
+                        .hide()
+                        .fadeIn(150);
+
+
+                    setTimeout(
+                        function () {
+
+                            $('#soal-notification')
+                                .fadeOut(200);
+
+                        },
+                        3000
+                    );
+
+                },
+
+
+                error: function (xhr) {
+
+                    button.prop(
+                        'disabled',
+                        false
+                    );
+
+
+                    const message =
+                        xhr.responseJSON &&
+                        xhr.responseJSON.message
+                            ? xhr.responseJSON.message
+                            : 'Paket soal gagal dihapus.';
+
+
+                    $('#soal-notification')
+                        .html(
+                            '<div class="alert alert-danger">' +
+                            $('<div>')
+                                .text(message)
+                                .html() +
+                            '</div>'
+                        )
+                        .hide()
+                        .fadeIn(150);
 
                 }
 
