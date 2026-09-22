@@ -25,8 +25,15 @@
     >
 
     <link
-        href="{{ url('/assets/assets/css/googlefont.css') }}"
-        rel="stylesheet"
+        rel="preload"
+        href="{{
+            asset(
+                'assets/assets/libs/font-awesome/fonts/fontawesome-webfont.woff2?v=4.7.0'
+            )
+        }}"
+        as="font"
+        type="font/woff2"
+        crossorigin
     >
 
     <link

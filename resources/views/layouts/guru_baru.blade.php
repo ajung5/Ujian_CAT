@@ -20,6 +20,17 @@
     </title>
 
     <link
+        rel="preload"
+        href="{{
+            asset(
+                'lib/fontawesome/fonts/fontawesome-webfont.woff2?v=4.5.0'
+            )
+        }}"
+        as="font"
+        type="font/woff2"
+        crossorigin
+    >
+    <link
         rel="stylesheet"
         href="{{ asset('lib/fontawesome/css/font-awesome.min.css') }}"
     >
@@ -34,26 +45,9 @@
         href="{{ asset('img/favicon.png') }}"
     >
 
-    <script src="{{ asset('js/modernizr.js') }}"></script>
-
-    <link
-        rel="stylesheet"
-        href="{{ asset('lib/Hover/hover.css') }}"
-    >
-
-    <link
-        rel="stylesheet"
-        href="{{ asset('lib/weather-icons/css/weather-icons.css') }}"
-    >
-
     <link
         rel="stylesheet"
         href="{{ asset('lib/jquery-toggles/toggles-full.css') }}"
-    >
-
-    <link
-        rel="stylesheet"
-        href="{{ asset('lib/morrisjs/morris.css') }}"
     >
 
     @stack('styles')
@@ -588,16 +582,11 @@
 
 <script src="{{ asset('assets/assets/vendor/jquery.min.js') }}"></script>
 
-<script src="{{ asset('lib/jquery-ui/jquery-ui.js') }}"></script>
-
 <script src="{{ asset('lib/bootstrap/js/bootstrap.js') }}"></script>
 
 <script src="{{ asset('lib/jquery-toggles/toggles.js') }}"></script>
 
 <script src="{{ asset('js/quirk.js') }}"></script>
-
-<script src="{{ asset('js/jquery.backstretch.min.js') }}"></script>
-
 
 <script>
 
@@ -607,13 +596,6 @@
                 $('meta[name="csrf-token"]').attr('content')
         }
     });
-
-    $.backstretch(
-        "{{ asset('img/bg2.jpg') }}",
-        {
-            speed: 150
-        }
-    );
 
 </script>
 
