@@ -674,6 +674,11 @@
                 <p>
                     Jumlah siswa:
                     <strong>{{ $jumlahSiswa }}</strong>
+
+                    &nbsp;|&nbsp;
+
+                    Calon siswa:
+                    <strong>{{ $jumlahCalonSiswa }}</strong>
                 </p>
 
 
@@ -693,7 +698,8 @@
 
                         <th>#</th>
                         <th>Nama</th>
-                        <th>NIS</th>
+                        <th>Status</th>
+                        <th>NIS / ID Pendaftaran</th>
                         <th>Email</th>
                         <th>J.Kelamin</th>
                         <th>Kelas</th>
@@ -719,6 +725,18 @@
 
                             <td>
                                 {{ $dataUser->nama }}
+                            </td>
+
+                            <td>
+                                @if ($dataUser->status === 'C')
+                                    <span class="label label-warning">
+                                        Calon Siswa
+                                    </span>
+                                @else
+                                    <span class="label label-success">
+                                        Siswa
+                                    </span>
+                                @endif
                             </td>
 
                             <td>
@@ -783,7 +801,7 @@
                         <tr>
 
                             <td
-                                colspan="7"
+                                colspan="8"
                                 class="alert alert-danger"
                             >
                                 Belum ada data untuk ditampilkan.

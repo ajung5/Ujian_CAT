@@ -91,8 +91,28 @@
                 type="button"
                 class="btn btn-danger"
             >
-                Hapus Siswa
+                {{
+                    $siswa->status === 'C'
+                        ? 'Hapus Calon Siswa'
+                        : 'Hapus Siswa'
+                }}
             </button>
+
+
+            @if ($siswa->status === 'C')
+
+                <button
+                    type="button"
+                    class="btn btn-success"
+                    data-toggle="collapse"
+                    data-target="#wrapterimacalon"
+                >
+                    <i class="fa fa-check"></i>
+
+                    Terima Menjadi Siswa
+                </button>
+
+            @endif
 
 
             <hr>
@@ -259,7 +279,32 @@
 
                         <tr>
 
-                            <td>NIS:</td>
+                            <td>Status:</td>
+
+                            <td>
+                                @if ($siswa->status === 'C')
+                                    <span class="label label-warning">
+                                        Calon Siswa
+                                    </span>
+                                @else
+                                    <span class="label label-success">
+                                        Siswa
+                                    </span>
+                                @endif
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <td>
+                                {{
+                                    $siswa->status === 'C'
+                                        ? 'ID Pendaftaran:'
+                                        : 'NIS:'
+                                }}
+                            </td>
 
                             <td>
                                 {{ $siswa->no_induk }}
@@ -340,6 +385,199 @@
                     </table>
 
 
+
+                    @if ($siswa->status === 'C')
+
+                        <div
+                            class="collapse"
+                            id="wrapterimacalon"
+                            style="margin:15px 0;"
+                        >
+
+                            <div class="well">
+
+                                <h4>
+                                    Terima Calon Siswa
+                                </h4>
+
+
+                                <div class="alert alert-warning">
+
+                                    Proses ini akan mengubah status
+                                    <b>Calon Siswa</b> menjadi
+                                    <b>Siswa</b> pada akun yang sama.
+
+                                    ID Pendaftaran akan diganti dengan
+                                    NIS final dan kelas tujuan yang dipilih.
+
+                                    Email, password, foto, sekolah asal,
+                                    serta histori yang sudah ada tetap
+                                    dipertahankan.
+
+                                </div>
+
+
+                                <form
+                                    id="formterimacalon"
+                                    class="form-horizontal"
+                                >
+
+                                    @csrf
+
+
+                                    <div class="form-group">
+
+                                        <label
+                                            class="
+                                                col-sm-3
+                                                control-label
+                                            "
+                                            for="terima_nis"
+                                        >
+                                            NIS Final
+                                        </label>
+
+
+                                        <div class="col-sm-9">
+
+                                            <input
+                                                type="text"
+                                                id="terima_nis"
+                                                class="form-control"
+                                                maxlength="50"
+                                                placeholder="Masukkan NIS final"
+                                                required
+                                            >
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="form-group">
+
+                                        <label
+                                            class="
+                                                col-sm-3
+                                                control-label
+                                            "
+                                            for="terima_id_kelas"
+                                        >
+                                            Kelas
+                                        </label>
+
+
+                                        <div class="col-sm-9">
+
+                                            <select
+                                                id="terima_id_kelas"
+                                                class="form-control"
+                                                required
+                                            >
+
+                                                <option value="">
+                                                    -- Pilih Kelas --
+                                                </option>
+
+
+                                                @foreach ($kelas as $dataKelas)
+
+                                                    <option
+                                                        value="{{
+                                                            $dataKelas->id
+                                                        }}"
+                                                        @selected(
+                                                            (string)
+                                                            $siswa->id_kelas
+                                                            ===
+                                                            (string)
+                                                            $dataKelas->id
+                                                        )
+                                                    >
+                                                        {{
+                                                            $dataKelas->nama
+                                                        }}
+                                                    </option>
+
+                                                @endforeach
+
+                                            </select>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="form-group">
+
+                                        <div
+                                            class="
+                                                col-sm-offset-3
+                                                col-sm-9
+                                            "
+                                        >
+
+                                            <button
+                                                type="submit"
+                                                id="btnterimacalon"
+                                                class="
+                                                    btn
+                                                    btn-success
+                                                "
+                                            >
+                                                <i class="fa fa-check"></i>
+
+                                                Terima Menjadi Siswa
+                                            </button>
+
+
+                                            <img
+                                                src="{{
+                                                    asset(
+                                                        'img/ajax-loader.gif'
+                                                    )
+                                                }}"
+                                                id="loaderterimacalon"
+                                                alt="Loading"
+                                                style="display:none;"
+                                            >
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div
+                                        class="
+                                            alert
+                                            alert-success
+                                        "
+                                        id="terimabenar"
+                                        style="display:none;"
+                                    >
+                                        Calon siswa berhasil diterima
+                                        menjadi siswa.
+                                    </div>
+
+
+                                    <div
+                                        class="
+                                            alert
+                                            alert-danger
+                                        "
+                                        id="terimasalah"
+                                        style="display:none;"
+                                    ></div>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+
+                    @endif
+
+
                     <button
                         class="btn btn-primary"
                         type="button"
@@ -399,7 +637,11 @@
                                             control-label
                                         "
                                     >
-                                        NIS
+                                        {{
+                                            $siswa->status === 'C'
+                                                ? 'ID Pendaftaran'
+                                                : 'NIS'
+                                        }}
                                     </label>
 
                                     <div class="col-sm-10">
@@ -1071,6 +1313,142 @@ $(document).ready(function () {
 
         }
     );
+
+
+
+    @if ($siswa->status === 'C')
+
+        $('#formterimacalon').on(
+            'submit',
+            function (event) {
+
+                event.preventDefault();
+
+
+                if (
+                    ! confirm(
+                        'Terima calon siswa ini menjadi siswa? ' +
+                        'Pastikan NIS dan kelas tujuan sudah benar.'
+                    )
+                ) {
+                    return;
+                }
+
+
+                $('#loaderterimacalon').show();
+
+                $('#btnterimacalon')
+                    .prop('disabled', true);
+
+                $('#terimabenar').hide();
+                $('#terimasalah').hide();
+
+
+                $.ajax({
+
+                    type: 'POST',
+
+                    url:
+                        '{{
+                            route(
+                                'guru.siswa.candidate.accept'
+                            )
+                        }}',
+
+                    data: {
+
+                        _token:
+                            '{{ csrf_token() }}',
+
+                        id_siswa:
+                            idSiswa,
+
+                        nis:
+                            $('#terima_nis').val(),
+
+                        id_kelas:
+                            $('#terima_id_kelas').val()
+
+                    },
+
+                    success: function (data) {
+
+                        $('#loaderterimacalon').hide();
+
+                        $('#btnterimacalon')
+                            .prop('disabled', false);
+
+
+                        if (data === 'berhasil') {
+
+                            $('#terimabenar').show();
+
+
+                            setTimeout(
+                                function () {
+                                    window.location.reload();
+                                },
+                                600
+                            );
+
+                        }
+
+                    },
+
+                    error: function (xhr) {
+
+                        $('#loaderterimacalon').hide();
+
+                        $('#btnterimacalon')
+                            .prop('disabled', false);
+
+
+                        let message =
+                            'Gagal menerima calon siswa.';
+
+
+                        if (
+                            xhr.responseJSON &&
+                            xhr.responseJSON.errors
+                        ) {
+
+                            message =
+                                Object.values(
+                                    xhr.responseJSON.errors
+                                )
+                                    .flat()
+                                    .join('<br>');
+
+                        } else if (
+                            xhr.responseJSON &&
+                            xhr.responseJSON.message
+                        ) {
+
+                            message =
+                                xhr.responseJSON.message;
+
+                        } else if (
+                            xhr.responseText
+                        ) {
+
+                            message =
+                                xhr.responseText;
+
+                        }
+
+
+                        $('#terimasalah')
+                            .html(message)
+                            .show();
+
+                    }
+
+                });
+
+            }
+        );
+
+    @endif
 
 
     $('#hapus').on(

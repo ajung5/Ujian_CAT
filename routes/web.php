@@ -224,6 +224,11 @@ Route::middleware([
             [DatasiswaController::class, 'importCandidates']
         )->name('guru.siswa.candidate.import');
 
+        Route::post(
+            '/terima-calon-siswa',
+            [DatasiswaController::class, 'acceptCandidate']
+        )->name('guru.siswa.candidate.accept');
+
         Route::get(
             '/materi',
             [MateriController::class, 'index']
