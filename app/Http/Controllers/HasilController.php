@@ -128,11 +128,11 @@ class HasilController extends Controller
             )
             ->where(
                 'jawabs.id_kelas',
-                $kelas->id
+                (string) $kelas->id
             )
             ->where(
                 'jawabs.id_soal',
-                $soal->id
+                (string) $soal->id
             )
             ->where(
                 'jawabs.status',
@@ -155,7 +155,7 @@ class HasilController extends Controller
                 ->pluck('id_user')
                 ->map(
                     fn ($id) =>
-                        (int) $id
+                        (string) $id
                 )
                 ->all();
 
@@ -185,11 +185,11 @@ class HasilController extends Controller
                     )
                     ->where(
                         'jawabs.id_kelas',
-                        $kelas->id
+                        (string) $kelas->id
                     )
                     ->where(
                         'jawabs.id_soal',
-                        $soal->id
+                        (string) $soal->id
                     )
                     ->where(
                         'jawabs.status',
@@ -277,15 +277,15 @@ class HasilController extends Controller
             Jawab::query()
                 ->where(
                     'id_soal',
-                    $soal->id
+                    (string) $soal->id
                 )
                 ->where(
                     'id_kelas',
-                    $kelas->id
+                    (string) $kelas->id
                 )
                 ->where(
                     'id_user',
-                    (int) $validated['id_user']
+                    (string) $validated['id_user']
                 )
                 ->first();
 
@@ -348,15 +348,15 @@ class HasilController extends Controller
                         Jawab::query()
                             ->where(
                                 'id_soal',
-                                $soal->id
+                                (string) $soal->id
                             )
                             ->where(
                                 'id_kelas',
-                                $kelas->id
+                                (string) $kelas->id
                             )
                             ->where(
                                 'id_user',
-                                (int) $validated['id_user']
+                                (string) $validated['id_user']
                             )
                             ->delete();
 
@@ -372,11 +372,11 @@ class HasilController extends Controller
                     Countexamtime::query()
                         ->where(
                             'id_soal',
-                            $soal->id
+                            (string) $soal->id
                         )
                         ->where(
                             'id_user',
-                            (int) $validated['id_user']
+                            (string) $validated['id_user']
                         )
                         ->delete();
 
@@ -452,14 +452,18 @@ class HasilController extends Controller
                         Jawab::query()
                             ->where(
                                 'id_soal',
-                                $soal->id
+                                (string) $soal->id
                             )
                             ->where(
                                 'id_kelas',
-                                $kelas->id
+                                (string) $kelas->id
                             )
                             ->pluck(
                                 'id_user'
+                            )
+                            ->map(
+                                fn ($id) =>
+                                    (string) $id
                             )
                             ->unique()
                             ->values()
@@ -469,11 +473,11 @@ class HasilController extends Controller
                         Jawab::query()
                             ->where(
                                 'id_soal',
-                                $soal->id
+                                (string) $soal->id
                             )
                             ->where(
                                 'id_kelas',
-                                $kelas->id
+                                (string) $kelas->id
                             )
                             ->delete();
 
@@ -483,7 +487,7 @@ class HasilController extends Controller
                         Countexamtime::query()
                             ->where(
                                 'id_soal',
-                                $soal->id
+                                (string) $soal->id
                             )
                             ->whereIn(
                                 'id_user',
@@ -557,7 +561,7 @@ class HasilController extends Controller
             )
             ->where(
                 'jawabs.id_soal',
-                $soal->id
+                (string) $soal->id
             )
             ->where(
                 'jawabs.status',
@@ -639,7 +643,7 @@ class HasilController extends Controller
         ) {
             $query->where(
                 'soals.id_user',
-                auth()->id()
+                (string) auth()->id()
             );
         }
 
@@ -718,11 +722,11 @@ class HasilController extends Controller
         )
         ->where(
             'jawabs.id_kelas',
-            $idKelas
+            (string) $idKelas
         )
         ->where(
             'jawabs.id_soal',
-            $idSoal
+            (string) $idSoal
         )
         ->where(
             'jawabs.status',
@@ -761,7 +765,7 @@ class HasilController extends Controller
             Detailsoal::query()
                 ->where(
                     'id_soal',
-                    $soal->id
+                    (string) $soal->id
                 )
                 ->where(
                     'status',
@@ -996,7 +1000,7 @@ class HasilController extends Controller
                 fn ($query) =>
                     $query->where(
                         'id_user',
-                        auth()->id()
+                        (string) auth()->id()
                     )
             )
             ->firstOrFail();

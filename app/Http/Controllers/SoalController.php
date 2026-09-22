@@ -44,7 +44,7 @@ class SoalController extends Controller
         if (auth()->user()->status === 'G') {
             $query->where(
                 'id_user',
-                auth()->id()
+                (string) auth()->id()
             );
         }
 
@@ -104,7 +104,7 @@ class SoalController extends Controller
         if (auth()->user()->status === 'G') {
             $query->where(
                 'id_user',
-                auth()->id()
+                (string) auth()->id()
             );
         }
 
@@ -241,7 +241,7 @@ class SoalController extends Controller
         $soal = new Soal();
 
         $soal->id_user =
-            auth()->id();
+            (string) auth()->id();
 
         $soal->jenis =
             $validated['jenis'];
@@ -579,7 +579,7 @@ class SoalController extends Controller
         $detailsoals = Detailsoal::query()
             ->where(
                 'id_soal',
-                $soal->id
+                (string) $soal->id
             )
             ->orderBy('id')
             ->get();
@@ -592,7 +592,7 @@ class SoalController extends Controller
             Distribusisoal::query()
                 ->where(
                     'id_soal',
-                    $soal->id
+                    (string) $soal->id
                 )
                 ->pluck('id_kelas')
                 ->map(
@@ -747,7 +747,7 @@ class SoalController extends Controller
             )
             ->where(
                 'id_user',
-                auth()->id()
+                (string) auth()->id()
             )
             ->first();
 
@@ -762,7 +762,7 @@ class SoalController extends Controller
                 $validated['sesi'];
 
             $detail->id_user =
-                auth()->id();
+                (string) auth()->id();
         }
 
         $detail->id_soal =
@@ -1086,7 +1086,7 @@ class SoalController extends Controller
                     )
                     ->where(
                         'id_user',
-                        auth()->id()
+                        (string) auth()->id()
                     )
                     ->first();
 
@@ -1123,7 +1123,7 @@ class SoalController extends Controller
                 $detail->score = null;
 
                 $detail->id_user =
-                    auth()->id();
+                    (string) auth()->id();
 
                 $detail->status = 'N';
 
@@ -1293,11 +1293,11 @@ class SoalController extends Controller
         Distribusisoal::query()
             ->where(
                 'id_soal',
-                $soal->id
+                (string) $soal->id
             )
             ->where(
                 'id_kelas',
-                $validated['id_kelas']
+                (string) $validated['id_kelas']
             )
             ->delete();
 
@@ -1385,7 +1385,7 @@ class SoalController extends Controller
         ) {
             $paketQuery->where(
                 'id_user',
-                auth()->id()
+                (string) auth()->id()
             );
         }
 
@@ -1699,7 +1699,7 @@ class SoalController extends Controller
                             $score;
 
                         $detail->id_user =
-                            auth()->id();
+                            (string) auth()->id();
 
                         /*
                         * Sesuai import legacy:
@@ -1784,7 +1784,7 @@ class SoalController extends Controller
         if (auth()->user()->status === 'G') {
             $query->where(
                 'id_user',
-                auth()->id()
+                (string) auth()->id()
             );
         }
 

@@ -118,7 +118,7 @@ class SiswaController extends Controller
         $school = School::first();
 
         $completedExamIds = Jawab::query()
-            ->where('id_user', auth()->id())
+            ->where('id_user', (string) auth()->id())
             ->where('status', 'Y')
             ->pluck('id_soal')
             ->map(fn ($id) => (string) $id)
@@ -152,7 +152,7 @@ class SiswaController extends Controller
                 'soals.waktu',
                 'soals.jenis'
             )
-            ->where('distribusisoals.id_kelas', $user->id_kelas)
+            ->where('distribusisoals.id_kelas', (string) $user->id_kelas)
             ->where('soals.jenis', '1');
 
         if ($completedExamIds !== []) {
@@ -221,7 +221,7 @@ class SiswaController extends Controller
         }
 
         $availableIds = Detailsoal::query()
-            ->where('id_soal', $soal->id)
+            ->where('id_soal', (string) $soal->id)
             ->where('status', 'Y')
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
@@ -257,8 +257,8 @@ class SiswaController extends Controller
         }
 
         $answeredIds = Jawab::query()
-            ->where('id_soal', $soal->id)
-            ->where('id_user', auth()->id())
+            ->where('id_soal', (string) $soal->id)
+            ->where('id_user', (string) auth()->id())
             ->where('status', 'N')
             ->pluck('no_soal_id')
             ->map(fn ($id) => (int) $id)
@@ -266,8 +266,8 @@ class SiswaController extends Controller
             ->all();
 
         $counter = Countexamtime::query()
-            ->where('id_soal', $soal->id)
-            ->where('id_user', auth()->id())
+            ->where('id_soal', (string) $soal->id)
+            ->where('id_user', (string) auth()->id())
             ->first();
 
         $hasStarted = $counter !== null;
@@ -316,7 +316,7 @@ class SiswaController extends Controller
         }
 
         $jumlahSoal = Detailsoal::query()
-            ->where('id_soal', $soal->id)
+            ->where('id_soal', (string) $soal->id)
             ->where('status', 'Y')
             ->count();
 
@@ -333,8 +333,8 @@ class SiswaController extends Controller
         $result = DB::transaction(
             function () use ($soal) {
                 $counter = Countexamtime::query()
-                    ->where('id_soal', $soal->id)
-                    ->where('id_user', auth()->id())
+                    ->where('id_soal', (string) $soal->id)
+                    ->where('id_user', (string) auth()->id())
                     ->lockForUpdate()
                     ->first();
 
@@ -424,8 +424,8 @@ class SiswaController extends Controller
         }
 
         $counter = Countexamtime::query()
-            ->where('id_soal', $soal->id)
-            ->where('id_user', auth()->id())
+            ->where('id_soal', (string) $soal->id)
+            ->where('id_user', (string) auth()->id())
             ->first();
 
         if (! $counter) {
@@ -455,9 +455,9 @@ class SiswaController extends Controller
         }
 
         $cekJawaban = Jawab::query()
-            ->where('no_soal_id', $detailsoal->id)
-            ->where('id_soal', $soal->id)
-            ->where('id_user', auth()->id())
+            ->where('no_soal_id', (string) $detailsoal->id)
+            ->where('id_soal', (string) $soal->id)
+            ->where('id_user', (string) auth()->id())
             ->where('status', 'N')
             ->first();
 
@@ -504,7 +504,7 @@ class SiswaController extends Controller
 
         $detail = Detailsoal::query()
             ->whereKey($validated['no_soal_id'])
-            ->where('id_soal', $soal->id)
+            ->where('id_soal', (string) $soal->id)
             ->where('status', 'Y')
             ->firstOrFail();
 
@@ -530,8 +530,8 @@ class SiswaController extends Controller
                 $validated
             ) {
                 $counter = Countexamtime::query()
-                    ->where('id_soal', $soal->id)
-                    ->where('id_user', auth()->id())
+                    ->where('id_soal', (string) $soal->id)
+                    ->where('id_user', (string) auth()->id())
                     ->lockForUpdate()
                     ->first();
 
@@ -563,12 +563,12 @@ class SiswaController extends Controller
 
                 Jawab::query()->updateOrCreate(
                     [
-                        'no_soal_id' => $detail->id,
-                        'id_soal' => $soal->id,
-                        'id_user' => $user->id,
+                        'no_soal_id' => (string) $detail->id,
+                        'id_soal' => (string) $soal->id,
+                        'id_user' => (string) $user->id,
                     ],
                     [
-                        'id_kelas' => $user->id_kelas,
+                        'id_kelas' => (string) $user->id_kelas,
                         'nama' => $user->nama,
                         'pilihan' => $pilihan,
                         'score' => $score,
@@ -646,8 +646,8 @@ class SiswaController extends Controller
         $result = DB::transaction(
             function () use ($soal) {
                 $counter = Countexamtime::query()
-                    ->where('id_soal', $soal->id)
-                    ->where('id_user', auth()->id())
+                    ->where('id_soal', (string) $soal->id)
+                    ->where('id_user', (string) auth()->id())
                     ->lockForUpdate()
                     ->first();
 
@@ -729,8 +729,8 @@ class SiswaController extends Controller
         $result = DB::transaction(
             function () use ($soal) {
                 $counter = Countexamtime::query()
-                    ->where('id_soal', $soal->id)
-                    ->where('id_user', auth()->id())
+                    ->where('id_soal', (string) $soal->id)
+                    ->where('id_user', (string) auth()->id())
                     ->lockForUpdate()
                     ->first();
 
@@ -766,8 +766,8 @@ class SiswaController extends Controller
         );
 
         $score = Jawab::query()
-            ->where('id_soal', $soal->id)
-            ->where('id_user', auth()->id())
+            ->where('id_soal', (string) $soal->id)
+            ->where('id_user', (string) auth()->id())
             ->where('status', 'Y')
             ->sum('score');
 
@@ -841,14 +841,14 @@ class SiswaController extends Controller
             ->firstOrFail();
 
         $hasFinalAnswer = Jawab::query()
-            ->where('id_soal', $soal->id)
-            ->where('id_user', auth()->id())
+            ->where('id_soal', (string) $soal->id)
+            ->where('id_user', (string) auth()->id())
             ->where('status', 'Y')
             ->exists();
 
         $hasDraftAnswer = Jawab::query()
-            ->where('id_soal', $soal->id)
-            ->where('id_user', auth()->id())
+            ->where('id_soal', (string) $soal->id)
+            ->where('id_user', (string) auth()->id())
             ->where('status', 'N')
             ->exists();
 
@@ -882,12 +882,12 @@ class SiswaController extends Controller
                         ->where(
                             'jawabs.id_soal',
                             '=',
-                            $soal->id
+                            (string) $soal->id
                         )
                         ->where(
                             'jawabs.id_user',
                             '=',
-                            auth()->id()
+                            (string) auth()->id()
                         )
                         ->where(
                             'jawabs.status',
@@ -912,7 +912,7 @@ class SiswaController extends Controller
                 'jawabs.created_at as dijawab_pada',
                 'jawabs.updated_at as diubah_pada'
             )
-            ->where('detailsoals.id_soal', $soal->id)
+            ->where('detailsoals.id_soal', (string) $soal->id)
             ->orderBy('detailsoals.id')
             ->get();
 
@@ -1009,7 +1009,7 @@ class SiswaController extends Controller
                     'MAX(jawabs.updated_at) as completed_at'
                 )
             )
-            ->where('jawabs.id_user', auth()->id())
+            ->where('jawabs.id_user', (string) auth()->id())
             ->where('jawabs.status', 'Y');
 
         if ($search !== null && $search !== '') {
@@ -1070,7 +1070,7 @@ class SiswaController extends Controller
                 function ($query) use ($user) {
                     $query->where(
                         'id_kelas',
-                        $user->id_kelas
+                        (string) $user->id_kelas
                     );
                 }
             )
@@ -1130,8 +1130,8 @@ class SiswaController extends Controller
     private function isExamFinished(int $idSoal): bool
     {
         return Jawab::query()
-            ->where('id_soal', $idSoal)
-            ->where('id_user', auth()->id())
+            ->where('id_soal', (string) $idSoal)
+            ->where('id_user', (string) auth()->id())
             ->where('status', 'Y')
             ->exists();
     }
@@ -1188,15 +1188,15 @@ class SiswaController extends Controller
         $user = auth()->user();
 
         $details = Detailsoal::query()
-            ->where('id_soal', $soal->id)
+            ->where('id_soal', (string) $soal->id)
             ->where('status', 'Y')
             ->get();
 
         foreach ($details as $detail) {
             $jawab = Jawab::query()->firstOrNew([
-                'no_soal_id' => $detail->id,
-                'id_soal' => $soal->id,
-                'id_user' => $user->id,
+                'no_soal_id' => (string) $detail->id,
+                'id_soal' => (string) $soal->id,
+                'id_user' => (string) $user->id,
             ]);
 
             $pilihan = strtoupper(
@@ -1207,7 +1207,7 @@ class SiswaController extends Controller
                 trim((string) $detail->kunci)
             );
 
-            $jawab->id_kelas = $user->id_kelas;
+            $jawab->id_kelas = (string) $user->id_kelas;
             $jawab->nama = $user->nama;
             $jawab->pilihan = $pilihan;
 
