@@ -1,58 +1,272 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Ujian CAT
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplikasi **Computer Assisted Test (CAT)** berbasis Laravel untuk pengelolaan ujian, latihan, materi pembelajaran, peserta, kelas, serta laporan hasil ujian.
 
-## About Laravel
+Project ini merupakan hasil modernisasi aplikasi CAT legacy dari Laravel 5.1 ke Laravel 13 dengan mempertahankan proses bisnis, struktur database utama, serta alur penggunaan aplikasi.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Teknologi
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- PHP 8.3+
+- Laravel 13
+- MySQL
+- Blade
+- Bootstrap
+- jQuery
+- Vite
+- PhpSpreadsheet
+- Intervention Image
+- Pest / PHPUnit
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+Aplikasi dapat dijalankan langsung menggunakan:
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Docker tidak diperlukan.
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Fitur Utama
 
-## Code of Conduct
+### Guru / Administrator
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- Dashboard
+- Manajemen data Guru
+- Manajemen Kelas
+- Manajemen Siswa dan Calon Siswa
+- Import data siswa dari Excel
+- Manajemen Materi
+- Manajemen Paket Soal
+- Manajemen Detail Soal
+- Import soal dari Excel
+- Upload audio soal
+- Distribusi ujian ke kelas
+- Laporan hasil ujian dan latihan
+- Export hasil per kelas ke Excel
+- Pengelolaan hasil siswa
 
-## Security Vulnerabilities
+### Siswa
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- Dashboard
+- Daftar ujian berdasarkan distribusi kelas
+- Engine ujian dengan timer server-side
+- Penyimpanan jawaban
+- Finalisasi otomatis ketika waktu habis
+- Hasil ujian
+- Review jawaban
+- Materi pembelajaran
+- Latihan
+- Profil siswa
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Role Pengguna
+
+| Status | Role |
+|---|---|
+| `A` | Administrator |
+| `G` | Guru |
+| `S` | Siswa |
+| `C` | Calon Siswa |
+
+Authorization diterapkan pada route dan resource yang diakses oleh masing-masing role.
+
+---
+
+## Instalasi Singkat
+
+```bash
+git clone https://github.com/ajung5/Ujian_CAT.git
+cd Ujian_CAT
+composer install
+cp .env.example .env
+php artisan key:generate
+npm install
+npm run build
+php artisan optimize:clear
+php artisan serve
+```
+
+Sesuaikan konfigurasi MySQL pada `.env`:
+
+```dotenv
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=ujian
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+Default development URL:
+
+```text
+http://127.0.0.1:8000
+```
+
+---
+
+## Database
+
+Aplikasi menggunakan **database legacy CAT** dengan database default:
+
+```text
+ujian
+```
+
+> **Penting:** jangan menjalankan `php artisan migrate` terhadap database produksi legacy tanpa proses review terlebih dahulu.
+
+Beberapa tabel utama:
+
+```text
+users
+kelas
+schools
+materis
+soals
+detailsoals
+distribusisoals
+jawabs
+countexamtimes
+aktifitas
+```
+
+---
+
+## Testing
+
+```bash
+php artisan test
+```
+
+Current regression suite:
+
+```text
+30 passed
+0 failed
+```
+
+Regression test mencakup authentication, role authorization, distribusi ujian, latihan, ownership/IDOR protection, integritas penghapusan Paket Soal, historical class result, lifecycle ujian, timer expiry, cross-package protection, dan isolasi timer.
+
+Database testing menggunakan SQLite terisolasi dan tidak menggunakan database produksi.
+
+---
+
+## Security
+
+Kontrol keamanan yang sudah diterapkan antara lain:
+
+- Authentication middleware
+- Role-based authorization
+- Resource ownership validation
+- CSRF protection
+- POST-only logout
+- Login rate limiting
+- IDOR protection
+- Server-side assessment timer
+- Validasi Paket Soal dan Detail Soal
+- Proteksi hasil ujian historis
+- Transaction untuk operasi database kritis
+- Validasi upload file
+- Regression test untuk critical assessment flow
+
+Jangan pernah commit file `.env`, `APP_KEY`, password database, maupun credential lainnya.
+
+---
+
+## Struktur Utama Project
+
+```text
+app/
+├── Http/
+│   ├── Controllers/
+│   └── Middleware/
+├── Models/
+└── ...
+
+resources/
+└── views/
+    ├── guru/
+    ├── siswa/
+    └── layouts/
+
+routes/
+└── web.php
+
+tests/
+├── Feature/
+└── Support/
+
+public/
+├── css/
+├── js/
+├── img/
+└── assets/
+```
+
+---
+
+## Catatan Migrasi
+
+Aplikasi ini berasal dari aplikasi CAT legacy berbasis Laravel 5.1.
+
+```text
+Business Process  → dipertahankan
+Database          → dipertahankan
+UI / UX           → dipertahankan
+Security          → diperkuat
+Framework         → dimodernisasi
+Testing           → ditambahkan
+```
+
+Beberapa komponen legacy telah diganti atau dihapus:
+
+- Legacy authentication
+- Raw `mysqli`
+- LaravelCollective HTML
+- PHPExcel
+- Dependency JavaScript yang tidak digunakan
+- GET logout
+- View legacy yang sudah tidak digunakan
+
+Export Excel sekarang menggunakan **PhpSpreadsheet**.
+
+---
+
+## Development
+
+```bash
+php artisan optimize:clear
+php artisan test
+./vendor/bin/pint
+composer validate
+composer audit
+npm audit
+```
+
+Hindari `npm audit fix --force` tanpa review karena dapat menghasilkan breaking changes.
+
+---
+
+## Repository
+
+https://github.com/ajung5/Ujian_CAT
+
+---
+
+## Status Modernisasi
+
+```text
+Laravel Legacy 5.1
+       ↓
+Laravel 13
+       ↓
+Security Hardening
+       ↓
+Regression Testing
+       ↓
+Performance & Database Optimization
+```
