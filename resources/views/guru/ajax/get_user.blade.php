@@ -1,119 +1,77 @@
-<table
-    class="
+<table class="
         table
         table-bordered
         table-default
         table-striped
         nomargin
-    "
->
-
+    ">
     <thead>
+        <tr>
+            <th style="text-align:center;">
+                #
+            </th>
 
-    <tr>
+            <th>Nama</th>
 
-        <th style="text-align:center;">
-            #
-        </th>
+            <th>NIP</th>
 
-        <th>Nama</th>
+            <th>Email</th>
 
-        <th>NIP</th>
+            <th>J.Kelamin</th>
 
-        <th>Email</th>
-
-        <th>J.Kelamin</th>
-
-        <th
-            width="70"
-            style="text-align:center;"
-        >
-            Aksi
-        </th>
-
-    </tr>
-
+            <th width="70" style="text-align:center;">
+                Aksi
+            </th>
+        </tr>
     </thead>
 
-
     <tbody>
+        @forelse ($users as $data)
+            <tr>
+                <td style="text-align:center;">
+                    {{ $users->firstItem() + $loop->index }}
+                </td>
 
-    @forelse ($users as $data)
+                <td>
+                    {{ $data->nama }}
+                </td>
 
-        <tr>
+                <td>
+                    {{ $data->no_induk ?: '-' }}
+                </td>
 
-            <td style="text-align:center;">
+                <td>
+                    {{ $data->email }}
+                </td>
 
-                {{
-                    $users->firstItem()
-                    + $loop->index
-                }}
+                <td>
+                    @if ($data->jk === 'L')
+                        Laki-laki
+                    @elseif ($data->jk === 'P')
+                        Perempuan
+                    @else
+                        -
+                    @endif
+                </td>
 
-            </td>
+                <td style="text-align:center;">
+                    <a href="{{ route('guru.detail', $data->id) }}" class="btn btn-primary btn-xs">
+                        Detail
+                    </a>
+                </td>
+            </tr>
 
-            <td>
-                {{ $data->nama }}
-            </td>
+        @empty
 
-            <td>
-                {{ $data->no_induk ?: '-' }}
-            </td>
+            <tr>
+                <td colspan="6" class="alert alert-danger">
+                    Kata kunci Anda:
 
-            <td>
-                {{ $data->email }}
-            </td>
+                    <b>{{ $q }}</b>
 
-            <td>
-
-                @if ($data->jk === 'L')
-                    Laki-laki
-                @elseif ($data->jk === 'P')
-                    Perempuan
-                @else
-                    -
-                @endif
-
-            </td>
-
-            <td style="text-align:center;">
-
-                <a
-                    href="{{
-                        route(
-                            'guru.detail',
-                            $data->id
-                        )
-                    }}"
-                    class="btn btn-primary btn-xs"
-                >
-                    Detail
-                </a>
-
-            </td>
-
-        </tr>
-
-    @empty
-
-        <tr>
-
-            <td
-                colspan="6"
-                class="alert alert-danger"
-            >
-
-                Kata kunci Anda:
-
-                <b>{{ $q }}</b>
-
-                tidak ditemukan.
-
-            </td>
-
-        </tr>
-
-    @endforelse
-
+                    tidak ditemukan.
+                </td>
+            </tr>
+        @endforelse
     </tbody>
-
 </table>

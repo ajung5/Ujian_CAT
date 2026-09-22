@@ -2,623 +2,448 @@
 
 @section('title', 'Detail Kelas')
 
-
 @section('content')
 
-<div class="col-md-12 dash-left">
+    <div class="col-md-12 dash-left">
+        <ol class="breadcrumb">
+            <li>
+                <a href="{{ route('guru.index') }}">
+                    Home
+                </a>
+            </li>
 
+            <li>
+                <a href="{{ route('guru.kelas') }}">
+                    Kelas
+                </a>
+            </li>
 
-    <ol class="breadcrumb">
-
-        <li>
-            <a href="{{ route('guru.index') }}">
-                Home
-            </a>
-        </li>
-
-        <li>
-            <a href="{{ route('guru.kelas') }}">
-                Kelas
-            </a>
-        </li>
-
-        <li class="active">
-            {{ $kelassiswa->nama }}
-        </li>
-
-    </ol>
-
-
-    <div class="panel panel-default">
-
-
-        <div class="panel-heading">
-
-            Daftar siswa kelas
-
-            <b>
+            <li class="active">
                 {{ $kelassiswa->nama }}
-            </b>
+            </li>
+        </ol>
 
-        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                Daftar siswa kelas
 
-
-        <div class="panel-body">
-
-
-            <div class="alert alert-warning">
-
-                <span class="fa fa-exclamation-circle"></span>
-
-                <b>PERHATIAN:</b>
-
-                Anda dapat memindahkan atau mengeluarkan siswa
-                dari kelas
-
-                <b>{{ $kelassiswa->nama }}</b>.
-
+                <b>
+                    {{ $kelassiswa->nama }}
+                </b>
             </div>
 
+            <div class="panel-body">
+                <div class="alert alert-warning">
+                    <span class="fa fa-exclamation-circle"></span>
 
-            <button
-                type="button"
-                class="btn btn-primary"
-                data-toggle="collapse"
-                data-target="#wrapubah"
-            >
+                    <b>PERHATIAN:</b>
 
-                <i class="fa fa-pencil-square-o"></i>
+                    Anda dapat memindahkan atau mengeluarkan siswa
+                    dari kelas
 
-                Tambah Siswa
+                    <b>{{ $kelassiswa->nama }}</b>.
+                </div>
 
-            </button>
+                <button type="button" class="btn btn-primary" data-toggle="collapse" data-target="#wrapubah">
+                    <i class="fa fa-pencil-square-o"></i>
 
+                    Tambah Siswa
+                </button>
 
-            <div
-                class="collapse"
-                id="wrapubah"
-                style="margin:15px 0 0 0;"
-            >
+                <div class="collapse" id="wrapubah" style="margin:15px 0 0 0;">
+                    <div class="well">
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <label for="siswa" class="col-sm-2 control-label">
+                                    Nama Siswa
+                                </label>
 
-                <div class="well">
-
-
-                    <div class="form-horizontal">
-
-
-                        <div class="form-group">
-
-                            <label
-                                for="siswa"
-                                class="col-sm-2 control-label"
-                            >
-                                Nama Siswa
-                            </label>
-
-
-                            <div class="col-sm-10">
-
-                                <input
-                                    type="hidden"
-                                    id="id_kelas"
-                                    value="{{ $kelassiswa->id }}"
-                                >
-
-
-                                <select
-                                    class="form-control"
-                                    id="siswa"
-                                    style="width:100%;"
-                                >
-
-                                    <option value="">
-                                        -- Pilih Siswa --
-                                    </option>
-
-
-                                    @foreach (
-                                        $calonsiswas
-                                        as $calonsiswa
-                                    )
-
-                                        <option
-                                            value="{{ $calonsiswa->id }}"
-                                        >
-
-                                            {{
-                                                $calonsiswa->no_induk.
-                                                ' - '.
-                                                $calonsiswa->nama
-                                            }}
-
+                                <div class="col-sm-10">
+                                    <input type="hidden" id="id_kelas" value="{{ $kelassiswa->id }}">
+                                    <select class="form-control" id="siswa" style="width:100%;">
+                                        <option value="">
+                                            -- Pilih Siswa --
                                         </option>
 
-                                    @endforeach
-
-                                </select>
-
+                                        @foreach ($calonsiswas as $calonsiswa)
+                                            <option value="{{ $calonsiswa->id }}">
+                                                {{ $calonsiswa->no_induk . ' - ' . $calonsiswa->nama }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             </div>
 
-                        </div>
-
-
-                        <div
-                            class="form-group"
-                            id="wrapinfo"
-                            style="display:none;"
-                        >
-
-                            <div
-                                class="
+                            <div class="form-group" id="wrapinfo" style="display:none;">
+                                <div class="
                                     col-sm-offset-2
                                     col-sm-10
                                     alert
                                     alert-success
                                 "
-                                id="info"
-                            ></div>
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <div
-                                class="
-                                    col-sm-offset-2
-                                    col-sm-10
-                                "
-                            >
-
-                                <button
-                                    type="button"
-                                    id="btntbhsiswa"
-                                    class="btn btn-primary"
-                                >
-                                    Simpan
-                                </button>
-
-
-                                <img
-                                    src="{{
-                                        asset(
-                                            'img/ajax-loader.gif'
-                                        )
-                                    }}"
-                                    alt="Loading"
-                                    id="loaderupdate"
-                                    style="display:none;"
-                                >
-
+                                    id="info"></div>
                             </div>
 
-                        </div>
+                            <div class="form-group">
+                                <div
+                                    class="
+                                    col-sm-offset-2
+                                    col-sm-10
+                                ">
+                                    <button type="button" id="btntbhsiswa" class="btn btn-primary">
+                                        Simpan
+                                    </button>
 
+                                    <img src="{{ asset('img/ajax-loader.gif') }}" alt="Loading" id="loaderupdate"
+                                        style="display:none;">
+                                </div>
+                            </div>
 
-                        <div
-                            class="
+                            <div class="
                                 col-sm-offset-2
                                 col-sm-10
                                 alert
                                 alert-success
                             "
-                            id="updatebenar"
-                            style="display:none;"
-                        >
+                                id="updatebenar" style="display:none;">
+                                Data siswa berhasil dipindah kelas.
+                            </div>
 
-                            Data siswa berhasil dipindah kelas.
-
-                        </div>
-
-
-                        <div
-                            class="
+                            <div class="
                                 col-sm-offset-2
                                 col-sm-10
                                 alert
                                 alert-danger
                             "
-                            id="updatesalah"
-                            style="display:none;"
-                        ></div>
+                                id="updatesalah" style="display:none;"></div>
 
-
-                        <div class="clearfix"></div>
-
+                            <div class="clearfix"></div>
+                        </div>
                     </div>
-
                 </div>
 
-            </div>
-
-
-            <div style="overflow-x:auto;">
-
-                <table
-                    class="
+                <div style="overflow-x:auto;">
+                    <table
+                        class="
                         table
                         table-condensed
                         table-hover
                         table-bordered
                     "
-                    style="margin:15px 0 0 0;"
-                >
+                        style="margin:15px 0 0 0;">
+                        <thead>
+                            <tr>
+                                <th class="text-center">
+                                    No
+                                </th>
 
-                    <thead>
+                                <th class="text-center">
+                                    Nama
+                                </th>
 
-                    <tr>
+                                <th class="text-center">
+                                    NIS
+                                </th>
 
-                        <th class="text-center">
-                            No
-                        </th>
+                                <th class="text-center">
+                                    J.Kelamin
+                                </th>
 
-                        <th class="text-center">
-                            Nama
-                        </th>
+                                <th class="text-center">
+                                    Email
+                                </th>
 
-                        <th class="text-center">
-                            NIS
-                        </th>
+                                <th class="text-center">
+                                    Aksi
+                                </th>
+                            </tr>
+                        </thead>
 
-                        <th class="text-center">
-                            J.Kelamin
-                        </th>
+                        <tbody>
+                            @forelse ($siswas as $siswa)
+                                <tr id="baris{{ $siswa->id }}">
+                                    <td width="45" class="text-center">
+                                        {{ $loop->iteration }}
+                                    </td>
 
-                        <th class="text-center">
-                            Email
-                        </th>
+                                    <td>
+                                        {{ $siswa->nama }}
+                                    </td>
 
-                        <th class="text-center">
-                            Aksi
-                        </th>
+                                    <td>
+                                        {{ $siswa->no_induk }}
+                                    </td>
 
-                    </tr>
+                                    <td>
+                                        @if ($siswa->jk === 'L')
+                                            Laki-laki
+                                        @elseif ($siswa->jk === 'P')
+                                            Perempuan
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
 
-                    </thead>
+                                    <td>
+                                        {{ $siswa->email }}
+                                    </td>
 
-
-                    <tbody>
-
-
-                    @forelse ($siswas as $siswa)
-
-
-                        <tr id="baris{{ $siswa->id }}">
-
-                            <td
-                                width="45"
-                                class="text-center"
-                            >
-                                {{ $loop->iteration }}
-                            </td>
-
-
-                            <td>
-                                {{ $siswa->nama }}
-                            </td>
-
-
-                            <td>
-                                {{ $siswa->no_induk }}
-                            </td>
-
-
-                            <td>
-
-                                @if ($siswa->jk === 'L')
-                                    Laki-laki
-                                @elseif ($siswa->jk === 'P')
-                                    Perempuan
-                                @else
-                                    -
-                                @endif
-
-                            </td>
-
-
-                            <td>
-                                {{ $siswa->email }}
-                            </td>
-
-
-                            <td
-                                width="140"
-                                class="text-center"
-                            >
-
-                                <button
-                                    type="button"
-                                    class="
+                                    <td width="140" class="text-center">
+                                        <button type="button"
+                                            class="
                                         btn
                                         btn-danger
                                         btn-xs
                                         btn-keluarkan-siswa
                                     "
-                                    data-id="{{ $siswa->id }}"
-                                >
-                                    Hapus
-                                </button>
+                                            data-id="{{ $siswa->id }}">
+                                            Hapus
+                                        </button>
 
-                                |
+                                        |
 
-                                <a
-                                    href="{{
-                                        url(
-                                            '/detail-kelas-siswa/'.
-                                            $siswa->id
-                                        )
-                                    }}"
-                                >
-                                    Detail
-                                </a>
+                                        <a href="{{ url('/detail-kelas-siswa/' . $siswa->id) }}">
+                                            Detail
+                                        </a>
+                                    </td>
+                                </tr>
 
-                            </td>
+                            @empty
 
-                        </tr>
+                                <tr>
+                                    <td colspan="6" class="text-center">
+                                        <div class="alert alert-danger">
+                                            <b>Upsss:</b>
 
+                                            Data siswa untuk kelas
 
-                    @empty
+                                            {{ $kelassiswa->nama }}
 
-                        <tr>
-
-                            <td
-                                colspan="6"
-                                class="text-center"
-                            >
-
-                                <div class="alert alert-danger">
-
-                                    <b>Upsss:</b>
-
-                                    Data siswa untuk kelas
-
-                                    {{ $kelassiswa->nama }}
-
-                                    masih kosong.
-
-                                </div>
-
-                            </td>
-
-                        </tr>
-
-                    @endforelse
-
-
-                    </tbody>
-
-                </table>
-
+                                            masih kosong.
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
-
         </div>
-
     </div>
-
-</div>
 
 @endsection
 
-
-
 @push('scripts')
+    <script>
+        $(document).ready(function() {
 
-<script>
-
-$(document).ready(function () {
-
-    'use strict';
+            'use strict';
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | CEK KELAS SISWA
-    |--------------------------------------------------------------------------
-    */
+            /*
+            |--------------------------------------------------------------------------
+            | CEK KELAS SISWA
+            |--------------------------------------------------------------------------
+            */
 
-    $('#siswa').on('change', function () {
+            $('#siswa').on('change', function() {
 
-        const siswa = $(this).val();
+                const siswa = $(this).val();
 
-        $('#wrapinfo').hide();
-
-
-        if (! siswa) {
-            return;
-        }
+                $('#wrapinfo').hide();
 
 
-        $.ajax({
+                if (!siswa) {
+                    return;
+                }
 
-            type: 'POST',
 
-            url:
-                '{{ route('guru.kelas.siswa.check') }}',
+                $.ajax({
 
-            data: {
-                siswa: siswa
-            },
+                    type: 'POST',
 
-            success: function (data) {
+                    url: '{{ route('guru.kelas.siswa.check') }}',
 
-                $('#info').html(data);
+                    data: {
+                        siswa: siswa
+                    },
 
-                $('#wrapinfo').fadeIn();
+                    success: function(data) {
 
-            },
+                        $('#info').html(data);
 
-            error: function (xhr) {
+                        $('#wrapinfo').fadeIn();
 
-                $('#info').html(
-                    xhr.responseText ||
-                    'Gagal memeriksa kelas siswa.'
-                );
+                    },
 
-                $('#wrapinfo').fadeIn();
+                    error: function(xhr) {
 
-            }
+                        $('#info').html(
+                            xhr.responseText ||
+                            'Gagal memeriksa kelas siswa.'
+                        );
 
-        });
+                        $('#wrapinfo').fadeIn();
 
-    });
+                    }
+
+                });
+
+            });
 
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | PINDAHKAN SISWA
-    |--------------------------------------------------------------------------
-    */
+            /*
+            |--------------------------------------------------------------------------
+            | PINDAHKAN SISWA
+            |--------------------------------------------------------------------------
+            */
 
-    $('#btntbhsiswa').on(
-        'click',
-        function () {
+            $('#btntbhsiswa').on(
+                'click',
+                function() {
 
-            const siswa =
-                $('#siswa').val();
+                    const siswa =
+                        $('#siswa').val();
 
-            const idKelas =
-                $('#id_kelas').val();
-
-
-            $('#updatesalah').hide();
-            $('#updatebenar').hide();
-            $('#loaderupdate').show();
+                    const idKelas =
+                        $('#id_kelas').val();
 
 
-            $.ajax({
-
-                type: 'POST',
-
-                url:
-                    '{{ route('guru.kelas.siswa.add') }}',
-
-                data: {
-
-                    siswa: siswa,
-
-                    id_kelas: idKelas
-
-                },
-
-                success: function (data) {
-
-                    $('#loaderupdate').hide();
+                    $('#updatesalah').hide();
+                    $('#updatebenar').hide();
+                    $('#loaderupdate').show();
 
 
-                    if (data === 'berhasil') {
+                    $.ajax({
 
-                        $('#updatebenar').show();
+                        type: 'POST',
 
-                        window.location.reload();
+                        url: '{{ route('guru.kelas.siswa.add') }}',
 
+                        data: {
+
+                            siswa: siswa,
+
+                            id_kelas: idKelas
+
+                        },
+
+                        success: function(data) {
+
+                            $('#loaderupdate').hide();
+
+
+                            if (data === 'berhasil') {
+
+                                $('#updatebenar').show();
+
+                                window.location.reload();
+
+                                return;
+                            }
+
+
+                            $('#updatesalah')
+                                .html(data)
+                                .show();
+
+                        },
+
+                        error: function(xhr) {
+
+                            $('#loaderupdate').hide();
+
+
+                            let message =
+                                'Gagal memindahkan siswa.';
+
+
+                            if (
+                                xhr.responseJSON &&
+                                xhr.responseJSON.errors
+                            ) {
+
+                                message =
+                                    Object.values(
+                                        xhr.responseJSON.errors
+                                    )
+                                    .flat()
+                                    .join('<br>');
+
+                            }
+
+
+                            $('#updatesalah')
+                                .html(message)
+                                .show();
+
+                        }
+
+                    });
+
+                }
+            );
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | KELUARKAN SISWA DARI KELAS
+            |--------------------------------------------------------------------------
+            */
+
+            $('.btn-keluarkan-siswa').on(
+                'click',
+                function() {
+
+                    const id = $(this).data('id');
+
+
+                    if (
+                        !confirm(
+                            'Siswa yang dihapus dari kelas ' +
+                            'akan menjadi tidak memiliki kelas.'
+                        )
+                    ) {
                         return;
                     }
 
 
-                    $('#updatesalah')
-                        .html(data)
-                        .show();
+                    $.ajax({
 
-                },
+                        type: 'POST',
 
-                error: function (xhr) {
+                        url: '{{ route('guru.kelas.siswa.remove') }}',
 
-                    $('#loaderupdate').hide();
+                        data: {
+                            id_siswa: id
+                        },
 
+                        success: function(data) {
 
-                    let message =
-                        'Gagal memindahkan siswa.';
+                            if (data === 'berhasil') {
 
+                                $('#baris' + id)
+                                    .fadeOut(250);
 
-                    if (
-                        xhr.responseJSON &&
-                        xhr.responseJSON.errors
-                    ) {
+                            }
 
-                        message =
-                            Object.values(
-                                xhr.responseJSON.errors
-                            )
-                            .flat()
-                            .join('<br>');
+                        },
 
-                    }
+                        error: function() {
 
+                            alert(
+                                'Gagal mengeluarkan siswa dari kelas.'
+                            );
 
-                    $('#updatesalah')
-                        .html(message)
-                        .show();
+                        }
+
+                    });
 
                 }
+            );
 
-            });
-
-        }
-    );
-
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | KELUARKAN SISWA DARI KELAS
-    |--------------------------------------------------------------------------
-    */
-
-    $('.btn-keluarkan-siswa').on(
-        'click',
-        function () {
-
-            const id = $(this).data('id');
-
-
-            if (
-                ! confirm(
-                    'Siswa yang dihapus dari kelas ' +
-                    'akan menjadi tidak memiliki kelas.'
-                )
-            ) {
-                return;
-            }
-
-
-            $.ajax({
-
-                type: 'POST',
-
-                url:
-                    '{{ route('guru.kelas.siswa.remove') }}',
-
-                data: {
-                    id_siswa: id
-                },
-
-                success: function (data) {
-
-                    if (data === 'berhasil') {
-
-                        $('#baris' + id)
-                            .fadeOut(250);
-
-                    }
-
-                },
-
-                error: function () {
-
-                    alert(
-                        'Gagal mengeluarkan siswa dari kelas.'
-                    );
-
-                }
-
-            });
-
-        }
-    );
-
-});
-
-</script>
-
+        });
+    </script>
 @endpush

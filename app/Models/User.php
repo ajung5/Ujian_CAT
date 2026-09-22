@@ -6,8 +6,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
-{
+class User extends Authenticatable {
     use Notifiable;
 
     protected $table = 'users';
@@ -24,28 +23,21 @@ class User extends Authenticatable
         'sekolah_asal',
     ];
 
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $hidden = ['password', 'remember_token'];
 
-    public function soals(): HasMany
-    {
+    public function soals(): HasMany {
         return $this->hasMany(Soal::class, 'id_user');
     }
 
-    public function jawabs(): HasMany
-    {
+    public function jawabs(): HasMany {
         return $this->hasMany(Jawab::class, 'id_user');
     }
 
-    public function aktifitas(): HasMany
-    {
+    public function aktifitas(): HasMany {
         return $this->hasMany(Aktifitas::class, 'id_user');
     }
 
-    public function countexamtimes(): HasMany
-    {
+    public function countexamtimes(): HasMany {
         return $this->hasMany(Countexamtime::class, 'id_user');
     }
 }

@@ -6,468 +6,270 @@ use App\Models\Kelas;
 use App\Models\Materi;
 use App\Models\Soal;
 
-function createActiveQuestion(
-    Soal $soal,
-    int $userId
-): Detailsoal {
-    return Detailsoal::query()
-        ->create([
-            'id_soal' =>
-                (string) $soal->id,
+function createActiveQuestion(Soal $soal, int $userId): Detailsoal {
+    return Detailsoal::query()->create([
+        'id_soal' => (string) $soal->id,
 
-            'jenis' =>
-                '1',
+        'jenis' => '1',
 
-            'soal' =>
-                'Pertanyaan test',
+        'soal' => 'Pertanyaan test',
 
-            'audio' =>
-                null,
+        'audio' => null,
 
-            'pila' =>
-                'Jawaban A',
+        'pila' => 'Jawaban A',
 
-            'pilb' =>
-                'Jawaban B',
+        'pilb' => 'Jawaban B',
 
-            'pilc' =>
-                'Jawaban C',
+        'pilc' => 'Jawaban C',
 
-            'pild' =>
-                'Jawaban D',
+        'pild' => 'Jawaban D',
 
-            'pile' =>
-                'Jawaban E',
+        'pile' => 'Jawaban E',
 
-            'kunci' =>
-                'A',
+        'kunci' => 'A',
 
-            'score' =>
-                '100',
+        'score' => '100',
 
-            'id_user' =>
-                (string) $userId,
+        'id_user' => (string) $userId,
 
-            'status' =>
-                'Y',
+        'status' => 'Y',
 
-            'sesi' =>
-                'test-session',
-        ]);
+        'sesi' => 'test-session',
+    ]);
 }
 
+test('siswa hanya dapat membuka ujian yang didistribusikan ke kelasnya', function () {
+    $kelas = Kelas::query()->create([
+        'nama' => 'Kelas A',
+    ]);
 
-test(
-    'siswa hanya dapat membuka ujian yang didistribusikan ke kelasnya',
-    function () {
-
-        $kelas =
-            Kelas::query()->create([
-                'nama' => 'Kelas A',
-            ]);
-
-        $guru =
-            $this->createUser([
-                'status' => 'G',
-            ]);
-
-        $siswa =
-            $this->createUser([
-                'status' => 'S',
-                'id_kelas' => $kelas->id,
-            ]);
-
-        $ujian =
-            Soal::query()->create([
-                'id_user' =>
-                    (string) $guru->id,
-
-                'jenis' =>
-                    '1',
-
-                'materi' =>
-                    null,
-
-                'paket' =>
-                    'Ujian Test',
-
-                'deskripsi' =>
-                    'Ujian regression',
-
-                'kkm' =>
-                    '75',
-
-                'waktu' =>
-                    '3600',
-
-                'tampil' =>
-                    'Y',
-            ]);
-
-        createActiveQuestion(
-            $ujian,
-            $guru->id
-        );
-
-        /*
-         * Belum didistribusikan.
-         */
-        $this
-            ->actingAs($siswa)
-            ->get(
-                route(
-                    'siswa.exam',
-                    $ujian->id
-                )
-            )
-            ->assertNotFound();
-
-
-        Distribusisoal::query()->create([
-            'id_soal' =>
-                (string) $ujian->id,
-
-            'id_kelas' =>
-                (string) $kelas->id,
-        ]);
-
-
-        /*
-         * Setelah didistribusikan.
-         */
-        $this
-            ->actingAs($siswa)
-            ->get(
-                route(
-                    'siswa.exam',
-                    $ujian->id
-                )
-            )
-            ->assertOk();
-
-    }
-);
-
-
-test(
-    'paket latihan tidak dapat dibuka melalui endpoint ujian',
-    function () {
-
-        $kelas =
-            Kelas::query()->create([
-                'nama' => 'Kelas A',
-            ]);
-
-        $guru =
-            $this->createUser([
-                'status' => 'G',
-            ]);
-
-        $siswa =
-            $this->createUser([
-                'status' => 'S',
-                'id_kelas' => $kelas->id,
-            ]);
+    $guru = $this->createUser([
+        'status' => 'G',
+    ]);
 
-        $materi =
-            Materi::query()->create([
-                'id_user' =>
-                    $guru->id,
+    $siswa = $this->createUser([
+        'status' => 'S',
+        'id_kelas' => $kelas->id,
+    ]);
 
-                'judul' =>
-                    'Materi Aktif',
+    $ujian = Soal::query()->create([
+        'id_user' => (string) $guru->id,
 
-                'isi' =>
-                    'Isi materi',
+        'jenis' => '1',
 
-                'status' =>
-                    'Y',
+        'materi' => null,
 
-                'hits' =>
-                    0,
+        'paket' => 'Ujian Test',
 
-                'sesi' =>
-                    'materi-test',
-            ]);
+        'deskripsi' => 'Ujian regression',
 
-        $latihan =
-            Soal::query()->create([
-                'id_user' =>
-                    (string) $guru->id,
-
-                'jenis' =>
-                    '2',
-
-                'materi' =>
-                    $materi->id,
-
-                'paket' =>
-                    'Latihan Test',
+        'kkm' => '75',
 
-                'deskripsi' =>
-                    'Latihan regression',
+        'waktu' => '3600',
 
-                'kkm' =>
-                    '75',
-
-                'waktu' =>
-                    '1800',
+        'tampil' => 'Y',
+    ]);
 
-                'tampil' =>
-                    'Y',
-            ]);
+    createActiveQuestion($ujian, $guru->id);
 
-        createActiveQuestion(
-            $latihan,
-            $guru->id
-        );
-
-        $this
-            ->actingAs($siswa)
-            ->get(
-                route(
-                    'siswa.exam',
-                    $latihan->id
-                )
-            )
-            ->assertNotFound();
-
-    }
-);
-
-
-test(
-    'paket ujian tidak dapat dibuka melalui endpoint latihan',
-    function () {
+    /*
+     * Belum didistribusikan.
+     */
+    $this->actingAs($siswa)->get(route('siswa.exam', $ujian->id))->assertNotFound();
 
-        $kelas =
-            Kelas::query()->create([
-                'nama' => 'Kelas A',
-            ]);
+    Distribusisoal::query()->create([
+        'id_soal' => (string) $ujian->id,
 
-        $guru =
-            $this->createUser([
-                'status' => 'G',
-            ]);
-
-        $siswa =
-            $this->createUser([
-                'status' => 'S',
-                'id_kelas' => $kelas->id,
-            ]);
+        'id_kelas' => (string) $kelas->id,
+    ]);
 
-        $ujian =
-            Soal::query()->create([
-                'id_user' =>
-                    (string) $guru->id,
+    /*
+     * Setelah didistribusikan.
+     */
+    $this->actingAs($siswa)->get(route('siswa.exam', $ujian->id))->assertOk();
+});
 
-                'jenis' =>
-                    '1',
+test('paket latihan tidak dapat dibuka melalui endpoint ujian', function () {
+    $kelas = Kelas::query()->create([
+        'nama' => 'Kelas A',
+    ]);
 
-                'materi' =>
-                    null,
+    $guru = $this->createUser([
+        'status' => 'G',
+    ]);
 
-                'paket' =>
-                    'Ujian Test',
+    $siswa = $this->createUser([
+        'status' => 'S',
+        'id_kelas' => $kelas->id,
+    ]);
 
-                'deskripsi' =>
-                    'Ujian regression',
+    $materi = Materi::query()->create([
+        'id_user' => $guru->id,
 
-                'kkm' =>
-                    '75',
+        'judul' => 'Materi Aktif',
 
-                'waktu' =>
-                    '3600',
+        'isi' => 'Isi materi',
 
-                'tampil' =>
-                    'Y',
-            ]);
-
-        createActiveQuestion(
-            $ujian,
-            $guru->id
-        );
-
-        $this
-            ->actingAs($siswa)
-            ->get(
-                route(
-                    'siswa.training',
-                    $ujian->id
-                )
-            )
-            ->assertNotFound();
-
-    }
-);
-
-
-test(
-    'latihan dengan materi aktif dapat dibuka siswa',
-    function () {
-
-        $kelas =
-            Kelas::query()->create([
-                'nama' => 'Kelas A',
-            ]);
-
-        $guru =
-            $this->createUser([
-                'status' => 'G',
-            ]);
-
-        $siswa =
-            $this->createUser([
-                'status' => 'S',
-                'id_kelas' => $kelas->id,
-            ]);
-
-        $materi =
-            Materi::query()->create([
-                'id_user' =>
-                    $guru->id,
-
-                'judul' =>
-                    'Materi Aktif',
-
-                'isi' =>
-                    'Isi materi test',
+        'status' => 'Y',
 
-                'status' =>
-                    'Y',
+        'hits' => 0,
 
-                'hits' =>
-                    0,
+        'sesi' => 'materi-test',
+    ]);
 
-                'sesi' =>
-                    'materi-aktif',
-            ]);
+    $latihan = Soal::query()->create([
+        'id_user' => (string) $guru->id,
 
-        $latihan =
-            Soal::query()->create([
-                'id_user' =>
-                    (string) $guru->id,
+        'jenis' => '2',
 
-                'jenis' =>
-                    '2',
+        'materi' => $materi->id,
 
-                'materi' =>
-                    $materi->id,
+        'paket' => 'Latihan Test',
 
-                'paket' =>
-                    'Latihan Aktif',
+        'deskripsi' => 'Latihan regression',
 
-                'deskripsi' =>
-                    'Latihan test',
+        'kkm' => '75',
 
-                'kkm' =>
-                    '75',
+        'waktu' => '1800',
 
-                'waktu' =>
-                    '1800',
-
-                'tampil' =>
-                    'Y',
-            ]);
-
-        createActiveQuestion(
-            $latihan,
-            $guru->id
-        );
-
-        $this
-            ->actingAs($siswa)
-            ->get(
-                route(
-                    'siswa.training',
-                    $latihan->id
-                )
-            )
-            ->assertOk()
-            ->assertSee(
-                'Latihan Aktif'
-            );
-
-    }
-);
-
-
-test(
-    'latihan dengan materi nonaktif ditolak',
-    function () {
-
-        $guru =
-            $this->createUser([
-                'status' => 'G',
-            ]);
-
-        $siswa =
-            $this->createUser([
-                'status' => 'S',
-            ]);
-
-        $materi =
-            Materi::query()->create([
-                'id_user' =>
-                    $guru->id,
-
-                'judul' =>
-                    'Materi Nonaktif',
-
-                'isi' =>
-                    'Tidak boleh dibuka',
-
-                'status' =>
-                    'N',
-
-                'hits' =>
-                    0,
-
-                'sesi' =>
-                    'materi-nonaktif',
-            ]);
-
-        $latihan =
-            Soal::query()->create([
-                'id_user' =>
-                    (string) $guru->id,
-
-                'jenis' =>
-                    '2',
-
-                'materi' =>
-                    $materi->id,
-
-                'paket' =>
-                    'Latihan Nonaktif',
-
-                'deskripsi' =>
-                    'Tidak aktif',
-
-                'kkm' =>
-                    '75',
-
-                'waktu' =>
-                    '1800',
-
-                'tampil' =>
-                    'Y',
-            ]);
-
-        createActiveQuestion(
-            $latihan,
-            $guru->id
-        );
-
-        $this
-            ->actingAs($siswa)
-            ->get(
-                route(
-                    'siswa.training',
-                    $latihan->id
-                )
-            )
-            ->assertNotFound();
-
-    }
-);
+        'tampil' => 'Y',
+    ]);
+
+    createActiveQuestion($latihan, $guru->id);
+
+    $this->actingAs($siswa)->get(route('siswa.exam', $latihan->id))->assertNotFound();
+});
+
+test('paket ujian tidak dapat dibuka melalui endpoint latihan', function () {
+    $kelas = Kelas::query()->create([
+        'nama' => 'Kelas A',
+    ]);
+
+    $guru = $this->createUser([
+        'status' => 'G',
+    ]);
+
+    $siswa = $this->createUser([
+        'status' => 'S',
+        'id_kelas' => $kelas->id,
+    ]);
+
+    $ujian = Soal::query()->create([
+        'id_user' => (string) $guru->id,
+
+        'jenis' => '1',
+
+        'materi' => null,
+
+        'paket' => 'Ujian Test',
+
+        'deskripsi' => 'Ujian regression',
+
+        'kkm' => '75',
+
+        'waktu' => '3600',
+
+        'tampil' => 'Y',
+    ]);
+
+    createActiveQuestion($ujian, $guru->id);
+
+    $this->actingAs($siswa)->get(route('siswa.training', $ujian->id))->assertNotFound();
+});
+
+test('latihan dengan materi aktif dapat dibuka siswa', function () {
+    $kelas = Kelas::query()->create([
+        'nama' => 'Kelas A',
+    ]);
+
+    $guru = $this->createUser([
+        'status' => 'G',
+    ]);
+
+    $siswa = $this->createUser([
+        'status' => 'S',
+        'id_kelas' => $kelas->id,
+    ]);
+
+    $materi = Materi::query()->create([
+        'id_user' => $guru->id,
+
+        'judul' => 'Materi Aktif',
+
+        'isi' => 'Isi materi test',
+
+        'status' => 'Y',
+
+        'hits' => 0,
+
+        'sesi' => 'materi-aktif',
+    ]);
+
+    $latihan = Soal::query()->create([
+        'id_user' => (string) $guru->id,
+
+        'jenis' => '2',
+
+        'materi' => $materi->id,
+
+        'paket' => 'Latihan Aktif',
+
+        'deskripsi' => 'Latihan test',
+
+        'kkm' => '75',
+
+        'waktu' => '1800',
+
+        'tampil' => 'Y',
+    ]);
+
+    createActiveQuestion($latihan, $guru->id);
+
+    $this->actingAs($siswa)->get(route('siswa.training', $latihan->id))->assertOk()->assertSee('Latihan Aktif');
+});
+
+test('latihan dengan materi nonaktif ditolak', function () {
+    $guru = $this->createUser([
+        'status' => 'G',
+    ]);
+
+    $siswa = $this->createUser([
+        'status' => 'S',
+    ]);
+
+    $materi = Materi::query()->create([
+        'id_user' => $guru->id,
+
+        'judul' => 'Materi Nonaktif',
+
+        'isi' => 'Tidak boleh dibuka',
+
+        'status' => 'N',
+
+        'hits' => 0,
+
+        'sesi' => 'materi-nonaktif',
+    ]);
+
+    $latihan = Soal::query()->create([
+        'id_user' => (string) $guru->id,
+
+        'jenis' => '2',
+
+        'materi' => $materi->id,
+
+        'paket' => 'Latihan Nonaktif',
+
+        'deskripsi' => 'Tidak aktif',
+
+        'kkm' => '75',
+
+        'waktu' => '1800',
+
+        'tampil' => 'Y',
+    ]);
+
+    createActiveQuestion($latihan, $guru->id);
+
+    $this->actingAs($siswa)->get(route('siswa.training', $latihan->id))->assertNotFound();
+});

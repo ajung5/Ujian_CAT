@@ -5,8 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Detailsoal extends Model
-{
+class Detailsoal extends Model {
     protected $table = 'detailsoals';
 
     protected $fillable = [
@@ -26,13 +25,11 @@ class Detailsoal extends Model
         'sesi',
     ];
 
-    public function soalInduk(): BelongsTo
-    {
+    public function soalInduk(): BelongsTo {
         return $this->belongsTo(Soal::class, 'id_soal');
     }
 
-    public function user(): BelongsTo
-    {
+    public function user(): BelongsTo {
         return $this->belongsTo(User::class, 'id_user');
     }
 }

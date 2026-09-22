@@ -3,250 +3,120 @@
 use App\Models\Aktifitas;
 use App\Models\Kelas;
 
-test(
-    'guest tidak dapat membuka area guru',
-    function () {
+test('guest tidak dapat membuka area guru', function () {
+    $response = $this->get('/guru');
 
-        $response =
-            $this->get('/guru');
+    $response->assertRedirect(route('login'));
+});
 
-        $response
-            ->assertRedirect(
-                route('login')
-            );
+test('guest tidak dapat membuka area siswa', function () {
+    $response = $this->get('/siswa');
 
-    }
-);
+    $response->assertRedirect(route('login'));
+});
 
+test('guru diarahkan dari area siswa ke dashboard guru', function () {
+    $guru = $this->createUser([
+        'status' => 'G',
+    ]);
 
-test(
-    'guest tidak dapat membuka area siswa',
-    function () {
+    Aktifitas::query()->create([
+        'id_user' => $guru->id,
+        'nama' => 'Test activity',
+    ]);
 
-        $response =
-            $this->get('/siswa');
+    $response = $this->actingAs($guru)->get('/siswa');
 
-        $response
-            ->assertRedirect(
-                route('login')
-            );
+    $response->assertRedirect('/guru');
+});
 
-    }
-);
+test('siswa diarahkan dari area guru ke dashboard siswa', function () {
+    $kelas = Kelas::query()->create([
+        'nama' => 'Kelas Test',
+    ]);
 
+    $siswa = $this->createUser([
+        'status' => 'S',
+        'id_kelas' => $kelas->id,
+    ]);
 
-test(
-    'guru diarahkan dari area siswa ke dashboard guru',
-    function () {
+    $response = $this->actingAs($siswa)->get('/guru');
 
-        $guru =
-            $this->createUser([
-                'status' => 'G',
-            ]);
+    $response->assertRedirect('/siswa');
+});
 
-        Aktifitas::query()->create([
-            'id_user' => $guru->id,
-            'nama' => 'Test activity',
-        ]);
+test('root mengarahkan guru ke dashboard guru', function () {
+    $guru = $this->createUser([
+        'status' => 'G',
+    ]);
 
-        $response =
-            $this
-                ->actingAs($guru)
-                ->get('/siswa');
+    $response = $this->actingAs($guru)->get('/');
 
-        $response
-            ->assertRedirect('/guru');
+    $response->assertRedirect(route('guru.index'));
+});
 
-    }
-);
+test('root mengarahkan siswa ke dashboard siswa', function () {
+    $siswa = $this->createUser([
+        'status' => 'S',
+    ]);
 
+    $response = $this->actingAs($siswa)->get('/');
 
-test(
-    'siswa diarahkan dari area guru ke dashboard siswa',
-    function () {
+    $response->assertRedirect(route('siswa.index'));
+});
 
-        $kelas =
-            Kelas::query()->create([
-                'nama' => 'Kelas Test',
-            ]);
+test('login guru berhasil dan diarahkan ke dashboard guru', function () {
+    $guru = $this->createUser([
+        'status' => 'G',
 
-        $siswa =
-            $this->createUser([
-                'status' => 'S',
-                'id_kelas' => $kelas->id,
-            ]);
+        'email' => 'guru@example.test',
+    ]);
 
-        $response =
-            $this
-                ->actingAs($siswa)
-                ->get('/guru');
+    $response = $this->post('/auth/login', [
+        'email' => ' GURU@EXAMPLE.TEST ',
 
-        $response
-            ->assertRedirect('/siswa');
+        'password' => 'password123',
+    ]);
 
-    }
-);
+    $response->assertRedirect(route('guru.index'));
 
+    $this->assertAuthenticatedAs($guru);
+});
 
-test(
-    'root mengarahkan guru ke dashboard guru',
-    function () {
+test('login siswa berhasil dan diarahkan ke dashboard siswa', function () {
+    $siswa = $this->createUser([
+        'status' => 'S',
 
-        $guru =
-            $this->createUser([
-                'status' => 'G',
-            ]);
+        'email' => 'siswa@example.test',
+    ]);
 
-        $response =
-            $this
-                ->actingAs($guru)
-                ->get('/');
+    $response = $this->post('/auth/login', [
+        'email' => 'siswa@example.test',
 
-        $response
-            ->assertRedirect(
-                route('guru.index')
-            );
+        'password' => 'password123',
+    ]);
 
-    }
-);
+    $response->assertRedirect(route('siswa.index'));
 
+    $this->assertAuthenticatedAs($siswa);
+});
 
-test(
-    'root mengarahkan siswa ke dashboard siswa',
-    function () {
+test('logout hanya menerima post', function () {
+    $user = $this->createUser([
+        'status' => 'S',
+    ]);
 
-        $siswa =
-            $this->createUser([
-                'status' => 'S',
-            ]);
+    $this->actingAs($user)->get('/auth/logout')->assertStatus(405);
+});
 
-        $response =
-            $this
-                ->actingAs($siswa)
-                ->get('/');
+test('user dapat logout menggunakan post', function () {
+    $user = $this->createUser([
+        'status' => 'S',
+    ]);
 
-        $response
-            ->assertRedirect(
-                route('siswa.index')
-            );
+    $response = $this->actingAs($user)->post(route('logout'));
 
-    }
-);
+    $response->assertRedirect(route('login'));
 
-
-test(
-    'login guru berhasil dan diarahkan ke dashboard guru',
-    function () {
-
-        $guru =
-            $this->createUser([
-                'status' => 'G',
-
-                'email' =>
-                    'guru@example.test',
-            ]);
-
-        $response =
-            $this->post(
-                '/auth/login',
-                [
-                    'email' =>
-                        ' GURU@EXAMPLE.TEST ',
-
-                    'password' =>
-                        'password123',
-                ]
-            );
-
-        $response
-            ->assertRedirect(
-                route('guru.index')
-            );
-
-        $this->assertAuthenticatedAs(
-            $guru
-        );
-
-    }
-);
-
-
-test(
-    'login siswa berhasil dan diarahkan ke dashboard siswa',
-    function () {
-
-        $siswa =
-            $this->createUser([
-                'status' => 'S',
-
-                'email' =>
-                    'siswa@example.test',
-            ]);
-
-        $response =
-            $this->post(
-                '/auth/login',
-                [
-                    'email' =>
-                        'siswa@example.test',
-
-                    'password' =>
-                        'password123',
-                ]
-            );
-
-        $response
-            ->assertRedirect(
-                route('siswa.index')
-            );
-
-        $this->assertAuthenticatedAs(
-            $siswa
-        );
-
-    }
-);
-
-test(
-    'logout hanya menerima post',
-    function () {
-
-        $user =
-            $this->createUser([
-                'status' => 'S',
-            ]);
-
-        $this
-            ->actingAs($user)
-            ->get('/auth/logout')
-            ->assertStatus(405);
-
-    }
-);
-
-
-test(
-    'user dapat logout menggunakan post',
-    function () {
-
-        $user =
-            $this->createUser([
-                'status' => 'S',
-            ]);
-
-        $response =
-            $this
-                ->actingAs($user)
-                ->post(
-                    route('logout')
-                );
-
-        $response
-            ->assertRedirect(
-                route('login')
-            );
-
-        $this->assertGuest();
-
-    }
-);
+    $this->assertGuest();
+});

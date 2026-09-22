@@ -5,10 +5,8 @@ namespace Tests\Support;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-trait CreatesLegacySchema
-{
-    protected function createLegacySchema(): void
-    {
+trait CreatesLegacySchema {
+    protected function createLegacySchema(): void {
         $tables = [
             'aktifitas',
             'countexamtimes',
@@ -154,17 +152,13 @@ trait CreatesLegacySchema
             $table->string('id_soal', 150);
             $table->string('id_user', 15);
 
-            $table->string('id_kelas', 15)
-                ->nullable();
+            $table->string('id_kelas', 15)->nullable();
 
-            $table->string('nama')
-                ->nullable();
+            $table->string('nama')->nullable();
 
-            $table->string('pilihan', 5)
-                ->default('');
+            $table->string('pilihan', 5)->default('');
 
-            $table->string('score', 50)
-                ->nullable();
+            $table->string('score', 50)->nullable();
 
             $table->string('status', 1);
 

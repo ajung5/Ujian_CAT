@@ -19,13 +19,11 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
-class SiswaController extends Controller
-{
+class SiswaController extends Controller {
     /**
      * Dashboard siswa.
      */
-    public function index(): View
-    {
+    public function index(): View {
         $user = $this->studentWithClass();
         $school = School::first();
 
@@ -35,8 +33,7 @@ class SiswaController extends Controller
     /**
      * Profil siswa.
      */
-    public function profile(): View
-    {
+    public function profile(): View {
         $user = $this->studentWithClass();
         $school = School::first();
 
@@ -47,23 +44,17 @@ class SiswaController extends Controller
      * Upload foto profil siswa.
      * Legacy: JPG/JPEG/PNG, maksimal 1 MB.
      */
-    public function updateProfilePhoto(Request $request): JsonResponse
-    {
+    public function updateProfilePhoto(Request $request): JsonResponse {
         $request->validate(
             [
-                'file' => [
-                    'required',
-                    'image',
-                    'mimes:jpg,jpeg,png',
-                    'max:1024',
-                ],
+                'file' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:1024'],
             ],
             [
                 'file.required' => 'Foto belum dipilih.',
                 'file.image' => 'File harus berupa gambar.',
                 'file.mimes' => 'Foto harus berupa JPG, JPEG, atau PNG.',
                 'file.max' => 'Ukuran foto maksimal 1 MB.',
-            ]
+            ],
         );
 
         $user = User::query()
@@ -73,23 +64,18 @@ class SiswaController extends Controller
 
         $file = $request->file('file');
         $extension = strtolower($file->extension());
-        $filename = Str::uuid().'.'.$extension;
+        $filename = Str::uuid() . '.' . $extension;
 
         File::ensureDirectoryExists(public_path('img'));
         $file->move(public_path('img'), $filename);
 
-        $oldFilename = ! empty($user->gambar)
-            ? basename($user->gambar)
-            : null;
+        $oldFilename = !empty($user->gambar) ? basename($user->gambar) : null;
 
         $user->gambar = $filename;
         $user->save();
 
-        if (
-            $oldFilename &&
-            $oldFilename !== 'siswa.png'
-        ) {
-            $oldImage = public_path('img/'.$oldFilename);
+        if ($oldFilename && $oldFilename !== 'siswa.png') {
+            $oldImage = public_path('img/' . $oldFilename);
 
             if (File::exists($oldImage)) {
                 File::delete($oldImage);
@@ -105,15 +91,14 @@ class SiswaController extends Controller
             'success' => true,
             'message' => 'Foto profil berhasil diperbarui.',
             'filename' => $filename,
-            'url' => asset('img/'.$filename),
+            'url' => asset('img/' . $filename),
         ]);
     }
 
     /**
      * Daftar ujian yang tersedia untuk kelas siswa.
      */
-    public function exams(): View
-    {
+    public function exams(): View {
         $user = $this->studentWithClass();
         $school = School::first();
 
@@ -121,7 +106,7 @@ class SiswaController extends Controller
             ->where('id_user', (string) auth()->id())
             ->where('status', 'Y')
             ->pluck('id_soal')
-            ->map(fn ($id) => (string) $id)
+            ->map(fn($id) => (string) $id)
             ->unique()
             ->values()
             ->all();
@@ -129,19 +114,11 @@ class SiswaController extends Controller
         if (empty($user->id_kelas)) {
             $distribusisoal = collect();
 
-            return view(
-                'siswa.soal',
-                compact('user', 'school', 'distribusisoal')
-            );
+            return view('siswa.soal', compact('user', 'school', 'distribusisoal'));
         }
 
         $query = Distribusisoal::query()
-            ->join(
-                'soals',
-                'distribusisoals.id_soal',
-                '=',
-                'soals.id'
-            )
+            ->join('soals', 'distribusisoals.id_soal', '=', 'soals.id')
             ->select(
                 'distribusisoals.id',
                 'distribusisoals.id_soal',
@@ -150,7 +127,7 @@ class SiswaController extends Controller
                 'soals.deskripsi',
                 'soals.kkm',
                 'soals.waktu',
-                'soals.jenis'
+                'soals.jenis',
             )
             ->where('distribusisoals.id_kelas', (string) $user->id_kelas)
             ->where('soals.jenis', '1');
@@ -159,43 +136,31 @@ class SiswaController extends Controller
             $query->whereNotIn('soals.id', $completedExamIds);
         }
 
-        $distribusisoal = $query
-            ->orderByDesc('distribusisoals.id')
-            ->get();
+        $distribusisoal = $query->orderByDesc('distribusisoals.id')->get();
 
-        return view(
-            'siswa.soal',
-            compact('user', 'school', 'distribusisoal')
-        );
+        return view('siswa.soal', compact('user', 'school', 'distribusisoal'));
     }
 
     /**
      * Halaman engine ujian.
      */
-    public function exam(int $id): View|RedirectResponse
-    {
+    public function exam(int $id): View|RedirectResponse {
         $soal = $this->findDistributedExam($id);
 
-        return $this->assessmentPage(
-            $soal,
-            'Ujian',
-            route('siswa.soal'),
-            route('siswa.exam.start', $soal->id)
-        );
+        return $this->assessmentPage($soal, 'Ujian', route('siswa.soal'), route('siswa.exam.start', $soal->id));
     }
 
     /**
      * Halaman engine latihan.
      */
-    public function training(int $id): View|RedirectResponse
-    {
+    public function training(int $id): View|RedirectResponse {
         $soal = $this->findTraining($id);
 
         return $this->assessmentPage(
             $soal,
             'Latihan',
             route('siswa.latihan'),
-            route('siswa.training.start', $soal->id)
+            route('siswa.training.start', $soal->id),
         );
     }
 
@@ -206,7 +171,7 @@ class SiswaController extends Controller
         Soal $soal,
         string $assessmentLabel,
         string $backUrl,
-        string $startUrl
+        string $startUrl,
     ): View|RedirectResponse {
         $user = $this->studentWithClass();
         $school = School::first();
@@ -214,42 +179,29 @@ class SiswaController extends Controller
         if ($this->isExamFinished($soal->id)) {
             return redirect()
                 ->route('siswa.results')
-                ->with(
-                    'error',
-                    $assessmentLabel.' tersebut sudah selesai.'
-                );
+                ->with('error', $assessmentLabel . ' tersebut sudah selesai.');
         }
 
         $availableIds = Detailsoal::query()
             ->where('id_soal', (string) $soal->id)
             ->where('status', 'Y')
             ->pluck('id')
-            ->map(fn ($id) => (int) $id)
+            ->map(fn($id) => (int) $id)
             ->values();
 
         if ($availableIds->isEmpty()) {
-            return redirect($backUrl)
-                ->with(
-                    'error',
-                    'Paket '.strtolower($assessmentLabel).
-                    ' belum memiliki soal aktif.'
-                );
+            return redirect($backUrl)->with(
+                'error',
+                'Paket ' . strtolower($assessmentLabel) . ' belum memiliki soal aktif.',
+            );
         }
 
         $sessionKey = $this->examOrderSessionKey($soal->id);
         $questionOrder = session($sessionKey);
         $availableArray = $availableIds->all();
 
-        if (
-            ! $this->isQuestionOrderValid(
-                $questionOrder,
-                $availableArray
-            )
-        ) {
-            $questionOrder = $availableIds
-                ->shuffle()
-                ->values()
-                ->all();
+        if (!$this->isQuestionOrderValid($questionOrder, $availableArray)) {
+            $questionOrder = $availableIds->shuffle()->values()->all();
 
             session([
                 $sessionKey => $questionOrder,
@@ -261,7 +213,7 @@ class SiswaController extends Controller
             ->where('id_user', (string) auth()->id())
             ->where('status', 'N')
             ->pluck('no_soal_id')
-            ->map(fn ($id) => (int) $id)
+            ->map(fn($id) => (int) $id)
             ->values()
             ->all();
 
@@ -272,9 +224,7 @@ class SiswaController extends Controller
 
         $hasStarted = $counter !== null;
 
-        $remainingSeconds = $counter
-            ? $this->previewRemainingSeconds($counter)
-            : max(0, (int) $soal->waktu);
+        $remainingSeconds = $counter ? $this->previewRemainingSeconds($counter) : max(0, (int) $soal->waktu);
 
         $isTraining = (string) $soal->jenis === '2';
 
@@ -291,101 +241,88 @@ class SiswaController extends Controller
                 'assessmentLabel',
                 'backUrl',
                 'startUrl',
-                'isTraining'
-            )
+                'isTraining',
+            ),
         );
     }
 
     /**
      * Mulai / lanjutkan Ujian atau Latihan.
      */
-    public function startExam(int $id): JsonResponse
-    {
+    public function startExam(int $id): JsonResponse {
         $soal = $this->findAccessiblePackage($id);
         $assessmentLabel = $this->assessmentLabel($soal);
 
         if ($this->isExamFinished($soal->id)) {
             return response()->json(
                 [
-                    'message' => $assessmentLabel.' sudah selesai.',
+                    'message' => $assessmentLabel . ' sudah selesai.',
                     'finished' => true,
                     'redirect' => route('siswa.results'),
                 ],
-                409
+                409,
             );
         }
 
-        $jumlahSoal = Detailsoal::query()
-            ->where('id_soal', (string) $soal->id)
-            ->where('status', 'Y')
-            ->count();
+        $jumlahSoal = Detailsoal::query()->where('id_soal', (string) $soal->id)->where('status', 'Y')->count();
 
         if ($jumlahSoal === 0) {
             return response()->json(
                 [
-                    'message' => 'Paket '.strtolower($assessmentLabel).
-                        ' tidak memiliki soal aktif.',
+                    'message' => 'Paket ' . strtolower($assessmentLabel) . ' tidak memiliki soal aktif.',
                 ],
-                422
+                422,
             );
         }
 
-        $result = DB::transaction(
-            function () use ($soal) {
-                $counter = Countexamtime::query()
-                    ->where('id_soal', (string) $soal->id)
-                    ->where('id_user', (string) auth()->id())
-                    ->lockForUpdate()
-                    ->first();
+        $result = DB::transaction(function () use ($soal) {
+            $counter = Countexamtime::query()
+                ->where('id_soal', (string) $soal->id)
+                ->where('id_user', (string) auth()->id())
+                ->lockForUpdate()
+                ->first();
 
-                if (! $counter) {
-                    $counter = new Countexamtime();
-                    $counter->id_soal = (string) $soal->id;
-                    $counter->id_user = (string) auth()->id();
-                    $counter->waktu = (string) max(
-                        0,
-                        (int) $soal->waktu
-                    );
-                    $counter->save();
-
-                    return [
-                        'remaining' => (int) $counter->waktu,
-                        'expired' => false,
-                    ];
-                }
-
-                $remaining = $this->refreshCounter($counter);
-
-                if ($remaining <= 0) {
-                    $this->finalizeExamRecords($soal);
-
-                    return [
-                        'remaining' => 0,
-                        'expired' => true,
-                    ];
-                }
+            if (!$counter) {
+                $counter = new Countexamtime();
+                $counter->id_soal = (string) $soal->id;
+                $counter->id_user = (string) auth()->id();
+                $counter->waktu = (string) max(0, (int) $soal->waktu);
+                $counter->save();
 
                 return [
-                    'remaining' => $remaining,
+                    'remaining' => (int) $counter->waktu,
                     'expired' => false,
                 ];
             }
-        );
+
+            $remaining = $this->refreshCounter($counter);
+
+            if ($remaining <= 0) {
+                $this->finalizeExamRecords($soal);
+
+                return [
+                    'remaining' => 0,
+                    'expired' => true,
+                ];
+            }
+
+            return [
+                'remaining' => $remaining,
+                'expired' => false,
+            ];
+        });
 
         if ($result['expired']) {
-            session()->forget(
-                $this->examOrderSessionKey($soal->id)
-            );
+            session()->forget($this->examOrderSessionKey($soal->id));
 
             return response()->json(
                 [
-                    'message' => 'Waktu '.strtolower($assessmentLabel).
-                        ' telah habis.',
+                    'message' => 'Waktu ' . strtolower($assessmentLabel) . ' telah habis.',
                     'expired' => true,
                     'remaining_seconds' => 0,
                     'redirect' => route('siswa.results'),
                 ],
-                409
+                409,
             );
         }
 
@@ -406,21 +343,15 @@ class SiswaController extends Controller
     /**
      * Load satu soal melalui AJAX.
      */
-    public function question(int $id): View
-    {
-        $detailsoal = Detailsoal::query()
-            ->whereKey($id)
-            ->where('status', 'Y')
-            ->firstOrFail();
+    public function question(int $id): View {
+        $detailsoal = Detailsoal::query()->whereKey($id)->where('status', 'Y')->firstOrFail();
 
-        $soal = $this->findAccessiblePackage(
-            (int) $detailsoal->id_soal
-        );
+        $soal = $this->findAccessiblePackage((int) $detailsoal->id_soal);
 
         $assessmentLabel = $this->assessmentLabel($soal);
 
         if ($this->isExamFinished($soal->id)) {
-            abort(409, $assessmentLabel.' sudah selesai.');
+            abort(409, $assessmentLabel . ' sudah selesai.');
         }
 
         $counter = Countexamtime::query()
@@ -428,29 +359,17 @@ class SiswaController extends Controller
             ->where('id_user', (string) auth()->id())
             ->first();
 
-        if (! $counter) {
-            abort(409, $assessmentLabel.' belum dimulai.');
+        if (!$counter) {
+            abort(409, $assessmentLabel . ' belum dimulai.');
         }
 
         if ($this->previewRemainingSeconds($counter) <= 0) {
-            abort(
-                409,
-                'Waktu '.strtolower($assessmentLabel).' telah habis.'
-            );
+            abort(409, 'Waktu ' . strtolower($assessmentLabel) . ' telah habis.');
         }
 
-        $questionOrder = session(
-            $this->examOrderSessionKey($soal->id),
-            []
-        );
+        $questionOrder = session($this->examOrderSessionKey($soal->id), []);
 
-        if (
-            ! in_array(
-                (int) $detailsoal->id,
-                array_map('intval', $questionOrder),
-                true
-            )
-        ) {
+        if (!in_array((int) $detailsoal->id, array_map('intval', $questionOrder), true)) {
             abort(404);
         }
 
@@ -461,44 +380,29 @@ class SiswaController extends Controller
             ->where('status', 'N')
             ->first();
 
-        return view(
-            'siswa.ajax.get_soal',
-            compact('detailsoal', 'cekJawaban')
-        );
+        return view('siswa.ajax.get_soal', compact('detailsoal', 'cekJawaban'));
     }
 
     /**
      * Simpan / ubah jawaban.
      */
-    public function saveAnswer(Request $request): JsonResponse
-    {
+    public function saveAnswer(Request $request): JsonResponse {
         $validated = $request->validate([
-            'pilihan' => [
-                'required',
-                Rule::in(['A', 'B', 'C', 'D', 'E']),
-            ],
-            'id_soal' => [
-                'required',
-                'integer',
-            ],
-            'no_soal_id' => [
-                'required',
-                'integer',
-            ],
+            'pilihan' => ['required', Rule::in(['A', 'B', 'C', 'D', 'E'])],
+            'id_soal' => ['required', 'integer'],
+            'no_soal_id' => ['required', 'integer'],
         ]);
 
-        $soal = $this->findAccessiblePackage(
-            (int) $validated['id_soal']
-        );
+        $soal = $this->findAccessiblePackage((int) $validated['id_soal']);
 
         $assessmentLabel = $this->assessmentLabel($soal);
 
         if ($this->isExamFinished($soal->id)) {
             return response()->json(
                 [
-                    'message' => $assessmentLabel.' sudah selesai.',
+                    'message' => $assessmentLabel . ' sudah selesai.',
                 ],
-                409
+                409,
             );
         }
 
@@ -508,105 +412,85 @@ class SiswaController extends Controller
             ->where('status', 'Y')
             ->firstOrFail();
 
-        $questionOrder = session(
-            $this->examOrderSessionKey($soal->id),
-            []
-        );
+        $questionOrder = session($this->examOrderSessionKey($soal->id), []);
 
-        if (
-            ! in_array(
-                (int) $detail->id,
-                array_map('intval', $questionOrder),
-                true
-            )
-        ) {
+        if (!in_array((int) $detail->id, array_map('intval', $questionOrder), true)) {
             abort(404);
         }
 
-        $result = DB::transaction(
-            function () use (
-                $soal,
-                $detail,
-                $validated
-            ) {
-                $counter = Countexamtime::query()
-                    ->where('id_soal', (string) $soal->id)
-                    ->where('id_user', (string) auth()->id())
-                    ->lockForUpdate()
-                    ->first();
+        $result = DB::transaction(function () use ($soal, $detail, $validated) {
+            $counter = Countexamtime::query()
+                ->where('id_soal', (string) $soal->id)
+                ->where('id_user', (string) auth()->id())
+                ->lockForUpdate()
+                ->first();
 
-                if (! $counter) {
-                    return [
-                        'not_started' => true,
-                    ];
-                }
-
-                $remaining = $this->refreshCounter($counter);
-
-                if ($remaining <= 0) {
-                    $this->finalizeExamRecords($soal);
-
-                    return [
-                        'expired' => true,
-                        'remaining' => 0,
-                    ];
-                }
-
-                $pilihan = strtoupper($validated['pilihan']);
-                $kunci = strtoupper(trim((string) $detail->kunci));
-
-                $score = $pilihan === $kunci
-                    ? (string) $detail->score
-                    : '0';
-
-                $user = auth()->user();
-
-                Jawab::query()->updateOrCreate(
-                    [
-                        'no_soal_id' => (string) $detail->id,
-                        'id_soal' => (string) $soal->id,
-                        'id_user' => (string) $user->id,
-                    ],
-                    [
-                        'id_kelas' => (string) $user->id_kelas,
-                        'nama' => $user->nama,
-                        'pilihan' => $pilihan,
-                        'score' => $score,
-                        'status' => 'N',
-                    ]
-                );
-
+            if (!$counter) {
                 return [
-                    'saved' => true,
-                    'pilihan' => $pilihan,
-                    'remaining' => $remaining,
+                    'not_started' => true,
                 ];
             }
-        );
+
+            $remaining = $this->refreshCounter($counter);
+
+            if ($remaining <= 0) {
+                $this->finalizeExamRecords($soal);
+
+                return [
+                    'expired' => true,
+                    'remaining' => 0,
+                ];
+            }
+
+            $pilihan = strtoupper($validated['pilihan']);
+            $kunci = strtoupper(trim((string) $detail->kunci));
+
+            $score = $pilihan === $kunci ? (string) $detail->score : '0';
+
+            $user = auth()->user();
+
+            Jawab::query()->updateOrCreate(
+                [
+                    'no_soal_id' => (string) $detail->id,
+                    'id_soal' => (string) $soal->id,
+                    'id_user' => (string) $user->id,
+                ],
+                [
+                    'id_kelas' => (string) $user->id_kelas,
+                    'nama' => $user->nama,
+                    'pilihan' => $pilihan,
+                    'score' => $score,
+                    'status' => 'N',
+                ],
+            );
+
+            return [
+                'saved' => true,
+                'pilihan' => $pilihan,
+                'remaining' => $remaining,
+            ];
+        });
 
         if (isset($result['not_started'])) {
             return response()->json(
                 [
-                    'message' => $assessmentLabel.' belum dimulai.',
+                    'message' => $assessmentLabel . ' belum dimulai.',
                 ],
-                409
+                409,
             );
         }
 
         if (isset($result['expired'])) {
-            session()->forget(
-                $this->examOrderSessionKey($soal->id)
-            );
+            session()->forget($this->examOrderSessionKey($soal->id));
 
             return response()->json(
                 [
-                    'message' => 'Waktu '.strtolower($assessmentLabel).
-                        ' telah habis.',
+                    'message' => 'Waktu ' . strtolower($assessmentLabel) . ' telah habis.',
                     'expired' => true,
                     'remaining_seconds' => 0,
                     'redirect' => route('siswa.results'),
                 ],
-                409
+                409,
             );
         }
 
@@ -620,18 +504,12 @@ class SiswaController extends Controller
     /**
      * Sinkronisasi timer server.
      */
-    public function syncTime(Request $request): JsonResponse
-    {
+    public function syncTime(Request $request): JsonResponse {
         $validated = $request->validate([
-            'id_soal' => [
-                'required',
-                'integer',
-            ],
+            'id_soal' => ['required', 'integer'],
         ]);
 
-        $soal = $this->findAccessiblePackage(
-            (int) $validated['id_soal']
-        );
+        $soal = $this->findAccessiblePackage((int) $validated['id_soal']);
 
         $assessmentLabel = $this->assessmentLabel($soal);
 
@@ -643,51 +521,47 @@ class SiswaController extends Controller
             ]);
         }
 
-        $result = DB::transaction(
-            function () use ($soal) {
-                $counter = Countexamtime::query()
-                    ->where('id_soal', (string) $soal->id)
-                    ->where('id_user', (string) auth()->id())
-                    ->lockForUpdate()
-                    ->first();
+        $result = DB::transaction(function () use ($soal) {
+            $counter = Countexamtime::query()
+                ->where('id_soal', (string) $soal->id)
+                ->where('id_user', (string) auth()->id())
+                ->lockForUpdate()
+                ->first();
 
-                if (! $counter) {
-                    return [
-                        'not_started' => true,
-                    ];
-                }
-
-                $remaining = $this->refreshCounter($counter);
-
-                if ($remaining <= 0) {
-                    $this->finalizeExamRecords($soal);
-
-                    return [
-                        'expired' => true,
-                        'remaining' => 0,
-                    ];
-                }
-
+            if (!$counter) {
                 return [
-                    'remaining' => $remaining,
-                    'expired' => false,
+                    'not_started' => true,
                 ];
             }
-        );
+
+            $remaining = $this->refreshCounter($counter);
+
+            if ($remaining <= 0) {
+                $this->finalizeExamRecords($soal);
+
+                return [
+                    'expired' => true,
+                    'remaining' => 0,
+                ];
+            }
+
+            return [
+                'remaining' => $remaining,
+                'expired' => false,
+            ];
+        });
 
         if (isset($result['not_started'])) {
             return response()->json(
                 [
-                    'message' => $assessmentLabel.' belum dimulai.',
+                    'message' => $assessmentLabel . ' belum dimulai.',
                 ],
-                409
+                409,
             );
         }
 
         if ($result['expired']) {
-            session()->forget(
-                $this->examOrderSessionKey($soal->id)
-            );
+            session()->forget($this->examOrderSessionKey($soal->id));
 
             return response()->json([
                 'expired' => true,
@@ -704,18 +578,12 @@ class SiswaController extends Controller
     /**
      * Finalisasi seluruh jawaban.
      */
-    public function finishExam(Request $request): JsonResponse
-    {
+    public function finishExam(Request $request): JsonResponse {
         $validated = $request->validate([
-            'id_soal' => [
-                'required',
-                'integer',
-            ],
+            'id_soal' => ['required', 'integer'],
         ]);
 
-        $soal = $this->findAccessiblePackage(
-            (int) $validated['id_soal']
-        );
+        $soal = $this->findAccessiblePackage((int) $validated['id_soal']);
 
         $assessmentLabel = $this->assessmentLabel($soal);
 
@@ -726,44 +594,40 @@ class SiswaController extends Controller
             ]);
         }
 
-        $result = DB::transaction(
-            function () use ($soal) {
-                $counter = Countexamtime::query()
-                    ->where('id_soal', (string) $soal->id)
-                    ->where('id_user', (string) auth()->id())
-                    ->lockForUpdate()
-                    ->first();
+        $result = DB::transaction(function () use ($soal) {
+            $counter = Countexamtime::query()
+                ->where('id_soal', (string) $soal->id)
+                ->where('id_user', (string) auth()->id())
+                ->lockForUpdate()
+                ->first();
 
-                if (! $counter) {
-                    return [
-                        'not_started' => true,
-                    ];
-                }
-
-                $this->refreshCounter($counter);
-                $this->finalizeExamRecords($soal);
-
-                $counter->waktu = '0';
-                $counter->save();
-
+            if (!$counter) {
                 return [
-                    'finished' => true,
+                    'not_started' => true,
                 ];
             }
-        );
+
+            $this->refreshCounter($counter);
+            $this->finalizeExamRecords($soal);
+
+            $counter->waktu = '0';
+            $counter->save();
+
+            return [
+                'finished' => true,
+            ];
+        });
 
         if (isset($result['not_started'])) {
             return response()->json(
                 [
-                    'message' => $assessmentLabel.' belum dimulai.',
+                    'message' => $assessmentLabel . ' belum dimulai.',
                 ],
-                409
+                409,
             );
         }
 
-        session()->forget(
-            $this->examOrderSessionKey($soal->id)
-        );
+        session()->forget($this->examOrderSessionKey($soal->id));
 
         $score = Jawab::query()
             ->where('id_soal', (string) $soal->id)
@@ -789,56 +653,38 @@ class SiswaController extends Controller
     /**
      * Daftar hasil Ujian dan Latihan siswa.
      */
-    public function results(): View
-    {
+    public function results(): View {
         $user = $this->studentWithClass();
         $school = School::first();
 
-        $results = $this->studentResultsQuery()
-            ->paginate(10);
+        $results = $this->studentResultsQuery()->paginate(10);
 
-        return view(
-            'siswa.hasil',
-            compact('user', 'school', 'results')
-        );
+        return view('siswa.hasil', compact('user', 'school', 'results'));
     }
 
     /**
      * Pencarian hasil via AJAX.
      */
-    public function searchResults(Request $request): View
-    {
+    public function searchResults(Request $request): View {
         $validated = $request->validate([
-            'q' => [
-                'nullable',
-                'string',
-                'max:150',
-            ],
+            'q' => ['nullable', 'string', 'max:150'],
         ]);
 
         $q = trim((string) ($validated['q'] ?? ''));
 
-        $results = $this->studentResultsQuery($q)
-            ->limit(50)
-            ->get();
+        $results = $this->studentResultsQuery($q)->limit(50)->get();
 
-        return view(
-            'siswa.ajax.get_hasil',
-            compact('results')
-        );
+        return view('siswa.ajax.get_hasil', compact('results'));
     }
 
     /**
      * Review detail hasil.
      */
-    public function resultDetail(int $id): View|RedirectResponse
-    {
+    public function resultDetail(int $id): View|RedirectResponse {
         $user = $this->studentWithClass();
         $school = School::first();
 
-        $soal = Soal::query()
-            ->whereKey($id)
-            ->firstOrFail();
+        $soal = Soal::query()->whereKey($id)->firstOrFail();
 
         $hasFinalAnswer = Jawab::query()
             ->where('id_soal', (string) $soal->id)
@@ -852,7 +698,7 @@ class SiswaController extends Controller
             ->where('status', 'N')
             ->exists();
 
-        if (! $hasFinalAnswer || $hasDraftAnswer) {
+        if (!$hasFinalAnswer || $hasDraftAnswer) {
             Log::warning('assessment.review.denied', [
                 'user_id' => auth()->id(),
                 'id_soal' => $soal->id,
@@ -863,39 +709,17 @@ class SiswaController extends Controller
 
             return redirect()
                 ->route('siswa.results')
-                ->with(
-                    'error',
-                    'Review jawaban hanya tersedia setelah pengerjaan selesai.'
-                );
+                ->with('error', 'Review jawaban hanya tersedia setelah pengerjaan selesai.');
         }
 
         $jawabs = Detailsoal::query()
-            ->leftJoin(
-                'jawabs',
-                function ($join) use ($soal) {
-                    $join
-                        ->on(
-                            'detailsoals.id',
-                            '=',
-                            'jawabs.no_soal_id'
-                        )
-                        ->where(
-                            'jawabs.id_soal',
-                            '=',
-                            (string) $soal->id
-                        )
-                        ->where(
-                            'jawabs.id_user',
-                            '=',
-                            (string) auth()->id()
-                        )
-                        ->where(
-                            'jawabs.status',
-                            '=',
-                            'Y'
-                        );
-                }
-            )
+            ->leftJoin('jawabs', function ($join) use ($soal) {
+                $join
+                    ->on('detailsoals.id', '=', 'jawabs.no_soal_id')
+                    ->where('jawabs.id_soal', '=', (string) $soal->id)
+                    ->where('jawabs.id_user', '=', (string) auth()->id())
+                    ->where('jawabs.status', '=', 'Y');
+            })
             ->select(
                 'detailsoals.id as detail_id',
                 'detailsoals.soal',
@@ -910,7 +734,7 @@ class SiswaController extends Controller
                 'jawabs.pilihan as jawaban',
                 'jawabs.score as score_diperoleh',
                 'jawabs.created_at as dijawab_pada',
-                'jawabs.updated_at as diubah_pada'
+                'jawabs.updated_at as diubah_pada',
             )
             ->where('detailsoals.id_soal', (string) $soal->id)
             ->orderBy('detailsoals.id')
@@ -923,13 +747,9 @@ class SiswaController extends Controller
         $nilai = 0.0;
 
         foreach ($jawabs as $jawab) {
-            $pilihan = strtoupper(
-                trim((string) $jawab->jawaban)
-            );
+            $pilihan = strtoupper(trim((string) $jawab->jawaban));
 
-            $kunci = strtoupper(
-                trim((string) $jawab->kunci)
-            );
+            $kunci = strtoupper(trim((string) $jawab->kunci));
 
             $nilai += (float) ($jawab->score_diperoleh ?? 0);
 
@@ -969,23 +789,17 @@ class SiswaController extends Controller
                 'tidakDijawab',
                 'nilai',
                 'lulus',
-                'jenis'
-            )
+                'jenis',
+            ),
         );
     }
 
     /**
      * Query agregasi hasil milik siswa.
      */
-    private function studentResultsQuery(?string $search = null)
-    {
+    private function studentResultsQuery(?string $search = null) {
         $query = Jawab::query()
-            ->join(
-                'soals',
-                'jawabs.id_soal',
-                '=',
-                'soals.id'
-            )
+            ->join('soals', 'jawabs.id_soal', '=', 'soals.id')
             ->select(
                 'soals.id as id_soal',
                 'soals.paket',
@@ -1003,50 +817,29 @@ class SiswaController extends Controller
                             AS DECIMAL(10,2)
                         )
                     ) as total_score
-                    "
+                    ",
                 ),
-                DB::raw(
-                    'MAX(jawabs.updated_at) as completed_at'
-                )
+                DB::raw('MAX(jawabs.updated_at) as completed_at'),
             )
             ->where('jawabs.id_user', (string) auth()->id())
             ->where('jawabs.status', 'Y');
 
         if ($search !== null && $search !== '') {
-            $query->where(
-                'soals.paket',
-                'like',
-                '%'.$search.'%'
-            );
+            $query->where('soals.paket', 'like', '%' . $search . '%');
         }
 
         return $query
-            ->groupBy(
-                'soals.id',
-                'soals.paket',
-                'soals.deskripsi',
-                'soals.kkm',
-                'soals.jenis'
-            )
+            ->groupBy('soals.id', 'soals.paket', 'soals.deskripsi', 'soals.kkm', 'soals.jenis')
             ->orderByDesc('completed_at');
     }
 
     /**
      * User siswa + nama kelas.
      */
-    private function studentWithClass(): User
-    {
+    private function studentWithClass(): User {
         return User::query()
-            ->leftJoin(
-                'kelas',
-                'users.id_kelas',
-                '=',
-                'kelas.id'
-            )
-            ->select(
-                'users.*',
-                'kelas.nama as nama_kelas'
-            )
+            ->leftJoin('kelas', 'users.id_kelas', '=', 'kelas.id')
+            ->select('users.*', 'kelas.nama as nama_kelas')
             ->where('users.id', auth()->id())
             ->firstOrFail();
     }
@@ -1054,8 +847,7 @@ class SiswaController extends Controller
     /**
      * Ujian jenis=1 wajib didistribusikan ke kelas siswa.
      */
-    private function findDistributedExam(int $id): Soal
-    {
+    private function findDistributedExam(int $id): Soal {
         $user = auth()->user();
 
         if (empty($user->id_kelas)) {
@@ -1065,47 +857,30 @@ class SiswaController extends Controller
         return Soal::query()
             ->whereKey($id)
             ->where('jenis', '1')
-            ->whereHas(
-                'distribusisoals',
-                function ($query) use ($user) {
-                    $query->where(
-                        'id_kelas',
-                        (string) $user->id_kelas
-                    );
-                }
-            )
+            ->whereHas('distribusisoals', function ($query) use ($user) {
+                $query->where('id_kelas', (string) $user->id_kelas);
+            })
             ->firstOrFail();
     }
 
     /**
      * Latihan jenis=2 wajib terkait materi aktif.
      */
-    private function findTraining(int $id): Soal
-    {
+    private function findTraining(int $id): Soal {
         return Soal::query()
             ->whereKey($id)
             ->where('jenis', '2')
-            ->whereHas(
-                'materiData',
-                function ($query) {
-                    $query->where(
-                        'status',
-                        'Y'
-                    );
-                }
-            )
+            ->whereHas('materiData', function ($query) {
+                $query->where('status', 'Y');
+            })
             ->firstOrFail();
     }
 
     /**
      * Resolver paket untuk endpoint engine bersama.
      */
-    private function findAccessiblePackage(int $id): Soal
-    {
-        $soal = Soal::query()
-            ->select('id', 'jenis')
-            ->whereKey($id)
-            ->firstOrFail();
+    private function findAccessiblePackage(int $id): Soal {
+        $soal = Soal::query()->select('id', 'jenis')->whereKey($id)->firstOrFail();
 
         return match ((string) $soal->jenis) {
             '1' => $this->findDistributedExam($id),
@@ -1117,18 +892,14 @@ class SiswaController extends Controller
     /**
      * Label assessment berdasarkan jenis paket.
      */
-    private function assessmentLabel(Soal $soal): string
-    {
-        return (string) $soal->jenis === '2'
-            ? 'Latihan'
-            : 'Ujian';
+    private function assessmentLabel(Soal $soal): string {
+        return (string) $soal->jenis === '2' ? 'Latihan' : 'Ujian';
     }
 
     /**
      * Apakah paket sudah final untuk user ini?
      */
-    private function isExamFinished(int $idSoal): bool
-    {
+    private function isExamFinished(int $idSoal): bool {
         return Jawab::query()
             ->where('id_soal', (string) $idSoal)
             ->where('id_user', (string) auth()->id())
@@ -1139,39 +910,23 @@ class SiswaController extends Controller
     /**
      * Sisa waktu tanpa mengubah DB.
      */
-    private function previewRemainingSeconds(
-        Countexamtime $counter
-    ): int {
-        $remaining = max(
-            0,
-            (int) $counter->waktu
-        );
+    private function previewRemainingSeconds(Countexamtime $counter): int {
+        $remaining = max(0, (int) $counter->waktu);
 
-        if (! $counter->updated_at) {
+        if (!$counter->updated_at) {
             return $remaining;
         }
 
-        $elapsed = max(
-            0,
-            now()->timestamp -
-            $counter->updated_at->timestamp
-        );
+        $elapsed = max(0, now()->timestamp - $counter->updated_at->timestamp);
 
-        return max(
-            0,
-            $remaining - $elapsed
-        );
+        return max(0, $remaining - $elapsed);
     }
 
     /**
      * Sinkronisasi sisa waktu ke DB.
      */
-    private function refreshCounter(
-        Countexamtime $counter
-    ): int {
-        $remaining = $this->previewRemainingSeconds(
-            $counter
-        );
+    private function refreshCounter(Countexamtime $counter): int {
+        $remaining = $this->previewRemainingSeconds($counter);
 
         $counter->waktu = (string) $remaining;
         $counter->save();
@@ -1183,14 +938,10 @@ class SiswaController extends Controller
      * Finalisasi seluruh soal aktif.
      * Soal yang tidak dijawab tetap dibuat score=0.
      */
-    private function finalizeExamRecords(Soal $soal): void
-    {
+    private function finalizeExamRecords(Soal $soal): void {
         $user = auth()->user();
 
-        $details = Detailsoal::query()
-            ->where('id_soal', (string) $soal->id)
-            ->where('status', 'Y')
-            ->get();
+        $details = Detailsoal::query()->where('id_soal', (string) $soal->id)->where('status', 'Y')->get();
 
         foreach ($details as $detail) {
             $jawab = Jawab::query()->firstOrNew([
@@ -1199,23 +950,15 @@ class SiswaController extends Controller
                 'id_user' => (string) $user->id,
             ]);
 
-            $pilihan = strtoupper(
-                trim((string) $jawab->pilihan)
-            );
+            $pilihan = strtoupper(trim((string) $jawab->pilihan));
 
-            $kunci = strtoupper(
-                trim((string) $detail->kunci)
-            );
+            $kunci = strtoupper(trim((string) $detail->kunci));
 
             $jawab->id_kelas = (string) $user->id_kelas;
             $jawab->nama = $user->nama;
             $jawab->pilihan = $pilihan;
 
-            $jawab->score =
-                $pilihan !== '' &&
-                $pilihan === $kunci
-                    ? (string) $detail->score
-                    : '0';
+            $jawab->score = $pilihan !== '' && $pilihan === $kunci ? (string) $detail->score : '0';
 
             $jawab->status = 'Y';
             $jawab->save();
@@ -1225,22 +968,15 @@ class SiswaController extends Controller
     /**
      * Key session untuk mempertahankan urutan random soal.
      */
-    private function examOrderSessionKey(int $idSoal): string
-    {
-        return 'exam_order.'.
-            auth()->id().
-            '.'.
-            $idSoal;
+    private function examOrderSessionKey(int $idSoal): string {
+        return 'exam_order.' . auth()->id() . '.' . $idSoal;
     }
 
     /**
      * Validasi urutan soal di session.
      */
-    private function isQuestionOrderValid(
-        mixed $order,
-        array $available
-    ): bool {
-        if (! is_array($order)) {
+    private function isQuestionOrderValid(mixed $order, array $available): bool {
+        if (!is_array($order)) {
             return false;
         }
 

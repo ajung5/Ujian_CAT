@@ -1,0 +1,22 @@
+# Dependencies / generated
+/node_modules/
+/vendor/
+/storage/
+/bootstrap/cache/
+
+# Public contains legacy third-party/minified assets.
+# Do not mass-format this directory.
+/public/
+
+# Project tooling / generated metadata
+/.git/
+/.agents/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Build output
+/public/build/

@@ -1,0 +1,43 @@
+{
+    "$schema": "http://json.schemastore.org/prettierrc",
+    "plugins": [
+        "@prettier/plugin-php",
+        "@shufo/prettier-plugin-blade"
+    ],
+    "printWidth": 120,
+    "tabWidth": 4,
+    "useTabs": false,
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "endOfLine": "lf",
+    "overrides": [
+        {
+            "files": [
+                "*.php"
+            ],
+            "excludeFiles": [
+                "*.blade.php"
+            ],
+            "options": {
+                "parser": "php",
+                "phpVersion": "composer",
+                "braceStyle": "1tbs",
+                "trailingCommaPHP": true
+            }
+        },
+        {
+            "files": [
+                "*.blade.php"
+            ],
+            "options": {
+                "parser": "blade",
+                "tabWidth": 4,
+                "printWidth": 120,
+                "wrapAttributes": "auto",
+                "sortHtmlAttributes": "none",
+                "sortTailwindcssClasses": false,
+                "trailingCommaPHP": true
+            }
+        }
+    ]
+}

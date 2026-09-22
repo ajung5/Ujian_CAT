@@ -1,7 +1,6 @@
 <form method="POST" action="/password/reset">
     {!! csrf_field() !!}
     <input type="hidden" name="token" value="">
-
     <div>
         <input type="email" name="email" value="">
     </div>

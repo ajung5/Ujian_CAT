@@ -1,0 +1,142 @@
+#!/usr/bin/env python3
+
+from pathlib import Path
+import base64
+import json
+
+
+ROOT = Path.cwd()
+
+PACKAGE = ROOT / "package.json"
+CLEANUP = ROOT / "scripts/cleanup_blade_whitespace.py"
+DOC = ROOT / "docs/CODE-STYLE.md"
+
+if not PACKAGE.exists():
+    raise SystemExit(
+        "package.json tidak ditemukan. Jalankan dari root Ujian_CAT."
+    )
+
+cleanup_content = base64.b64decode(
+    'IyEvdXNyL2Jpbi9lbnYgcHl0aG9uMwoKZnJvbSBfX2Z1dHVyZV9fIGltcG9ydCBhbm5vdGF0aW9ucwoKaW1wb3J0IGFyZ3BhcnNlCmltcG9ydCByZQppbXBvcnQgc3lzCmZyb20gcGF0aGxpYiBpbXBvcnQgUGF0aAoKClZJRVdTX1BBVEggPSBQYXRoKCJyZXNvdXJjZXMvdmlld3MiKQoKUFJPVEVDVEVEX1RBR1MgPSB7CiAgICAicHJlIiwKICAgICJ0ZXh0YXJlYSIsCiAgICAic2NyaXB0IiwKICAgICJzdHlsZSIsCn0KClZPSURfVEFHUyA9IHsKICAgICJhcmVhIiwKICAgICJiYXNlIiwKICAgICJiciIsCiAgICAiY29sIiwKICAgICJlbWJlZCIsCiAgICAiaHIiLAogICAgImltZyIsCiAgICAiaW5wdXQiLAogICAgImxpbmsiLAogICAgIm1ldGEiLAogICAgInBhcmFtIiwKICAgICJzb3VyY2UiLAogICAgInRyYWNrIiwKICAgICJ3YnIiLAp9CgoKZGVmIHRhZ19uYW1lX2Zyb21fc3RhcnQobGluZTogc3RyKSAtPiBzdHIgfCBOb25lOgogICAgbWF0Y2ggPSByZS5tYXRjaCgKICAgICAgICByIl5ccyo8XHMqKFthLXpBLVpdW2EtekEtWjAtOTotXSopXGIiLAogICAgICAgIGxpbmUsCiAgICApCgogICAgaWYgbm90IG1hdGNoOgogICAgICAgIHJldHVybiBOb25lCgogICAgcmV0dXJuIG1hdGNoLmdyb3VwKDEpLmxvd2VyKCkKCgpkZWYgY2xvc2luZ190YWdfbmFtZShsaW5lOiBzdHIpIC0+IHN0ciB8IE5vbmU6CiAgICBtYXRjaCA9IHJlLm1hdGNoKAogICAgICAgIHIiXlxzKjwvXHMqKFthLXpBLVpdW2EtekEtWjAtOTotXSopXHMqPlxzKiQiLAogICAgICAgIGxpbmUsCiAgICApCgogICAgaWYgbm90IG1hdGNoOgogICAgICAgIHJldHVybiBOb25lCgogICAgcmV0dXJuIG1hdGNoLmdyb3VwKDEpLmxvd2VyKCkKCgpkZWYgcHJvdGVjdGVkX2xpbmVfbWFzayhsaW5lczogbGlzdFtzdHJdKSAtPiBsaXN0W2Jvb2xdOgogICAgbWFzayA9IFtGYWxzZV0gKiBsZW4obGluZXMpCiAgICBhY3RpdmVfdGFnOiBzdHIgfCBOb25lID0gTm9uZQoKICAgIGZvciBpbmRleCwgbGluZSBpbiBlbnVtZXJhdGUobGluZXMpOgogICAgICAgIHN0cmlwcGVkID0gbGluZS5zdHJpcCgpCgogICAgICAgIGlmIGFjdGl2ZV90YWcgaXMgbm90IE5vbmU6CiAgICAgICAgICAgIG1hc2tbaW5kZXhdID0gVHJ1ZQoKICAgICAgICAgICAgaWYgcmUuc2VhcmNoKAogICAgICAgICAgICAgICAgcmYiPC9ccyp7cmUuZXNjYXBlKGFjdGl2ZV90YWcpfVxzKj4iLAogICAgICAgICAgICAgICAgc3RyaXBwZWQsCiAgICAgICAgICAgICAgICByZS5JR05PUkVDQVNFLAogICAgICAgICAgICApOgogICAgICAgICAgICAgICAgYWN0aXZlX3RhZyA9IE5vbmUKCiAgICAgICAgICAgIGNvbnRpbnVlCgogICAgICAgIHRhZyA9IHRhZ19uYW1lX2Zyb21fc3RhcnQobGluZSkKCiAgICAgICAgaWYgdGFnIG5vdCBpbiBQUk9URUNURURfVEFHUzoKICAgICAgICAgICAgY29udGludWUKCiAgICAgICAgbWFza1tpbmRleF0gPSBUcnVlCgogICAgICAgIGlmIHJlLnNlYXJjaCgKICAgICAgICAgICAgcmYiPC9ccyp7cmUuZXNjYXBlKHRhZyl9XHMqPiIsCiAgICAgICAgICAgIHN0cmlwcGVkLAogICAgICAgICAgICByZS5JR05PUkVDQVNFLAogICAgICAgICk6CiAgICAgICAgICAgIGNvbnRpbnVlCgogICAgICAgIGFjdGl2ZV90YWcgPSB0YWcKCiAgICByZXR1cm4gbWFzawoKCmRlZiBvcGVuaW5nX2NvbnRhaW5lcl90YWdfZW5kaW5nX2F0KAogICAgbGluZXM6IGxpc3Rbc3RyXSwKICAgIGVuZF9pbmRleDogaW50LAopIC0+IHN0ciB8IE5vbmU6CiAgICBzdHJpcHBlZF9lbmQgPSBsaW5lc1tlbmRfaW5kZXhdLnN0cmlwKCkKCiAgICBpZiAiPiIgbm90IGluIHN0cmlwcGVkX2VuZDoKICAgICAgICByZXR1cm4gTm9uZQoKICAgIHN0YXJ0X2luZGV4ID0gZW5kX2luZGV4CiAgICBsb3dlcl9ib3VuZCA9IG1heCgwLCBlbmRfaW5kZXggLSAzMCkKCiAgICB3aGlsZSBzdGFydF9pbmRleCA+PSBsb3dlcl9ib3VuZDoKICAgICAgICBzdHJpcHBlZCA9IGxpbmVzW3N0YXJ0X2luZGV4XS5sc3RyaXAoKQoKICAgICAgICBpZiBzdHJpcHBlZC5zdGFydHN3aXRoKCI8Iik6CiAgICAgICAgICAgIGJyZWFrCgogICAgICAgIHN0YXJ0X2luZGV4IC09IDEKCiAgICBpZiBzdGFydF9pbmRleCA8IGxvd2VyX2JvdW5kOgogICAgICAgIHJldHVybiBOb25lCgogICAgc2VnbWVudCA9ICJcbiIuam9pbigKICAgICAgICBsaW5lc1tzdGFydF9pbmRleDplbmRfaW5kZXggKyAxXQogICAgKS5zdHJpcCgpCgogICAgaWYgKAogICAgICAgIG5vdCBzZWdtZW50LnN0YXJ0c3dpdGgoIjwiKQogICAgICAgIG9yIHNlZ21lbnQuc3RhcnRzd2l0aCgiPC8iKQogICAgICAgIG9yIHNlZ21lbnQuc3RhcnRzd2l0aCgiPCEtLSIpCiAgICAgICAgb3Igc2VnbWVudC5zdGFydHN3aXRoKCI8ISIpCiAgICAgICAgb3Igc2VnbWVudC5zdGFydHN3aXRoKCI8PyIpCiAgICApOgogICAgICAgIHJldHVybiBOb25lCgogICAgbWF0Y2ggPSByZS5tYXRjaCgKICAgICAgICByIjxccyooW2EtekEtWl1bYS16QS1aMC05Oi1dKilcYiIsCiAgICAgICAgc2VnbWVudCwKICAgICkKCiAgICBpZiBub3QgbWF0Y2g6CiAgICAgICAgcmV0dXJuIE5vbmUKCiAgICB0YWcgPSBtYXRjaC5ncm91cCgxKS5sb3dlcigpCgogICAgaWYgdGFnIGluIFBST1RFQ1RFRF9UQUdTOgogICAgICAgIHJldHVybiBOb25lCgogICAgaWYgdGFnID09ICJodG1sIjoKICAgICAgICByZXR1cm4gTm9uZQoKICAgIGlmIHRhZyBpbiBWT0lEX1RBR1M6CiAgICAgICAgcmV0dXJuIE5vbmUKCiAgICBpZiBzZWdtZW50LnJzdHJpcCgpLmVuZHN3aXRoKCIvPiIpOgogICAgICAgIHJldHVybiBOb25lCgogICAgaWYgcmUuc2VhcmNoKAogICAgICAgIHJmIjwvXHMqe3JlLmVzY2FwZSh0YWcpfVxzKj4iLAogICAgICAgIHNlZ21lbnQsCiAgICAgICAgcmUuSUdOT1JFQ0FTRSwKICAgICk6CiAgICAgICAgcmV0dXJuIE5vbmUKCiAgICByZXR1cm4gdGFnCgoKZGVmIGNsZWFudXBfdGV4dCh0ZXh0OiBzdHIpIC0+IHN0cjoKICAgIGhhZF9maW5hbF9uZXdsaW5lID0gdGV4dC5lbmRzd2l0aCgiXG4iKQogICAgbGluZXMgPSB0ZXh0LnNwbGl0bGluZXMoKQoKICAgIGlmIG5vdCBsaW5lczoKICAgICAgICByZXR1cm4gdGV4dAoKICAgIHByb3RlY3RlZCA9IHByb3RlY3RlZF9saW5lX21hc2sobGluZXMpCiAgICByZXN1bHQ6IGxpc3Rbc3RyXSA9IFtdCiAgICBpbmRleCA9IDAKCiAgICB3aGlsZSBpbmRleCA8IGxlbihsaW5lcyk6CiAgICAgICAgbGluZSA9IGxpbmVzW2luZGV4XQoKICAgICAgICBpZiBsaW5lLnN0cmlwKCkgIT0gIiI6CiAgICAgICAgICAgIHJlc3VsdC5hcHBlbmQobGluZSkKICAgICAgICAgICAgaW5kZXggKz0gMQogICAgICAgICAgICBjb250aW51ZQoKICAgICAgICBpZiBwcm90ZWN0ZWRbaW5kZXhdOgogICAgICAgICAgICByZXN1bHQuYXBwZW5kKGxpbmUpCiAgICAgICAgICAgIGluZGV4ICs9IDEKICAgICAgICAgICAgY29udGludWUKCiAgICAgICAgcHJldmlvdXNfaW5kZXggPSBpbmRleCAtIDEKCiAgICAgICAgd2hpbGUgKAogICAgICAgICAgICBwcmV2aW91c19pbmRleCA+PSAwCiAgICAgICAgICAgIGFuZCBsaW5lc1twcmV2aW91c19pbmRleF0uc3RyaXAoKSA9PSAiIgogICAgICAgICk6CiAgICAgICAgICAgIHByZXZpb3VzX2luZGV4IC09IDEKCiAgICAgICAgbmV4dF9pbmRleCA9IGluZGV4ICsgMQoKICAgICAgICB3aGlsZSAoCiAgICAgICAgICAgIG5leHRfaW5kZXggPCBsZW4obGluZXMpCiAgICAgICAgICAgIGFuZCBsaW5lc1tuZXh0X2luZGV4XS5zdHJpcCgpID09ICIiCiAgICAgICAgKToKICAgICAgICAgICAgbmV4dF9pbmRleCArPSAxCgogICAgICAgIHJlbW92ZV9ibGFuayA9IEZhbHNlCgogICAgICAgIGlmICgKICAgICAgICAgICAgcHJldmlvdXNfaW5kZXggPj0gMAogICAgICAgICAgICBhbmQgbm90IHByb3RlY3RlZFtwcmV2aW91c19pbmRleF0KICAgICAgICAgICAgYW5kIG9wZW5pbmdfY29udGFpbmVyX3RhZ19lbmRpbmdfYXQoCiAgICAgICAgICAgICAgICBsaW5lcywKICAgICAgICAgICAgICAgIHByZXZpb3VzX2luZGV4LAogICAgICAgICAgICApCiAgICAgICAgICAgIGlzIG5vdCBOb25lCiAgICAgICAgKToKICAgICAgICAgICAgcmVtb3ZlX2JsYW5rID0gVHJ1ZQoKICAgICAgICBpZiAoCiAgICAgICAgICAgIG5leHRfaW5kZXggPCBsZW4obGluZXMpCiAgICAgICAgICAgIGFuZCBub3QgcHJvdGVjdGVkW25leHRfaW5kZXhdCiAgICAgICAgKToKICAgICAgICAgICAgY2xvc2luZ190YWcgPSBjbG9zaW5nX3RhZ19uYW1lKAogICAgICAgICAgICAgICAgbGluZXNbbmV4dF9pbmRleF0KICAgICAgICAgICAgKQoKICAgICAgICAgICAgaWYgKAogICAgICAgICAgICAgICAgY2xvc2luZ190YWcgaXMgbm90IE5vbmUKICAgICAgICAgICAgICAgIGFuZCBjbG9zaW5nX3RhZyAhPSAiaHRtbCIKICAgICAgICAgICAgICAgIGFuZCBjbG9zaW5nX3RhZyBub3QgaW4gUFJPVEVDVEVEX1RBR1MKICAgICAgICAgICAgKToKICAgICAgICAgICAgICAgIHJlbW92ZV9ibGFuayA9IFRydWUKCiAgICAgICAgaWYgcmVtb3ZlX2JsYW5rOgogICAgICAgICAgICBpbmRleCArPSAxCiAgICAgICAgICAgIGNvbnRpbnVlCgogICAgICAgIHJlc3VsdC5hcHBlbmQobGluZSkKICAgICAgICBpbmRleCArPSAxCgogICAgZmluYWwgPSAiXG4iLmpvaW4ocmVzdWx0KQoKICAgIGlmIGhhZF9maW5hbF9uZXdsaW5lOgogICAgICAgIGZpbmFsICs9ICJcbiIKCiAgICByZXR1cm4gZmluYWwKCgpkZWYgYmxhZGVfZmlsZXMoKSAtPiBsaXN0W1BhdGhdOgogICAgaWYgbm90IFZJRVdTX1BBVEguZXhpc3RzKCk6CiAgICAgICAgcmV0dXJuIFtdCgogICAgcmV0dXJuIHNvcnRlZCgKICAgICAgICBWSUVXU19QQVRILnJnbG9iKCIqLmJsYWRlLnBocCIpCiAgICApCgoKZGVmIHJ1bl93cml0ZShmaWxlczogbGlzdFtQYXRoXSkgLT4gaW50OgogICAgdXBkYXRlZCA9IDAKCiAgICBmb3IgcGF0aCBpbiBmaWxlczoKICAgICAgICBvcmlnaW5hbCA9IHBhdGgucmVhZF90ZXh0KAogICAgICAgICAgICBlbmNvZGluZz0idXRmLTgiCiAgICAgICAgKQoKICAgICAgICBjbGVhbmVkID0gY2xlYW51cF90ZXh0KG9yaWdpbmFsKQoKICAgICAgICBpZiBjbGVhbmVkID09IG9yaWdpbmFsOgogICAgICAgICAgICBjb250aW51ZQoKICAgICAgICBwYXRoLndyaXRlX3RleHQoCiAgICAgICAgICAgIGNsZWFuZWQsCiAgICAgICAgICAgIGVuY29kaW5nPSJ1dGYtOCIsCiAgICAgICAgKQoKICAgICAgICB1cGRhdGVkICs9IDEKICAgICAgICBwcmludChmIlVQREFURUQ6IHtwYXRofSIpCgogICAgcHJpbnQoKQogICAgcHJpbnQoZiJTZWxlc2FpLiB7dXBkYXRlZH0gZmlsZSBkaXBlcmJhcnVpLiIpCgogICAgcmV0dXJuIDAKCgpkZWYgcnVuX2NoZWNrKGZpbGVzOiBsaXN0W1BhdGhdKSAtPiBpbnQ6CiAgICBpbnZhbGlkOiBsaXN0W1BhdGhdID0gW10KCiAgICBmb3IgcGF0aCBpbiBmaWxlczoKICAgICAgICBvcmlnaW5hbCA9IHBhdGgucmVhZF90ZXh0KAogICAgICAgICAgICBlbmNvZGluZz0idXRmLTgiCiAgICAgICAgKQoKICAgICAgICBpZiBjbGVhbnVwX3RleHQob3JpZ2luYWwpICE9IG9yaWdpbmFsOgogICAgICAgICAgICBpbnZhbGlkLmFwcGVuZChwYXRoKQoKICAgIGlmIG5vdCBpbnZhbGlkOgogICAgICAgIHByaW50KCJCbGFkZSB3aGl0ZXNwYWNlIGNoZWNrIHBhc3NlZC4iKQogICAgICAgIHJldHVybiAwCgogICAgcHJpbnQoIkJsYWRlIHdoaXRlc3BhY2UgaXNzdWVzIGZvdW5kOiIpCgogICAgZm9yIHBhdGggaW4gaW52YWxpZDoKICAgICAgICBwcmludChmIi0ge3BhdGh9IikKCiAgICBwcmludCgpCiAgICBwcmludCgiSmFsYW5rYW46IG5wbSBydW4gZm9ybWF0OmJsYWRlIikKCiAgICByZXR1cm4gMQoKCmRlZiBtYWluKCkgLT4gaW50OgogICAgcGFyc2VyID0gYXJncGFyc2UuQXJndW1lbnRQYXJzZXIoCiAgICAgICAgZGVzY3JpcHRpb249KAogICAgICAgICAgICAiQ2xlYW51cCB3aGl0ZXNwYWNlIEJsYWRlIHlhbmcgdGlkYWsgZGl0YW5nYW5pICIKICAgICAgICAgICAgIm9sZWggUHJldHRpZXIuIgogICAgICAgICkKICAgICkKCiAgICBwYXJzZXIuYWRkX2FyZ3VtZW50KAogICAgICAgICItLWNoZWNrIiwKICAgICAgICBhY3Rpb249InN0b3JlX3RydWUiLAogICAgICAgIGhlbHA9KAogICAgICAgICAgICAiSGFueWEgbWVtZXJpa3NhLiBUaWRhayBtZW51bGlzIGZpbGUgZGFuIGV4aXQgMSAiCiAgICAgICAgICAgICJqaWthIGRpdGVtdWthbiB3aGl0ZXNwYWNlIHlhbmcgYmVsdW0gYmVyc2loLiIKICAgICAgICApLAogICAgKQoKICAgIGFyZ3MgPSBwYXJzZXIucGFyc2VfYXJncygpCiAgICBmaWxlcyA9IGJsYWRlX2ZpbGVzKCkKCiAgICBpZiBub3QgZmlsZXM6CiAgICAgICAgcHJpbnQoIlRpZGFrIGFkYSBmaWxlIEJsYWRlIGRpdGVtdWthbi4iKQogICAgICAgIHJldHVybiAwCgogICAgaWYgYXJncy5jaGVjazoKICAgICAgICByZXR1cm4gcnVuX2NoZWNrKGZpbGVzKQoKICAgIHJldHVybiBydW5fd3JpdGUoZmlsZXMpCgoKaWYgX19uYW1lX18gPT0gIl9fbWFpbl9fIjoKICAgIHN5cy5leGl0KG1haW4oKSkK'
+).decode("utf-8")
+
+doc_addition = base64.b64decode(
+    'CiMjIEJsYWRlIFdoaXRlc3BhY2UgQ2xlYW51cAoKU2VsYWluIFByZXR0aWVyLCBwcm9qZWN0IG1lbmdndW5ha2FuIGBzY3JpcHRzL2NsZWFudXBfYmxhZGVfd2hpdGVzcGFjZS5weWAKdW50dWsgbWVuZ2hhcHVzIGJsYW5rIGxpbmUgYmVybGViaWggdGVwYXQgc2V0ZWxhaCBvcGVuaW5nIEhUTUwgY29udGFpbmVyIGRhbgp0ZXBhdCBzZWJlbHVtIGNsb3NpbmcgSFRNTCBjb250YWluZXIuCgpDb250b2ggdGFyZ2V0OgoKYGBgYmxhZGUKPGRpdiBjbGFzcz0iY29sLXNtLTEwIj4KICAgIDxpbnB1dCB0eXBlPSJ0ZXh0IiBjbGFzcz0iZm9ybS1jb250cm9sIiBpZD0ic2NvcmUiPgo8L2Rpdj4KYGBgCgpCbGFuayBsaW5lIHN0cnVrdHVyYWwgbWlsaWsgcm9vdCBgPGh0bWw+YCBkaXBlcnRhaGFua2FuIGFnYXIgaGFzaWwKYHByZXR0aWVyLXBsdWdpbi1ibGFkZWAgdGV0YXAgaWRlbXBvdGVudC4KCklzaSBgPHByZT5gLCBgPHRleHRhcmVhPmAsIGA8c2NyaXB0PmAsIGRhbiBgPHN0eWxlPmAgdGlkYWsgZGltb2RpZmlrYXNpIG9sZWgKY2xlYW51cCBzY3JpcHQuCgojIyMgRm9ybWF0CgpgYGBiYXNoCm5wbSBydW4gZm9ybWF0CmBgYAoKIyMjIENoZWNrCgpgYGBiYXNoCm5wbSBydW4gZm9ybWF0OmNoZWNrCmBgYAoKYGZvcm1hdDpjaGVja2AgYWthbiBnYWdhbCBkZW5nYW4gZXhpdCBjb2RlIDEgamlrYSBhdHVyYW4gd2hpdGVzcGFjZSBjdXN0b20KYXRhdSBhdHVyYW4gUHJldHRpZXIgYmVsdW0gdGVycGVudWhpLgo='
+).decode("utf-8")
+
+CLEANUP.parent.mkdir(
+    parents=True,
+    exist_ok=True,
+)
+
+CLEANUP.write_text(
+    cleanup_content,
+    encoding="utf-8",
+)
+
+package = json.loads(
+    PACKAGE.read_text(
+        encoding="utf-8"
+    )
+)
+
+scripts = package.setdefault(
+    "scripts",
+    {}
+)
+
+scripts["format:php"] = (
+    'prettier --write '
+    '"app/**/*.php" '
+    '"bootstrap/*.php" '
+    '"config/**/*.php" '
+    '"database/**/*.php" '
+    '"routes/**/*.php" '
+    '"tests/**/*.php"'
+)
+
+scripts["format:blade:prettier"] = (
+    'prettier --write '
+    '"resources/views/**/*.blade.php"'
+)
+
+scripts["format:blade:cleanup"] = (
+    "python3 scripts/cleanup_blade_whitespace.py"
+)
+
+scripts["format:blade"] = (
+    "npm run format:blade:prettier && "
+    "npm run format:blade:cleanup"
+)
+
+scripts["format:frontend"] = (
+    'prettier --write '
+    '"resources/js/**/*.{js,ts,jsx,tsx}" '
+    '"resources/css/**/*.{css,scss}" '
+    '--ignore-unknown'
+)
+
+scripts["format"] = (
+    "npm run format:php && "
+    "npm run format:blade && "
+    "npm run format:frontend"
+)
+
+scripts["format:check:blade-whitespace"] = (
+    "python3 scripts/cleanup_blade_whitespace.py --check"
+)
+
+scripts["format:check:prettier"] = (
+    'prettier --check '
+    '"app/**/*.php" '
+    '"bootstrap/*.php" '
+    '"config/**/*.php" '
+    '"database/**/*.php" '
+    '"routes/**/*.php" '
+    '"tests/**/*.php" '
+    '"resources/views/**/*.blade.php" '
+    '"resources/js/**/*.{js,ts,jsx,tsx}" '
+    '"resources/css/**/*.{css,scss}" '
+    '--ignore-unknown'
+)
+
+scripts["format:check"] = (
+    "npm run format:check:blade-whitespace && "
+    "npm run format:check:prettier"
+)
+
+PACKAGE.write_text(
+    json.dumps(
+        package,
+        indent=4,
+        ensure_ascii=False,
+    )
+    + "\n",
+    encoding="utf-8",
+)
+
+if DOC.exists():
+    content = DOC.read_text(
+        encoding="utf-8"
+    )
+
+    if "## Blade Whitespace Cleanup" not in content:
+        DOC.write_text(
+            content.rstrip()
+            + "\n\n"
+            + doc_addition.strip()
+            + "\n",
+            encoding="utf-8",
+        )
+
+print("Workflow formatting berhasil diperbarui.")
+print()
+print("File:")
+print("- scripts/cleanup_blade_whitespace.py")
+print("- package.json")
+print("- docs/CODE-STYLE.md (jika file ada)")
+print()
+print("Selanjutnya jalankan:")
+print("npm run format")
+print("npm run format:check")
+print("php artisan test")

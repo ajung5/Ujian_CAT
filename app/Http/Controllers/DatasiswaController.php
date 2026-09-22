@@ -22,45 +22,27 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\RichText\RichText;
 use Throwable;
 
-class DatasiswaController extends Controller
-{
+class DatasiswaController extends Controller {
     /**
      * Data siswa dipisahkan berdasarkan tab:
      *
      * siswa = status S
      * calon = status C
      */
-    public function index(Request $request): View
-    {
+    public function index(Request $request): View {
         $user = auth()->user();
 
         $school = School::first();
 
-        $kelas = Kelas::query()
-            ->orderBy('nama')
-            ->get();
+        $kelas = Kelas::query()->orderBy('nama')->get();
 
-        $activeTab =
-            $request->query('tab') === 'calon'
-                ? 'calon'
-                : 'siswa';
+        $activeTab = $request->query('tab') === 'calon' ? 'calon' : 'siswa';
 
-        $statusAktif =
-            $activeTab === 'calon'
-                ? 'C'
-                : 'S';
+        $statusAktif = $activeTab === 'calon' ? 'C' : 'S';
 
         $users = User::query()
-            ->leftJoin(
-                'kelas',
-                'users.id_kelas',
-                '=',
-                'kelas.id'
-            )
-            ->where(
-                'users.status',
-                $statusAktif
-            )
+            ->leftJoin('kelas', 'users.id_kelas', '=', 'kelas.id')
+            ->where('users.status', $statusAktif)
             ->select([
                 'users.id',
                 'users.id_kelas',
@@ -77,90 +59,41 @@ class DatasiswaController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $jumlahSiswa = User::query()
-            ->where('status', 'S')
-            ->count();
+        $jumlahSiswa = User::query()->where('status', 'S')->count();
 
-        $jumlahCalonSiswa = User::query()
-            ->where('status', 'C')
-            ->count();
+        $jumlahCalonSiswa = User::query()->where('status', 'C')->count();
 
-        return view('guru.siswa', compact(
-            'user',
-            'school',
-            'kelas',
-            'users',
-            'jumlahSiswa',
-            'jumlahCalonSiswa',
-            'activeTab',
-            'statusAktif'
-        ));
+        return view(
+            'guru.siswa',
+            compact('user', 'school', 'kelas', 'users', 'jumlahSiswa', 'jumlahCalonSiswa', 'activeTab', 'statusAktif'),
+        );
     }
 
     /**
      * Cari data berdasarkan tab aktif.
      */
-    public function search(Request $request): View
-    {
+    public function search(Request $request): View {
         $validated = $request->validate([
-            'q' => [
-                'nullable',
-                'string',
-                'max:150',
-            ],
+            'q' => ['nullable', 'string', 'max:150'],
 
-            'status' => [
-                'required',
-                Rule::in(['S', 'C']),
-            ],
+            'status' => ['required', Rule::in(['S', 'C'])],
         ]);
 
-        $q = trim(
-            (string) (
-                $validated['q']
-                ?? ''
-            )
-        );
+        $q = trim((string) ($validated['q'] ?? ''));
 
-        $statusAktif =
-            $validated['status'];
+        $statusAktif = $validated['status'];
 
         $users = User::query()
-            ->leftJoin(
-                'kelas',
-                'users.id_kelas',
-                '=',
-                'kelas.id'
-            )
-            ->where(
-                'users.status',
-                $statusAktif
-            )
-            ->when(
-                $q !== '',
-                function ($query) use ($q) {
-                    $query->where(
-                        function ($search) use ($q) {
-                            $search
-                                ->where(
-                                    'users.nama',
-                                    'like',
-                                    '%'.$q.'%'
-                                )
-                                ->orWhere(
-                                    'users.no_induk',
-                                    'like',
-                                    '%'.$q.'%'
-                                )
-                                ->orWhere(
-                                    'users.email',
-                                    'like',
-                                    '%'.$q.'%'
-                                );
-                        }
-                    );
-                }
-            )
+            ->leftJoin('kelas', 'users.id_kelas', '=', 'kelas.id')
+            ->where('users.status', $statusAktif)
+            ->when($q !== '', function ($query) use ($q) {
+                $query->where(function ($search) use ($q) {
+                    $search
+                        ->where('users.nama', 'like', '%' . $q . '%')
+                        ->orWhere('users.no_induk', 'like', '%' . $q . '%')
+                        ->orWhere('users.email', 'like', '%' . $q . '%');
+                });
+            })
             ->select([
                 'users.id',
                 'users.id_kelas',
@@ -176,14 +109,7 @@ class DatasiswaController extends Controller
             ->limit(15)
             ->get();
 
-        return view(
-            'guru.ajax.get_siswa',
-            compact(
-                'users',
-                'q',
-                'statusAktif'
-            )
-        );
+        return view('guru.ajax.get_siswa', compact('users', 'q', 'statusAktif'));
     }
 
     /**
@@ -191,46 +117,18 @@ class DatasiswaController extends Controller
      *
      * Password awal legacy: 123456.
      */
-    public function store(Request $request): Response
-    {
+    public function store(Request $request): Response {
         $validated = $request->validate(
             [
-                'nama' => [
-                    'required',
-                    'string',
-                    'max:150',
-                ],
+                'nama' => ['required', 'string', 'max:150'],
 
-                'no_induk' => [
-                    'required',
-                    'string',
-                    'max:50',
-                    Rule::unique(
-                        'users',
-                        'no_induk'
-                    ),
-                ],
+                'no_induk' => ['required', 'string', 'max:50', Rule::unique('users', 'no_induk')],
 
-                'email' => [
-                    'required',
-                    'email',
-                    'max:255',
-                    Rule::unique(
-                        'users',
-                        'email'
-                    ),
-                ],
+                'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
 
-                'jk' => [
-                    'required',
-                    Rule::in(['L', 'P']),
-                ],
+                'jk' => ['required', Rule::in(['L', 'P'])],
 
-                'id_kelas' => [
-                    'required',
-                    'integer',
-                    'exists:kelas,id',
-                ],
+                'id_kelas' => ['required', 'integer', 'exists:kelas,id'],
             ],
             [
                 'nama.required' => 'Anda belum menuliskan nama siswa.',
@@ -248,20 +146,16 @@ class DatasiswaController extends Controller
                 'jk.required' => 'Anda belum mengisi jenis kelamin siswa.',
 
                 'id_kelas.required' => 'Anda belum mengisi kelas siswa.',
-            ]
+            ],
         );
 
-        $siswa = new User;
+        $siswa = new User();
 
         $siswa->id_kelas = (string) $validated['id_kelas'];
 
-        $siswa->nama = trim(
-            $validated['nama']
-        );
+        $siswa->nama = trim($validated['nama']);
 
-        $siswa->no_induk = trim(
-            $validated['no_induk']
-        );
+        $siswa->no_induk = trim($validated['no_induk']);
 
         $siswa->jk = $validated['jk'];
 
@@ -272,12 +166,9 @@ class DatasiswaController extends Controller
          */
         $siswa->gambar = '';
 
-        $siswa->email = strtolower(
-            trim($validated['email'])
-        );
+        $siswa->email = strtolower(trim($validated['email']));
 
-        $siswa->password =
-            Hash::make('123456');
+        $siswa->password = Hash::make('123456');
 
         $siswa->sekolah_asal = '';
 
@@ -285,10 +176,7 @@ class DatasiswaController extends Controller
 
         Aktifitas::create([
             'id_user' => auth()->id(),
-            'nama' => 'Menambahkan siswa atas nama '.
-                $siswa->nama.
-                ', NIS: '.
-                $siswa->no_induk,
+            'nama' => 'Menambahkan siswa atas nama ' . $siswa->nama . ', NIS: ' . $siswa->no_induk,
         ]);
 
         return response('berhasil');
@@ -297,44 +185,22 @@ class DatasiswaController extends Controller
     /**
      * Detail siswa beserta histori ujian.
      */
-    public function show(int $id): View
-    {
+    public function show(int $id): View {
         $user = auth()->user();
 
         $school = School::first();
 
-        $kelas = Kelas::query()
-            ->orderBy('nama')
-            ->get();
+        $kelas = Kelas::query()->orderBy('nama')->get();
 
         $siswa = User::query()
-            ->leftJoin(
-                'kelas',
-                'users.id_kelas',
-                '=',
-                'kelas.id'
-            )
-            ->where(
-                'users.id',
-                $id
-            )
-            ->whereIn(
-                'users.status',
-                ['S', 'C']
-            )
-            ->select([
-                'users.*',
-                'kelas.nama as nama_kelas',
-            ])
+            ->leftJoin('kelas', 'users.id_kelas', '=', 'kelas.id')
+            ->where('users.id', $id)
+            ->whereIn('users.status', ['S', 'C'])
+            ->select(['users.*', 'kelas.nama as nama_kelas'])
             ->firstOrFail();
 
         $aktifitas = Aktifitas::query()
-            ->join(
-                'users',
-                'aktifitas.id_user',
-                '=',
-                'users.id'
-            )
+            ->join('users', 'aktifitas.id_user', '=', 'users.id')
             ->select([
                 'users.nama as nama_user',
                 'users.gambar',
@@ -344,9 +210,7 @@ class DatasiswaController extends Controller
                 'aktifitas.created_at',
                 'aktifitas.updated_at',
             ])
-            ->orderByDesc(
-                'aktifitas.id'
-            )
+            ->orderByDesc('aktifitas.id')
             ->limit(5)
             ->get();
 
@@ -355,20 +219,9 @@ class DatasiswaController extends Controller
          * kompatibilitas dengan Laravel 13.
          */
         $ujians = Jawab::query()
-            ->join(
-                'soals',
-                'jawabs.id_soal',
-                '=',
-                'soals.id'
-            )
-            ->where(
-                'jawabs.id_user',
-                (string) $siswa->id
-            )
-            ->where(
-                'jawabs.status',
-                'Y'
-            )
+            ->join('soals', 'jawabs.id_soal', '=', 'soals.id')
+            ->where('jawabs.id_user', (string) $siswa->id)
+            ->where('jawabs.status', 'Y')
             ->selectRaw(
                 '
                 MIN(jawabs.id) as id,
@@ -382,20 +235,13 @@ class DatasiswaController extends Controller
                 MAX(soals.paket) as paket,
                 MAX(soals.kkm) as kkm,
                 MAX(soals.waktu) as waktu
-                '
+                ',
             )
-            ->groupBy(
-                'jawabs.id_soal'
-            )
+            ->groupBy('jawabs.id_soal')
             ->orderByDesc('id')
             ->paginate(25);
 
-        $idSoal = collect(
-            $ujians->items()
-        )
-            ->pluck('id_soal')
-            ->filter()
-            ->values();
+        $idSoal = collect($ujians->items())->pluck('id_soal')->filter()->values();
 
         /*
          * Rincian jawaban untuk halaman
@@ -405,24 +251,10 @@ class DatasiswaController extends Controller
 
         if ($idSoal->isNotEmpty()) {
             $detailJawaban = Jawab::query()
-                ->join(
-                    'detailsoals',
-                    'jawabs.no_soal_id',
-                    '=',
-                    'detailsoals.id'
-                )
-                ->where(
-                    'jawabs.id_user',
-                    (string) $siswa->id
-                )
-                ->where(
-                    'jawabs.status',
-                    'Y'
-                )
-                ->whereIn(
-                    'jawabs.id_soal',
-                    $idSoal
-                )
+                ->join('detailsoals', 'jawabs.no_soal_id', '=', 'detailsoals.id')
+                ->where('jawabs.id_user', (string) $siswa->id)
+                ->where('jawabs.status', 'Y')
+                ->whereIn('jawabs.id_soal', $idSoal)
                 ->select([
                     'jawabs.id',
                     'jawabs.id_soal',
@@ -432,24 +264,14 @@ class DatasiswaController extends Controller
                     'detailsoals.soal',
                     'detailsoals.kunci',
                 ])
-                ->orderBy(
-                    'jawabs.id'
-                )
+                ->orderBy('jawabs.id')
                 ->get()
                 ->groupBy('id_soal');
         }
 
         return view(
             'guru.detailkelassiswa',
-            compact(
-                'user',
-                'school',
-                'siswa',
-                'kelas',
-                'ujians',
-                'detailJawaban',
-                'aktifitas'
-            )
+            compact('user', 'school', 'siswa', 'kelas', 'ujians', 'detailJawaban', 'aktifitas'),
         );
     }
 
@@ -459,99 +281,48 @@ class DatasiswaController extends Controller
      * Sesuai legacy:
      * email tidak diubah dari halaman detail.
      */
-    public function update(Request $request): Response
-    {
-        $validated = $request->validate(
-            [
-                'id_siswa' => [
-                    'required',
-                    'integer',
-                ],
+    public function update(Request $request): Response {
+        $validated = $request->validate([
+            'id_siswa' => ['required', 'integer'],
 
-                'nama' => [
-                    'required',
-                    'string',
-                    'max:150',
-                ],
+            'nama' => ['required', 'string', 'max:150'],
 
-                'nis' => [
-                    'required',
-                    'string',
-                    'max:50',
-                ],
+            'nis' => ['required', 'string', 'max:50'],
 
-                'jk' => [
-                    'required',
-                    Rule::in(['L', 'P']),
-                ],
+            'jk' => ['required', Rule::in(['L', 'P'])],
 
-                'password' => [
-                    'nullable',
-                    'string',
-                    'max:255',
-                ],
-            ]
-        );
+            'password' => ['nullable', 'string', 'max:255'],
+        ]);
 
         $siswa = User::query()
-            ->whereKey(
-                $validated['id_siswa']
-            )
-            ->whereIn(
-                'status',
-                ['S', 'C']
-            )
+            ->whereKey($validated['id_siswa'])
+            ->whereIn('status', ['S', 'C'])
             ->firstOrFail();
 
         $duplicateNis = User::query()
-            ->where(
-                'no_induk',
-                trim($validated['nis'])
-            )
-            ->where(
-                'id',
-                '!=',
-                $siswa->id
-            )
+            ->where('no_induk', trim($validated['nis']))
+            ->where('id', '!=', $siswa->id)
             ->exists();
 
         if ($duplicateNis) {
-            return response(
-                'NIS sudah digunakan.',
-                422
-            );
+            return response('NIS sudah digunakan.', 422);
         }
 
-        $siswa->nama = trim(
-            $validated['nama']
-        );
+        $siswa->nama = trim($validated['nama']);
 
-        $siswa->no_induk = trim(
-            $validated['nis']
-        );
+        $siswa->no_induk = trim($validated['nis']);
 
-        $siswa->jk =
-            $validated['jk'];
+        $siswa->jk = $validated['jk'];
 
-        if (
-            ! empty(
-                $validated['password']
-            )
-        ) {
-            $siswa->password =
-                Hash::make(
-                    $validated['password']
-                );
+        if (!empty($validated['password'])) {
+            $siswa->password = Hash::make($validated['password']);
         }
 
         $siswa->save();
 
         Aktifitas::create([
             'id_user' => auth()->id(),
-            'nama' => 'Merubah data siswa atas nama '.
-                $siswa->nama.
-                ', NIS: '.
-                $siswa->no_induk,
+            'nama' => 'Merubah data siswa atas nama ' . $siswa->nama . ', NIS: ' . $siswa->no_induk,
         ]);
 
         return response('berhasil');
@@ -570,26 +341,14 @@ class DatasiswaController extends Controller
      * Email, password, foto, sekolah asal dan histori
      * assessment tetap dipertahankan.
      */
-    public function acceptCandidate(Request $request): Response
-    {
+    public function acceptCandidate(Request $request): Response {
         $validated = $request->validate(
             [
-                'id_siswa' => [
-                    'required',
-                    'integer',
-                ],
+                'id_siswa' => ['required', 'integer'],
 
-                'nis' => [
-                    'required',
-                    'string',
-                    'max:50',
-                ],
+                'nis' => ['required', 'string', 'max:50'],
 
-                'id_kelas' => [
-                    'required',
-                    'integer',
-                    'exists:kelas,id',
-                ],
+                'id_kelas' => ['required', 'integer', 'exists:kelas,id'],
             ],
             [
                 'id_siswa.required' => 'Calon siswa belum dipilih.',
@@ -601,139 +360,97 @@ class DatasiswaController extends Controller
                 'id_kelas.required' => 'Kelas tujuan wajib dipilih.',
 
                 'id_kelas.exists' => 'Kelas tujuan tidak ditemukan.',
-            ]
+            ],
         );
 
-        $nis = trim(
-            $validated['nis']
-        );
+        $nis = trim($validated['nis']);
 
-        $result = DB::transaction(
-            function () use (
-                $validated,
-                $nis
-            ) {
-                /*
-                 * Lock record calon siswa agar request
-                 * penerimaan ganda tidak memproses user
-                 * yang sama secara bersamaan.
-                 */
-                $siswa = User::query()
-                    ->whereKey(
-                        $validated['id_siswa']
-                    )
-                    ->lockForUpdate()
-                    ->first();
+        $result = DB::transaction(function () use ($validated, $nis) {
+            /*
+             * Lock record calon siswa agar request
+             * penerimaan ganda tidak memproses user
+             * yang sama secara bersamaan.
+             */
+            $siswa = User::query()->whereKey($validated['id_siswa'])->lockForUpdate()->first();
 
-                if (
-                    ! $siswa ||
-                    $siswa->status !== 'C'
-                ) {
-                    return [
-                        'status' => 'conflict',
-                    ];
-                }
-
-                /*
-                 * Validasi ulang kelas di dalam transaksi
-                 * untuk mengantisipasi kelas terhapus
-                 * setelah request validation.
-                 */
-                $kelas = Kelas::query()
-                    ->whereKey(
-                        $validated['id_kelas']
-                    )
-                    ->first();
-
-                if (! $kelas) {
-                    return [
-                        'status' => 'invalid_class',
-                    ];
-                }
-
-                /*
-                 * NIS final tidak boleh digunakan
-                 * oleh user lain.
-                 */
-                $duplicateNis = User::query()
-                    ->where(
-                        'no_induk',
-                        $nis
-                    )
-                    ->where(
-                        'id',
-                        '!=',
-                        $siswa->id
-                    )
-                    ->exists();
-
-                if ($duplicateNis) {
-                    return [
-                        'status' => 'duplicate_nis',
-                    ];
-                }
-
-                $idPendaftaran =
-                    (string) $siswa->no_induk;
-
-                /*
-                 * Promosi dilakukan pada record yang sama.
-                 * Tidak ada perubahan struktur database.
-                 */
-                $siswa->status = 'S';
-
-                $siswa->no_induk =
-                    $nis;
-
-                $siswa->id_kelas =
-                    (string) $kelas->id;
-
-                $siswa->save();
-
-                /*
-                 * Activity log berada dalam transaksi
-                 * yang sama agar perubahan status dan
-                 * audit trail tetap konsisten.
-                 */
-                Aktifitas::create([
-                    'id_user' => auth()->id(),
-
-                    'nama' => 'Menerima calon siswa '.
-                        $siswa->nama.
-                        ' (ID Pendaftaran: '.
-                        $idPendaftaran.
-                        ') menjadi siswa, NIS: '.
-                        $siswa->no_induk.
-                        ', kelas: '.
-                        $kelas->nama.
-                        '.',
-                ]);
-
+            if (!$siswa || $siswa->status !== 'C') {
                 return [
-                    'status' => 'accepted',
+                    'status' => 'conflict',
                 ];
             }
-        );
+
+            /*
+             * Validasi ulang kelas di dalam transaksi
+             * untuk mengantisipasi kelas terhapus
+             * setelah request validation.
+             */
+            $kelas = Kelas::query()->whereKey($validated['id_kelas'])->first();
+
+            if (!$kelas) {
+                return [
+                    'status' => 'invalid_class',
+                ];
+            }
+
+            /*
+             * NIS final tidak boleh digunakan
+             * oleh user lain.
+             */
+            $duplicateNis = User::query()->where('no_induk', $nis)->where('id', '!=', $siswa->id)->exists();
+
+            if ($duplicateNis) {
+                return [
+                    'status' => 'duplicate_nis',
+                ];
+            }
+
+            $idPendaftaran = (string) $siswa->no_induk;
+
+            /*
+             * Promosi dilakukan pada record yang sama.
+             * Tidak ada perubahan struktur database.
+             */
+            $siswa->status = 'S';
+
+            $siswa->no_induk = $nis;
+
+            $siswa->id_kelas = (string) $kelas->id;
+
+            $siswa->save();
+
+            /*
+             * Activity log berada dalam transaksi
+             * yang sama agar perubahan status dan
+             * audit trail tetap konsisten.
+             */
+            Aktifitas::create([
+                'id_user' => auth()->id(),
+
+                'nama' =>
+                    'Menerima calon siswa ' .
+                    $siswa->nama .
+                    ' (ID Pendaftaran: ' .
+                    $idPendaftaran .
+                    ') menjadi siswa, NIS: ' .
+                    $siswa->no_induk .
+                    ', kelas: ' .
+                    $kelas->nama .
+                    '.',
+            ]);
+
+            return [
+                'status' => 'accepted',
+            ];
+        });
 
         return match ($result['status']) {
-            'accepted' => response(
-                'berhasil'
-            ),
+            'accepted' => response('berhasil'),
 
-            'duplicate_nis' => response(
-                'NIS sudah digunakan.',
-                422
-            ),
+            'duplicate_nis' => response('NIS sudah digunakan.', 422),
 
-            'invalid_class' => response(
-                'Kelas tujuan tidak ditemukan.',
-                422
-            ),
+            'invalid_class' => response('Kelas tujuan tidak ditemukan.', 422),
 
-            default => response(
-                'Calon siswa tidak ditemukan atau sudah diterima.',
-                409
-            ),
+            default => response('Calon siswa tidak ditemukan atau sudah diterima.', 409),
         };
     }
 
@@ -743,89 +460,54 @@ class DatasiswaController extends Controller
      * Legacy maksimal 1 MB dan hanya
      * JPEG/JPG/PNG.
      */
-    public function updatePhoto(Request $request): Response
-    {
+    public function updatePhoto(Request $request): Response {
         $validated = $request->validate(
             [
-                'id_siswa' => [
-                    'required',
-                    'integer',
-                ],
+                'id_siswa' => ['required', 'integer'],
 
-                'file' => [
-                    'required',
-                    'image',
-                    'mimes:jpg,jpeg,png',
-                    'max:1024',
-                ],
+                'file' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:1024'],
             ],
             [
                 'file.max' => 'Ukuran foto maksimal 1 MB.',
 
                 'file.mimes' => 'Foto harus berupa JPG, JPEG, atau PNG.',
-            ]
+            ],
         );
 
         $siswa = User::query()
-            ->whereKey(
-                $validated['id_siswa']
-            )
-            ->whereIn(
-                'status',
-                ['S', 'C']
-            )
+            ->whereKey($validated['id_siswa'])
+            ->whereIn('status', ['S', 'C'])
             ->firstOrFail();
 
         $file = $request->file('file');
 
-        $extension = strtolower(
-            $file->extension()
-        );
+        $extension = strtolower($file->extension());
 
-        $filename =
-            Str::uuid().
-            '.'.
-            $extension;
+        $filename = Str::uuid() . '.' . $extension;
 
-        File::ensureDirectoryExists(
-            public_path('img')
-        );
+        File::ensureDirectoryExists(public_path('img'));
 
-        $file->move(
-            public_path('img'),
-            $filename
-        );
+        $file->move(public_path('img'), $filename);
 
         $oldImage = null;
 
-        if (! empty($siswa->gambar)) {
-            $oldImage = public_path(
-                'img/'.
-                basename($siswa->gambar)
-            );
+        if (!empty($siswa->gambar)) {
+            $oldImage = public_path('img/' . basename($siswa->gambar));
         }
 
         $siswa->gambar = $filename;
         $siswa->save();
 
-        if (
-            $oldImage &&
-            File::exists($oldImage)
-        ) {
+        if ($oldImage && File::exists($oldImage)) {
             File::delete($oldImage);
         }
 
         Aktifitas::create([
             'id_user' => auth()->id(),
-            'nama' => 'Merubah foto siswa atas nama '.
-                $siswa->nama,
+            'nama' => 'Merubah foto siswa atas nama ' . $siswa->nama,
         ]);
 
-        return response(
-            '<span id="success">'.
-            'Foto berhasil di-upload.'.
-            '</span>'
-        );
+        return response('<span id="success">' . 'Foto berhasil di-upload.' . '</span>');
     }
 
     /**
@@ -834,53 +516,29 @@ class DatasiswaController extends Controller
      * User, jawaban dan state timer ujian
      * ikut dihapus.
      */
-    public function destroy(Request $request): Response
-    {
+    public function destroy(Request $request): Response {
         $validated = $request->validate([
-            'id_siswa' => [
-                'required',
-                'integer',
-            ],
+            'id_siswa' => ['required', 'integer'],
         ]);
 
         $siswa = User::query()
-            ->whereKey(
-                $validated['id_siswa']
-            )
-            ->whereIn(
-                'status',
-                ['S', 'C']
-            )
+            ->whereKey($validated['id_siswa'])
+            ->whereIn('status', ['S', 'C'])
             ->firstOrFail();
 
         $nama = $siswa->nama;
         $gambar = $siswa->gambar;
 
-        DB::transaction(
-            function () use ($siswa) {
-                Jawab::query()
-                    ->where(
-                        'id_user',
-                        (string) $siswa->id
-                    )
-                    ->delete();
+        DB::transaction(function () use ($siswa) {
+            Jawab::query()->where('id_user', (string) $siswa->id)->delete();
 
-                Countexamtime::query()
-                    ->where(
-                        'id_user',
-                        (string) $siswa->id
-                    )
-                    ->delete();
+            Countexamtime::query()->where('id_user', (string) $siswa->id)->delete();
 
-                $siswa->delete();
-            }
-        );
+            $siswa->delete();
+        });
 
-        if (! empty($gambar)) {
-            $path = public_path(
-                'img/'.
-                basename($gambar)
-            );
+        if (!empty($gambar)) {
+            $path = public_path('img/' . basename($gambar));
 
             if (File::exists($path)) {
                 File::delete($path);
@@ -889,8 +547,7 @@ class DatasiswaController extends Controller
 
         Aktifitas::create([
             'id_user' => auth()->id(),
-            'nama' => 'Menghapus data siswa atas nama '.
-                $nama,
+            'nama' => 'Menghapus data siswa atas nama ' . $nama,
         ]);
 
         return response('berhasil');
@@ -899,59 +556,29 @@ class DatasiswaController extends Controller
     /**
      * Hapus seluruh calon siswa / peserta PSB.
      */
-    public function destroyCandidates()
-    {
+    public function destroyCandidates() {
         $candidates = User::query()
             ->where('status', 'C')
-            ->get([
-                'id',
-                'gambar',
-            ]);
+            ->get(['id', 'gambar']);
 
-        $ids = $candidates
-            ->pluck('id')
-            ->map(
-                fn ($id) => (string) $id
-            );
+        $ids = $candidates->pluck('id')->map(fn($id) => (string) $id);
 
-        DB::transaction(
-            function () use ($ids) {
-                if ($ids->isNotEmpty()) {
-                    Jawab::query()
-                        ->whereIn(
-                            'id_user',
-                            $ids
-                        )
-                        ->delete();
+        DB::transaction(function () use ($ids) {
+            if ($ids->isNotEmpty()) {
+                Jawab::query()->whereIn('id_user', $ids)->delete();
 
-                    Countexamtime::query()
-                        ->whereIn(
-                            'id_user',
-                            $ids
-                        )
-                        ->delete();
-                }
-
-                User::query()
-                    ->where(
-                        'status',
-                        'C'
-                    )
-                    ->delete();
+                Countexamtime::query()->whereIn('id_user', $ids)->delete();
             }
-        );
+
+            User::query()->where('status', 'C')->delete();
+        });
 
         foreach ($candidates as $candidate) {
             if (empty($candidate->gambar)) {
                 continue;
             }
 
-            $path = public_path(
-                'img/'.
-                basename(
-                    $candidate->gambar
-                )
-            );
+            $path = public_path('img/' . basename($candidate->gambar));
 
             if (File::exists($path)) {
                 File::delete($path);
@@ -960,21 +587,14 @@ class DatasiswaController extends Controller
 
         Aktifitas::create([
             'id_user' => auth()->id(),
-            'nama' => 'Menghapus seluruh data calon siswa '.
-                '(peserta PSB).',
+            'nama' => 'Menghapus seluruh data calon siswa ' . '(peserta PSB).',
         ]);
 
         return redirect()
-            ->route(
-                'guru.siswa',
-                [
-                    'tab' => 'calon',
-                ]
-            )
-            ->with(
-                'success',
-                'Seluruh calon siswa berhasil dihapus.'
-            );
+            ->route('guru.siswa', [
+                'tab' => 'calon',
+            ])
+            ->with('success', 'Seluruh calon siswa berhasil dihapus.');
     }
 
     /**
@@ -986,16 +606,10 @@ class DatasiswaController extends Controller
      * E = Email
      * F = Password
      */
-    public function importStudents(Request $request): RedirectResponse
-    {
+    public function importStudents(Request $request): RedirectResponse {
         $request->validate(
             [
-                'file' => [
-                    'required',
-                    'file',
-                    'mimes:xls,xlsx',
-                    'max:5120',
-                ],
+                'file' => ['required', 'file', 'mimes:xls,xlsx', 'max:5120'],
             ],
             [
                 'file.required' => 'File Excel siswa wajib dipilih.',
@@ -1003,13 +617,10 @@ class DatasiswaController extends Controller
                 'file.mimes' => 'File harus berformat XLS atau XLSX.',
 
                 'file.max' => 'Ukuran file maksimal 5 MB.',
-            ]
+            ],
         );
 
-        return $this->importUsersFromSpreadsheet(
-            $request->file('file'),
-            'S'
-        );
+        return $this->importUsersFromSpreadsheet($request->file('file'), 'S');
     }
 
     /**
@@ -1025,16 +636,10 @@ class DatasiswaController extends Controller
      * F = Email
      * G = Password
      */
-    public function importCandidates(Request $request): RedirectResponse
-    {
+    public function importCandidates(Request $request): RedirectResponse {
         $request->validate(
             [
-                'filecalon' => [
-                    'required',
-                    'file',
-                    'mimes:xls,xlsx',
-                    'max:5120',
-                ],
+                'filecalon' => ['required', 'file', 'mimes:xls,xlsx', 'max:5120'],
             ],
             [
                 'filecalon.required' => 'File Excel calon siswa wajib dipilih.',
@@ -1042,13 +647,10 @@ class DatasiswaController extends Controller
                 'filecalon.mimes' => 'File harus berformat XLS atau XLSX.',
 
                 'filecalon.max' => 'Ukuran file maksimal 5 MB.',
-            ]
+            ],
         );
 
-        return $this->importUsersFromSpreadsheet(
-            $request->file('filecalon'),
-            'C'
-        );
+        return $this->importUsersFromSpreadsheet($request->file('filecalon'), 'C');
     }
 
     /**
@@ -1058,29 +660,24 @@ class DatasiswaController extends Controller
      * S = Siswa
      * C = Calon Siswa
      */
-    private function importUsersFromSpreadsheet(UploadedFile $file, string $status): RedirectResponse
-    {
-        if (! in_array($status, ['S', 'C'], true)) {
+    private function importUsersFromSpreadsheet(UploadedFile $file, string $status): RedirectResponse {
+        if (!in_array($status, ['S', 'C'], true)) {
             abort(400, 'Status import tidak valid.');
         }
 
         try {
             /*
-            * Biarkan IOFactory mendeteksi XLS/XLSX.
-            */
-            $reader = IOFactory::createReaderForFile(
-                $file->getRealPath()
-            );
+             * Biarkan IOFactory mendeteksi XLS/XLSX.
+             */
+            $reader = IOFactory::createReaderForFile($file->getRealPath());
 
             /*
-            * Kita hanya membutuhkan data.
-            * Formatting, gambar dan chart tidak diperlukan.
-            */
+             * Kita hanya membutuhkan data.
+             * Formatting, gambar dan chart tidak diperlukan.
+             */
             $reader->setReadDataOnly(true);
 
-            $spreadsheet = $reader->load(
-                $file->getRealPath()
-            );
+            $spreadsheet = $reader->load($file->getRealPath());
 
             $sheet = $spreadsheet->getActiveSheet();
 
@@ -1088,40 +685,34 @@ class DatasiswaController extends Controller
         } catch (Throwable $exception) {
             report($exception);
 
-            return back()
-                ->withErrors([
-                    'import' => 'File Excel tidak dapat dibaca. '.
-                        'Pastikan file menggunakan format '.
-                        'XLS/XLSX yang valid.',
-                ]);
+            return back()->withErrors([
+                'import' =>
+                    'File Excel tidak dapat dibaca. ' . 'Pastikan file menggunakan format ' . 'XLS/XLSX yang valid.',
+            ]);
         }
 
         /*
-        * Cache referensi untuk menghindari query DB
-        * berulang pada setiap baris.
-        */
+         * Cache referensi untuk menghindari query DB
+         * berulang pada setiap baris.
+         */
         $kelasValid = Kelas::query()
             ->pluck('id')
             ->mapWithKeys(
-                fn ($id) => [
+                fn($id) => [
                     (string) $id => true,
-                ]
+                ],
             )
             ->all();
 
         $existingEmails = User::query()
             ->whereNotNull('email')
             ->pluck('email')
-            ->map(
-                fn ($email) => strtolower(
-                    trim((string) $email)
-                )
-            )
+            ->map(fn($email) => strtolower(trim((string) $email)))
             ->filter()
             ->mapWithKeys(
-                fn ($email) => [
+                fn($email) => [
                     $email => true,
-                ]
+                ],
             )
             ->all();
 
@@ -1129,14 +720,12 @@ class DatasiswaController extends Controller
             ->whereNotNull('no_induk')
             ->where('no_induk', '!=', '')
             ->pluck('no_induk')
-            ->map(
-                fn ($nis) => trim((string) $nis)
-            )
+            ->map(fn($nis) => trim((string) $nis))
             ->filter()
             ->mapWithKeys(
-                fn ($nis) => [
+                fn($nis) => [
                     $nis => true,
-                ]
+                ],
             )
             ->all();
 
@@ -1147,85 +736,42 @@ class DatasiswaController extends Controller
         $errors = [];
 
         /*
-        * Baris pertama adalah header.
-        *
-        * Data dimulai dari baris 2,
-        * sesuai Excel legacy.
-        */
+         * Baris pertama adalah header.
+         *
+         * Data dimulai dari baris 2,
+         * sesuai Excel legacy.
+         */
         for ($row = 2; $row <= $highestRow; $row++) {
-            $idKelas = $this->spreadsheetCell(
-                $sheet->getCell('A'.$row)->getValue()
-            );
+            $idKelas = $this->spreadsheetCell($sheet->getCell('A' . $row)->getValue());
 
-            $nama = $this->spreadsheetCell(
-                $sheet->getCell('B'.$row)->getValue()
-            );
+            $nama = $this->spreadsheetCell($sheet->getCell('B' . $row)->getValue());
 
-            $nis = $this->spreadsheetCell(
-                $sheet->getCell('C'.$row)->getValue()
-            );
+            $nis = $this->spreadsheetCell($sheet->getCell('C' . $row)->getValue());
 
-            $jk = strtoupper(
-                $this->spreadsheetCell(
-                    $sheet->getCell('D'.$row)->getValue()
-                )
-            );
+            $jk = strtoupper($this->spreadsheetCell($sheet->getCell('D' . $row)->getValue()));
 
             /*
-            * Posisi kolom berbeda antara
-            * siswa dan calon siswa.
-            */
+             * Posisi kolom berbeda antara
+             * siswa dan calon siswa.
+             */
             if ($status === 'S') {
                 $sekolahAsal = '';
 
-                $email = strtolower(
-                    $this->spreadsheetCell(
-                        $sheet
-                            ->getCell('E'.$row)
-                            ->getValue()
-                    )
-                );
+                $email = strtolower($this->spreadsheetCell($sheet->getCell('E' . $row)->getValue()));
 
-                $password = $this->spreadsheetCell(
-                    $sheet
-                        ->getCell('F'.$row)
-                        ->getValue()
-                );
+                $password = $this->spreadsheetCell($sheet->getCell('F' . $row)->getValue());
             } else {
-                $sekolahAsal =
-                    $this->spreadsheetCell(
-                        $sheet
-                            ->getCell('E'.$row)
-                            ->getValue()
-                    );
+                $sekolahAsal = $this->spreadsheetCell($sheet->getCell('E' . $row)->getValue());
 
-                $email = strtolower(
-                    $this->spreadsheetCell(
-                        $sheet
-                            ->getCell('F'.$row)
-                            ->getValue()
-                    )
-                );
+                $email = strtolower($this->spreadsheetCell($sheet->getCell('F' . $row)->getValue()));
 
-                $password =
-                    $this->spreadsheetCell(
-                        $sheet
-                            ->getCell('G'.$row)
-                            ->getValue()
-                    );
+                $password = $this->spreadsheetCell($sheet->getCell('G' . $row)->getValue());
             }
 
             /*
-            * Lewati baris benar-benar kosong.
-            */
-            if (
-                $idKelas === '' &&
-                $nama === '' &&
-                $nis === '' &&
-                $jk === '' &&
-                $email === '' &&
-                $password === ''
-            ) {
+             * Lewati baris benar-benar kosong.
+             */
+            if ($idKelas === '' && $nama === '' && $nis === '' && $jk === '' && $email === '' && $password === '') {
                 $kosong++;
 
                 continue;
@@ -1234,190 +780,117 @@ class DatasiswaController extends Controller
             $rowErrors = [];
 
             /*
-            * ID kelas.
-            */
+             * ID kelas.
+             */
             if ($idKelas === '') {
-                $rowErrors[] =
-                    'ID kelas kosong.';
-            } elseif (
-                ! isset($kelasValid[$idKelas])
-            ) {
-                $rowErrors[] =
-                    'ID kelas '.$idKelas.
-                    ' tidak ditemukan.';
+                $rowErrors[] = 'ID kelas kosong.';
+            } elseif (!isset($kelasValid[$idKelas])) {
+                $rowErrors[] = 'ID kelas ' . $idKelas . ' tidak ditemukan.';
             }
 
             /*
-            * Nama.
-            */
+             * Nama.
+             */
             if ($nama === '') {
-                $rowErrors[] =
-                    'Nama kosong.';
-            } elseif (
-                mb_strlen($nama) > 150
-            ) {
-                $rowErrors[] =
-                    'Nama melebihi 150 karakter.';
+                $rowErrors[] = 'Nama kosong.';
+            } elseif (mb_strlen($nama) > 150) {
+                $rowErrors[] = 'Nama melebihi 150 karakter.';
             }
 
             /*
-            * NIS / ID pendaftaran.
-            */
+             * NIS / ID pendaftaran.
+             */
             if ($nis === '') {
-                $rowErrors[] =
-                    $status === 'C'
-                        ? 'ID Pendaftaran kosong.'
-                        : 'NIS kosong.';
-            } elseif (
-                mb_strlen($nis) > 50
-            ) {
-                $rowErrors[] =
-                    'NIS/ID Pendaftaran '.
-                    'melebihi 50 karakter.';
-            } elseif (
-                isset($existingNis[$nis])
-            ) {
-                $rowErrors[] =
-                    'NIS/ID Pendaftaran '.$nis.
-                    ' sudah terdaftar.';
+                $rowErrors[] = $status === 'C' ? 'ID Pendaftaran kosong.' : 'NIS kosong.';
+            } elseif (mb_strlen($nis) > 50) {
+                $rowErrors[] = 'NIS/ID Pendaftaran ' . 'melebihi 50 karakter.';
+            } elseif (isset($existingNis[$nis])) {
+                $rowErrors[] = 'NIS/ID Pendaftaran ' . $nis . ' sudah terdaftar.';
             }
 
             /*
-            * Jenis kelamin.
-            */
-            if (
-                ! in_array(
-                    $jk,
-                    ['L', 'P'],
-                    true
-                )
-            ) {
-                $rowErrors[] =
-                    'Jenis kelamin harus L atau P.';
+             * Jenis kelamin.
+             */
+            if (!in_array($jk, ['L', 'P'], true)) {
+                $rowErrors[] = 'Jenis kelamin harus L atau P.';
             }
 
             /*
-            * Email.
-            */
+             * Email.
+             */
             if ($email === '') {
-                $rowErrors[] =
-                    'Email kosong.';
-            } elseif (
-                ! filter_var(
-                    $email,
-                    FILTER_VALIDATE_EMAIL
-                )
-            ) {
-                $rowErrors[] =
-                    'Format email tidak valid.';
-            } elseif (
-                mb_strlen($email) > 255
-            ) {
-                $rowErrors[] =
-                    'Email melebihi 255 karakter.';
-            } elseif (
-                isset($existingEmails[$email])
-            ) {
-                $rowErrors[] =
-                    'Email '.$email.
-                    ' sudah terdaftar.';
+                $rowErrors[] = 'Email kosong.';
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $rowErrors[] = 'Format email tidak valid.';
+            } elseif (mb_strlen($email) > 255) {
+                $rowErrors[] = 'Email melebihi 255 karakter.';
+            } elseif (isset($existingEmails[$email])) {
+                $rowErrors[] = 'Email ' . $email . ' sudah terdaftar.';
             }
 
             /*
-            * Password Excel legacy memang berasal
-            * dari spreadsheet.
-            *
-            * Pada versi baru password kosong ditolak
-            * agar tidak menghasilkan akun dengan
-            * password kosong.
-            */
+             * Password Excel legacy memang berasal
+             * dari spreadsheet.
+             *
+             * Pada versi baru password kosong ditolak
+             * agar tidak menghasilkan akun dengan
+             * password kosong.
+             */
             if ($password === '') {
-                $rowErrors[] =
-                    'Password kosong.';
+                $rowErrors[] = 'Password kosong.';
             }
 
             /*
-            * Sekolah asal calon siswa.
-            *
-            * Tetap boleh kosong karena database
-            * legacy menggunakan string kosong.
-            */
-            if (
-                mb_strlen($sekolahAsal) > 255
-            ) {
-                $rowErrors[] =
-                    'Sekolah asal melebihi 255 karakter.';
+             * Sekolah asal calon siswa.
+             *
+             * Tetap boleh kosong karena database
+             * legacy menggunakan string kosong.
+             */
+            if (mb_strlen($sekolahAsal) > 255) {
+                $rowErrors[] = 'Sekolah asal melebihi 255 karakter.';
             }
 
             if ($rowErrors !== []) {
                 $gagal++;
 
-                $errors[] =
-                    'Baris '.$row.': '.
-                    implode(
-                        ' ',
-                        $rowErrors
-                    );
+                $errors[] = 'Baris ' . $row . ': ' . implode(' ', $rowErrors);
 
                 continue;
             }
 
             try {
-                DB::transaction(
-                    function () use (
-                        $idKelas,
-                        $nama,
-                        $nis,
-                        $jk,
-                        $status,
-                        $email,
-                        $password,
-                        $sekolahAsal
-                    ) {
-                        $siswa = new User;
+                DB::transaction(function () use ($idKelas, $nama, $nis, $jk, $status, $email, $password, $sekolahAsal) {
+                    $siswa = new User();
 
-                        $siswa->id_kelas =
-                            $idKelas;
+                    $siswa->id_kelas = $idKelas;
 
-                        $siswa->nama =
-                            $nama;
+                    $siswa->nama = $nama;
 
-                        $siswa->no_induk =
-                            $nis;
+                    $siswa->no_induk = $nis;
 
-                        $siswa->jk =
-                            $jk;
+                    $siswa->jk = $jk;
 
-                        $siswa->status =
-                            $status;
+                    $siswa->status = $status;
 
-                        /*
-                        * Kolom legacy NOT NULL.
-                        */
-                        $siswa->gambar = '';
+                    /*
+                     * Kolom legacy NOT NULL.
+                     */
+                    $siswa->gambar = '';
 
-                        $siswa->email =
-                            $email;
+                    $siswa->email = $email;
 
-                        $siswa->password =
-                            Hash::make(
-                                $password
-                            );
+                    $siswa->password = Hash::make($password);
 
-                        $siswa->sekolah_asal =
-                            $status === 'C'
-                                ? $sekolahAsal
-                                : '';
+                    $siswa->sekolah_asal = $status === 'C' ? $sekolahAsal : '';
 
-                        $siswa->save();
-                    }
-                );
+                    $siswa->save();
+                });
 
                 /*
-                * Tambahkan ke cache agar duplicate
-                * di baris berikutnya pada Excel
-                * yang sama juga ditolak.
-                */
+                 * Tambahkan ke cache agar duplicate
+                 * di baris berikutnya pada Excel
+                 * yang sama juga ditolak.
+                 */
                 $existingEmails[$email] = true;
 
                 $existingNis[$nis] = true;
@@ -1428,60 +901,40 @@ class DatasiswaController extends Controller
 
                 $gagal++;
 
-                $errors[] =
-                    'Baris '.$row.
-                    ': gagal disimpan ke database.';
+                $errors[] = 'Baris ' . $row . ': gagal disimpan ke database.';
             }
         }
 
         /*
-        * Bebaskan workbook dari memory.
-        */
+         * Bebaskan workbook dari memory.
+         */
         $spreadsheet->disconnectWorksheets();
 
         unset($spreadsheet);
 
-        $jenisImport =
-            $status === 'S'
-                ? 'siswa'
-                : 'calon siswa';
+        $jenisImport = $status === 'S' ? 'siswa' : 'calon siswa';
 
         Aktifitas::create([
             'id_user' => auth()->id(),
 
-            'nama' => 'Import Excel '.$jenisImport.
-                ': '.$sukses.' berhasil, '.
-                $gagal.' ditolak.',
+            'nama' => 'Import Excel ' . $jenisImport . ': ' . $sukses . ' berhasil, ' . $gagal . ' ditolak.',
         ]);
 
         return redirect()
-            ->route(
-                'guru.siswa',
-                [
-                    'tab' => $status === 'C'
-                            ? 'calon'
-                            : 'siswa',
-                ]
-            )
+            ->route('guru.siswa', [
+                'tab' => $status === 'C' ? 'calon' : 'siswa',
+            ])
             ->with(
                 'success',
-                'Import Excel '.$jenisImport.
-                ' selesai. Berhasil: '.
-                $sukses.
-                ', Ditolak: '.
-                $gagal.'.'
+                'Import Excel ' . $jenisImport . ' selesai. Berhasil: ' . $sukses . ', Ditolak: ' . $gagal . '.',
             )
-            ->with(
-                'import_errors',
-                $errors
-            );
+            ->with('import_errors', $errors);
     }
 
     /**
      * Normalisasi nilai cell Excel menjadi string.
      */
-    private function spreadsheetCell(mixed $value): string
-    {
+    private function spreadsheetCell(mixed $value): string {
         if ($value === null) {
             return '';
         }
@@ -1495,13 +948,11 @@ class DatasiswaController extends Controller
         }
 
         /*
-        * Jangan menjalankan formula Excel.
-        *
-        * getValue() dipakai, bukan
-        * getCalculatedValue().
-        */
-        return trim(
-            (string) $value
-        );
+         * Jangan menjalankan formula Excel.
+         *
+         * getValue() dipakai, bukan
+         * getCalculatedValue().
+         */
+        return trim((string) $value);
     }
 }

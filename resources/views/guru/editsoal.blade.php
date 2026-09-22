@@ -2,406 +2,275 @@
 
 @section('title', 'Edit Soal')
 
-
 @section('content')
 
-<div class="col-md-12 dash-left">
+    <div class="col-md-12 dash-left">
+        <ol class="breadcrumb">
+            <li>
+                <a href="{{ route('guru.index') }}">
+                    Home
+                </a>
+            </li>
 
-    <ol class="breadcrumb">
+            <li>
+                <a href="{{ route('guru.soal') }}">
+                    Soal
+                </a>
+            </li>
 
-        <li>
+            <li class="active">
+                Edit Soal
+            </li>
+        </ol>
 
-            <a href="{{ route('guru.index') }}">
-                Home
-            </a>
-
-        </li>
-
-        <li>
-
-            <a href="{{ route('guru.soal') }}">
-                Soal
-            </a>
-
-        </li>
-
-        <li class="active">
-            Edit Soal
-        </li>
-
-    </ol>
-
-
-    <div class="panel panel-default">
-
-        <div
-            class="panel-heading"
-            style="
+        <div class="panel panel-default">
+            <div class="panel-heading" style="
                 background:#072047;
                 color:#fff;
-            "
-        >
-            Ubah Paket Soal
-        </div>
+            ">
+                Ubah Paket Soal
+            </div>
 
-
-        <div class="panel-body">
-
-            <div
-                class="well"
-                style="
+            <div class="panel-body">
+                <div class="well"
+                    style="
                     margin:0;
                     padding:15px;
-                "
-            >
-
-                <div class="form-horizontal">
-
-
-                    <input
-                        type="hidden"
-                        id="id_soal"
-                        value="{{ $soal->id }}"
-                    >
-
-
-                    <div class="form-group">
-
-                        <label
-                            class="
+                ">
+                    <div class="form-horizontal">
+                        <input type="hidden" id="id_soal" value="{{ $soal->id }}">
+                        <div class="form-group">
+                            <label
+                                class="
                                 col-sm-2
                                 control-label
                             "
-                            for="paket"
-                        >
-                            Paket
-                        </label>
+                                for="paket">
+                                Paket
+                            </label>
 
-
-                        <div class="col-sm-10">
-
-                            <input
-                                type="text"
-                                class="form-control"
-                                id="paket"
-                                value="{{ $soal->paket }}"
-                            >
-
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" id="paket" value="{{ $soal->paket }}">
+                            </div>
                         </div>
 
-                    </div>
-
-
-                    <div class="form-group">
-
-                        <label
-                            class="
+                        <div class="form-group">
+                            <label
+                                class="
                                 col-sm-2
                                 control-label
                             "
-                            for="deskripsi"
-                        >
-                            Deskripsi
-                        </label>
+                                for="deskripsi">
+                                Deskripsi
+                            </label>
 
-
-                        <div class="col-sm-10">
-
-                            <textarea
-                                class="form-control"
-                                id="deskripsi"
-                            >{{ $soal->deskripsi }}</textarea>
-
+                            <div class="col-sm-10">
+                                <textarea class="form-control" id="deskripsi">{{ $soal->deskripsi }}</textarea>
+                            </div>
                         </div>
 
-                    </div>
-
-
-                    <div class="form-group">
-
-                        <label
-                            class="
+                        <div class="form-group">
+                            <label
+                                class="
                                 col-sm-2
                                 control-label
                             "
-                            for="kkm"
-                        >
-                            KKM
-                        </label>
+                                for="kkm">
+                                KKM
+                            </label>
 
-
-                        <div class="col-sm-10">
-
-                            <input
-                                type="number"
-                                class="form-control"
-                                id="kkm"
-                                min="0"
-                                value="{{ $soal->kkm }}"
-                            >
-
+                            <div class="col-sm-10">
+                                <input type="number" class="form-control" id="kkm" min="0"
+                                    value="{{ $soal->kkm }}">
+                            </div>
                         </div>
 
-                    </div>
-
-
-                    <div class="form-group">
-
-                        <label
-                            class="
+                        <div class="form-group">
+                            <label
+                                class="
                                 col-sm-2
                                 control-label
                             "
-                            for="waktu"
-                        >
-                            Waktu
-                        </label>
+                                for="waktu">
+                                Waktu
+                            </label>
 
+                            <div class="col-sm-10">
+                                <input type="number" class="form-control" id="waktu" min="1"
+                                    value="{{ $soal->waktu }}">
 
-                        <div class="col-sm-10">
+                                <small class="help-block">
+                                    Waktu disimpan dalam detik.
 
-                            <input
-                                type="number"
-                                class="form-control"
-                                id="waktu"
-                                min="1"
-                                value="{{ $soal->waktu }}"
-                            >
+                                    Saat ini:
 
-                            <small class="help-block">
-
-                                Waktu disimpan dalam detik.
-
-                                Saat ini:
-
-                                {{
-                                    number_format(
-                                        ((int) $soal->waktu)
-                                        / 60,
-                                        0
-                                    )
-                                }}
-
-                                menit.
-
-                            </small>
-
+                                    {{ number_format(((int) $soal->waktu) / 60, 0) }}
+                                    menit.
+                                </small>
+                            </div>
                         </div>
 
-                    </div>
-
-
-                    <div class="form-group">
-
-                        <div
-                            class="
+                        <div class="form-group">
+                            <div
+                                class="
                                 col-sm-offset-2
                                 col-sm-10
-                            "
-                        >
+                            ">
+                                <button type="button" class="btn btn-primary" id="btn-update-soal">
+                                    Simpan
+                                </button>
 
-                            <button
-                                type="button"
-                                class="btn btn-primary"
-                                id="btn-update-soal"
-                            >
-                                Simpan
-                            </button>
+                                <a href="{{ route('guru.soal') }}" class="btn btn-default">
+                                    Batal
+                                </a>
 
-
-                            <a
-                                href="{{
-                                    route('guru.soal')
-                                }}"
-                                class="btn btn-default"
-                            >
-                                Batal
-                            </a>
-
-
-                            <img
-                                src="{{
-                                    asset(
-                                        'img/ajax-loader.gif'
-                                    )
-                                }}"
-                                alt="Loading"
-                                id="loading"
-                                style="display:none;"
-                            >
-
+                                <img src="{{ asset('img/ajax-loader.gif') }}" alt="Loading" id="loading"
+                                    style="display:none;">
+                            </div>
                         </div>
 
-                    </div>
-
-
-                    <div
-                        class="
+                        <div class="
                             alert
                             alert-danger
                         "
-                        id="salah"
-                        style="display:none;"
-                    ></div>
+                            id="salah" style="display:none;"></div>
 
-
-                    <div
-                        class="
+                        <div class="
                             alert
                             alert-info
                         "
-                        id="benar"
-                        style="display:none;"
-                    >
+                            id="benar" style="display:none;">
+                            <b>Sukses.</b>
 
-                        <b>Sukses.</b>
-
-                        Soal berhasil diperbarui.
-
+                            Soal berhasil diperbarui.
+                        </div>
                     </div>
-
                 </div>
-
             </div>
-
         </div>
-
     </div>
-
-</div>
 
 @endsection
 
-
 @push('scripts')
+    <script>
+        $(document).ready(function() {
 
-<script>
-
-$(document).ready(function () {
-
-    'use strict';
+            'use strict';
 
 
-    $('#btn-update-soal').on(
-        'click',
-        function () {
+            $('#btn-update-soal').on(
+                'click',
+                function() {
 
-            const button =
-                $(this);
-
-
-            button.hide();
-
-            $('#loading').show();
-
-            $('#salah').hide();
+                    const button =
+                        $(this);
 
 
-            $.ajax({
+                    button.hide();
 
-                type: 'POST',
+                    $('#loading').show();
 
-                url:
-                    '{{ route('guru.soal.update') }}',
-
-                data: {
-
-                    id_soal:
-                        $('#id_soal').val(),
-
-                    paket:
-                        $('#paket').val(),
-
-                    deskripsi:
-                        $('#deskripsi').val(),
-
-                    kkm:
-                        $('#kkm').val(),
-
-                    waktu:
-                        $('#waktu').val()
-
-                },
+                    $('#salah').hide();
 
 
-                success: function (data) {
+                    $.ajax({
 
-                    $('#loading').hide();
+                        type: 'POST',
 
-                    button.show();
+                        url: '{{ route('guru.soal.update') }}',
 
+                        data: {
 
-                    if (
-                        $.trim(data) ===
-                        'berhasil'
-                    ) {
+                            id_soal: $('#id_soal').val(),
 
-                        $('#benar').show();
+                            paket: $('#paket').val(),
 
+                            deskripsi: $('#deskripsi').val(),
 
-                        window.location.href =
-                            '{{ route('guru.soal') }}';
+                            kkm: $('#kkm').val(),
 
-                    }
+                            waktu: $('#waktu').val()
 
-                },
+                        },
 
 
-                error: function (xhr) {
+                        success: function(data) {
 
-                    $('#loading').hide();
+                            $('#loading').hide();
 
-                    button.show();
-
-
-                    console.error(
-                        'Update Paket Soal:',
-                        xhr.status,
-                        xhr.responseJSON,
-                        xhr.responseText
-                    );
+                            button.show();
 
 
-                    let message =
-                        'Gagal memperbarui paket soal.';
+                            if (
+                                $.trim(data) ===
+                                'berhasil'
+                            ) {
+
+                                $('#benar').show();
 
 
-                    if (
-                        xhr.responseJSON &&
-                        xhr.responseJSON.errors
-                    ) {
+                                window.location.href =
+                                    '{{ route('guru.soal') }}';
 
-                        message =
-                            Object.values(
+                            }
+
+                        },
+
+
+                        error: function(xhr) {
+
+                            $('#loading').hide();
+
+                            button.show();
+
+
+                            console.error(
+                                'Update Paket Soal:',
+                                xhr.status,
+                                xhr.responseJSON,
+                                xhr.responseText
+                            );
+
+
+                            let message =
+                                'Gagal memperbarui paket soal.';
+
+
+                            if (
+                                xhr.responseJSON &&
                                 xhr.responseJSON.errors
-                            )
-                                .flat()
-                                .join('<br>');
+                            ) {
 
-                    } else if (
-                        xhr.responseJSON &&
-                        xhr.responseJSON.message
-                    ) {
+                                message =
+                                    Object.values(
+                                        xhr.responseJSON.errors
+                                    )
+                                    .flat()
+                                    .join('<br>');
 
-                        message =
-                            xhr.responseJSON.message;
+                            } else if (
+                                xhr.responseJSON &&
+                                xhr.responseJSON.message
+                            ) {
 
-                    }
+                                message =
+                                    xhr.responseJSON.message;
+
+                            }
 
 
-                    $('#salah')
-                        .html(message)
-                        .show();
+                            $('#salah')
+                                .html(message)
+                                .show();
+
+                        }
+
+                    });
 
                 }
+            );
 
-            });
-
-        }
-    );
-
-});
-
-</script>
-
+        });
+    </script>
 @endpush

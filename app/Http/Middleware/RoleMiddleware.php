@@ -6,8 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class RoleMiddleware
-{
+class RoleMiddleware {
     /**
      * Batasi route berdasarkan status legacy.
      *
@@ -15,14 +14,10 @@ class RoleMiddleware
      * role:A,G
      * role:S,C
      */
-    public function handle(
-        Request $request,
-        Closure $next,
-        string ...$roles
-    ): Response {
+    public function handle(Request $request, Closure $next, string ...$roles): Response {
         $user = $request->user();
 
-        if (! $user) {
+        if (!$user) {
             return redirect()->route('login');
         }
 

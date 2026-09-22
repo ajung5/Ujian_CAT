@@ -24,15 +24,12 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\RichText\RichText;
 use Throwable;
 
-class SoalController extends Controller
-{
+class SoalController extends Controller {
     /**
      * Daftar Paket Soal.
      */
-    public function index(): View{
-        $user = User::findOrFail(
-            auth()->id()
-        );
+    public function index(): View {
+        $user = User::findOrFail(auth()->id());
 
         $query = Soal::query();
 
@@ -42,15 +39,10 @@ class SoalController extends Controller
          * Guru hanya melihat paket soal miliknya.
          */
         if (auth()->user()->status === 'G') {
-            $query->where(
-                'id_user',
-                (string) auth()->id()
-            );
+            $query->where('id_user', (string) auth()->id());
         }
 
-        $soals = $query
-            ->orderByDesc('id')
-            ->paginate(10);
+        $soals = $query->orderByDesc('id')->paginate(10);
 
         /*
          * Materi yang dapat dipilih untuk jenis Latihan.
@@ -59,74 +51,36 @@ class SoalController extends Controller
          * Materi yang sudah dipakai paket latihan
          * tidak ditawarkan kembali.
          */
-        $materiTerpakai = Soal::query()
-            ->whereNotNull('materi')
-            ->where('materi', '!=', 0)
-            ->pluck('materi');
+        $materiTerpakai = Soal::query()->whereNotNull('materi')->where('materi', '!=', 0)->pluck('materi');
 
         $materis = Materi::query()
-            ->where(
-                'id_user',
-                auth()->id()
-            )
-            ->whereNotIn(
-                'id',
-                $materiTerpakai
-            )
+            ->where('id_user', auth()->id())
+            ->whereNotIn('id', $materiTerpakai)
             ->orderBy('judul')
             ->get();
 
-        return view(
-            'guru.soal',
-            compact(
-                'user',
-                'soals',
-                'materis'
-            )
-        );
+        return view('guru.soal', compact('user', 'soals', 'materis'));
     }
 
     /**
      * Search Paket Soal.
      */
-    public function search(
-        Request $request
-    ): View {
-        $q = trim(
-            (string) $request->input(
-                'q',
-                ''
-            )
-        );
+    public function search(Request $request): View {
+        $q = trim((string) $request->input('q', ''));
 
         $query = Soal::query();
 
         if (auth()->user()->status === 'G') {
-            $query->where(
-                'id_user',
-                (string) auth()->id()
-            );
+            $query->where('id_user', (string) auth()->id());
         }
 
         if ($q !== '') {
-            $query->where(
-                'paket',
-                'like',
-                '%'.$q.'%'
-            );
+            $query->where('paket', 'like', '%' . $q . '%');
         }
 
-        $soals = $query
-            ->orderByDesc('id')
-            ->paginate(15);
+        $soals = $query->orderByDesc('id')->paginate(15);
 
-        return view(
-            'guru.ajax.get_soal_guru',
-            compact(
-                'soals',
-                'q'
-            )
-        );
+        return view('guru.ajax.get_soal_guru', compact('soals', 'q'));
     }
 
     /**
@@ -138,70 +92,37 @@ class SoalController extends Controller
     public function store(Request $request): Response {
         $validated = $request->validate(
             [
-                'jenis' => [
-                    'required',
-                    Rule::in(['1', '2']),
-                ],
+                'jenis' => ['required', Rule::in(['1', '2'])],
 
-                'materi' => [
-                    'nullable',
-                    'integer',
-                    'exists:materis,id',
-                ],
+                'materi' => ['nullable', 'integer', 'exists:materis,id'],
 
-                'paket' => [
-                    'required',
-                    'string',
-                    'max:255',
-                ],
+                'paket' => ['required', 'string', 'max:255'],
 
-                'deskripsi' => [
-                    'required',
-                    'string',
-                    'max:255',
-                ],
+                'deskripsi' => ['required', 'string', 'max:255'],
 
-                'kkm' => [
-                    'required',
-                    'integer',
-                    'min:0',
-                    'max:99999',
-                ],
+                'kkm' => ['required', 'integer', 'min:0', 'max:99999'],
 
-                'waktu' => [
-                    'required',
-                    'integer',
-                    'min:1',
-                ],
+                'waktu' => ['required', 'integer', 'min:1'],
             ],
             [
-                'jenis.required' =>
-                    'Anda belum memilih jenis soal.',
+                'jenis.required' => 'Anda belum memilih jenis soal.',
 
-                'jenis.in' =>
-                    'Jenis soal tidak valid.',
+                'jenis.in' => 'Jenis soal tidak valid.',
 
-                'materi.exists' =>
-                    'Materi yang dipilih tidak ditemukan.',
+                'materi.exists' => 'Materi yang dipilih tidak ditemukan.',
 
-                'paket.required' =>
-                    'Anda belum menuliskan paket soal.',
+                'paket.required' => 'Anda belum menuliskan paket soal.',
 
-                'deskripsi.required' =>
-                    'Anda belum menuliskan deskripsi soal.',
+                'deskripsi.required' => 'Anda belum menuliskan deskripsi soal.',
 
-                'kkm.required' =>
-                    'Anda belum menuliskan KKM soal.',
+                'kkm.required' => 'Anda belum menuliskan KKM soal.',
 
-                'kkm.integer' =>
-                    'KKM harus berupa bilangan bulat.',
+                'kkm.integer' => 'KKM harus berupa bilangan bulat.',
 
-                'waktu.required' =>
-                    'Anda belum menuliskan waktu soal.',
+                'waktu.required' => 'Anda belum menuliskan waktu soal.',
 
-                'waktu.integer' =>
-                    'Waktu harus ditulis dalam detik.',
-            ]
+                'waktu.integer' => 'Waktu harus ditulis dalam detik.',
+            ],
         );
 
         /*
@@ -209,69 +130,42 @@ class SoalController extends Controller
          *
          * Legacy mewajibkan materi.
          */
-        if (
-            $validated['jenis'] === '2' &&
-            empty($validated['materi'])
-        ) {
-            return response(
-                '<b>Error:</b> Anda belum memilih materi soal',
-                422
-            );
+        if ($validated['jenis'] === '2' && empty($validated['materi'])) {
+            return response('<b>Error:</b> Anda belum memilih materi soal', 422);
         }
 
         /*
          * Materi harus dimiliki user yang login.
          */
         if ($validated['jenis'] === '2') {
-            $materiValid = Materi::query()
-                ->whereKey(
-                    $validated['materi']
-                )
-                ->where(
-                    'id_user',
-                    auth()->id()
-                )
-                ->exists();
+            $materiValid = Materi::query()->whereKey($validated['materi'])->where('id_user', auth()->id())->exists();
 
-            if (! $materiValid) {
+            if (!$materiValid) {
                 abort(403);
             }
         }
 
         $soal = new Soal();
 
-        $soal->id_user =
-            (string) auth()->id();
+        $soal->id_user = (string) auth()->id();
 
-        $soal->jenis =
-            $validated['jenis'];
+        $soal->jenis = $validated['jenis'];
 
         /*
          * Ujian tidak mempunyai relasi Materi.
          */
-        $soal->materi =
-            $validated['jenis'] === '2'
-                ? $validated['materi']
-                : null;
+        $soal->materi = $validated['jenis'] === '2' ? $validated['materi'] : null;
 
-        $soal->paket =
-            trim(
-                $validated['paket']
-            );
+        $soal->paket = trim($validated['paket']);
 
-        $soal->deskripsi =
-            trim(
-                $validated['deskripsi']
-            );
+        $soal->deskripsi = trim($validated['deskripsi']);
 
-        $soal->kkm =
-            (string) $validated['kkm'];
+        $soal->kkm = (string) $validated['kkm'];
 
         /*
          * Tetap disimpan dalam detik seperti legacy.
          */
-        $soal->waktu =
-            (string) $validated['waktu'];
+        $soal->waktu = (string) $validated['waktu'];
 
         /*
          * Schema legacy memperbolehkan NULL.
@@ -287,22 +181,11 @@ class SoalController extends Controller
      * Form edit Paket Soal.
      */
     public function edit(int $id): View {
-        $user = User::findOrFail(
-            auth()->id()
-        );
+        $user = User::findOrFail(auth()->id());
 
-        $soal =
-            $this->findAccessibleSoal(
-                $id
-            );
+        $soal = $this->findAccessibleSoal($id);
 
-        return view(
-            'guru.editsoal',
-            compact(
-                'user',
-                'soal'
-            )
-        );
+        return view('guru.editsoal', compact('user', 'soal'));
     }
 
     /**
@@ -319,71 +202,36 @@ class SoalController extends Controller
     public function update(Request $request): Response {
         $validated = $request->validate(
             [
-                'id_soal' => [
-                    'required',
-                    'integer',
-                ],
+                'id_soal' => ['required', 'integer'],
 
-                'paket' => [
-                    'required',
-                    'string',
-                    'max:255',
-                ],
+                'paket' => ['required', 'string', 'max:255'],
 
-                'deskripsi' => [
-                    'required',
-                    'string',
-                    'max:255',
-                ],
+                'deskripsi' => ['required', 'string', 'max:255'],
 
-                'kkm' => [
-                    'required',
-                    'integer',
-                    'min:0',
-                    'max:99999',
-                ],
+                'kkm' => ['required', 'integer', 'min:0', 'max:99999'],
 
-                'waktu' => [
-                    'required',
-                    'integer',
-                    'min:1',
-                ],
+                'waktu' => ['required', 'integer', 'min:1'],
             ],
             [
-                'paket.required' =>
-                    'Anda belum menuliskan paket soal.',
+                'paket.required' => 'Anda belum menuliskan paket soal.',
 
-                'deskripsi.required' =>
-                    'Anda belum menuliskan deskripsi soal.',
+                'deskripsi.required' => 'Anda belum menuliskan deskripsi soal.',
 
-                'kkm.required' =>
-                    'Anda belum menuliskan KKM soal.',
+                'kkm.required' => 'Anda belum menuliskan KKM soal.',
 
-                'waktu.required' =>
-                    'Anda belum menuliskan waktu soal.',
-            ]
+                'waktu.required' => 'Anda belum menuliskan waktu soal.',
+            ],
         );
 
-        $soal =
-            $this->findAccessibleSoal(
-                (int) $validated['id_soal']
-            );
+        $soal = $this->findAccessibleSoal((int) $validated['id_soal']);
 
-        $soal->paket =
-            trim(
-                $validated['paket']
-            );
+        $soal->paket = trim($validated['paket']);
 
-        $soal->deskripsi =
-            trim(
-                $validated['deskripsi']
-            );
+        $soal->deskripsi = trim($validated['deskripsi']);
 
-        $soal->kkm =
-            (string) $validated['kkm'];
+        $soal->kkm = (string) $validated['kkm'];
 
-        $soal->waktu =
-            (string) $validated['waktu'];
+        $soal->waktu = (string) $validated['waktu'];
 
         $soal->save();
 
@@ -401,706 +249,375 @@ class SoalController extends Controller
      * dibersihkan bersama detail soal, distribusi,
      * dan file audio terkait.
      */
-    public function destroy(Request $request,int $id): JsonResponse|RedirectResponse {
-        $soal =
-            $this->findAccessibleSoal(
-                $id
-            );
-
+    public function destroy(Request $request, int $id): JsonResponse|RedirectResponse {
+        $soal = $this->findAccessibleSoal($id);
 
         /*
-        * Jangan menghapus paket yang sudah
-        * mempunyai histori pengerjaan.
-        *
-        * jawabs:
-        * - draft jawaban
-        * - hasil final
-        *
-        * countexamtimes:
-        * - menandakan siswa pernah
-        *   memulai assessment
-        */
-        $sudahDikerjakan =
-            $soal
-                ->jawabs()
-                ->exists()
-            ||
-            $soal
-                ->countexamtimes()
-                ->exists();
-
+         * Jangan menghapus paket yang sudah
+         * mempunyai histori pengerjaan.
+         *
+         * jawabs:
+         * - draft jawaban
+         * - hasil final
+         *
+         * countexamtimes:
+         * - menandakan siswa pernah
+         *   memulai assessment
+         */
+        $sudahDikerjakan = $soal->jawabs()->exists() || $soal->countexamtimes()->exists();
 
         if ($sudahDikerjakan) {
-
-            $message =
-                'Paket soal tidak dapat dihapus '.
-                'karena sudah memiliki riwayat '.
-                'pengerjaan siswa.';
-
+            $message = 'Paket soal tidak dapat dihapus ' . 'karena sudah memiliki riwayat ' . 'pengerjaan siswa.';
 
             if ($request->expectsJson()) {
-
                 return response()->json(
                     [
-                        'message' =>
-                            $message,
+                        'message' => $message,
                     ],
-                    409
+                    409,
                 );
-
             }
-
 
             return redirect()
                 ->route('guru.soal')
                 ->withErrors([
-                    'delete' =>
-                        $message,
+                    'delete' => $message,
                 ]);
         }
 
+        /*
+         * Simpan daftar file audio terlebih dahulu.
+         *
+         * File baru dihapus SETELAH transaksi
+         * database berhasil, sehingga rollback
+         * database tidak menyebabkan referensi
+         * audio rusak.
+         */
+        $audioFiles = $soal
+            ->detailsoals()
+            ->whereNotNull('audio')
+            ->pluck('audio')
+            ->filter()
+            ->map(fn($audio) => basename((string) $audio))
+            ->unique()
+            ->values()
+            ->all();
 
         /*
-        * Simpan daftar file audio terlebih dahulu.
-        *
-        * File baru dihapus SETELAH transaksi
-        * database berhasil, sehingga rollback
-        * database tidak menyebabkan referensi
-        * audio rusak.
-        */
-        $audioFiles =
-            $soal
-                ->detailsoals()
-                ->whereNotNull('audio')
-                ->pluck('audio')
-                ->filter()
-                ->map(
-                    fn ($audio) =>
-                        basename(
-                            (string) $audio
-                        )
-                )
-                ->unique()
-                ->values()
-                ->all();
+         * Bersihkan dependent records secara
+         * atomik.
+         *
+         * Jika salah satu query gagal,
+         * seluruh operasi database di-rollback.
+         */
+        DB::transaction(function () use ($soal) {
+            /*
+             * Hapus distribusi paket
+             * ke kelas.
+             */
+            $soal->distribusisoals()->delete();
 
+            /*
+             * Hapus seluruh pertanyaan
+             * dalam paket.
+             */
+            $soal->detailsoals()->delete();
 
-        /*
-        * Bersihkan dependent records secara
-        * atomik.
-        *
-        * Jika salah satu query gagal,
-        * seluruh operasi database di-rollback.
-        */
-        DB::transaction(
-            function () use ($soal) {
-
-                /*
-                * Hapus distribusi paket
-                * ke kelas.
-                */
-                $soal
-                    ->distribusisoals()
-                    ->delete();
-
-
-                /*
-                * Hapus seluruh pertanyaan
-                * dalam paket.
-                */
-                $soal
-                    ->detailsoals()
-                    ->delete();
-
-
-                /*
-                * Terakhir hapus paket induk.
-                */
-                $soal->delete();
-            }
-        );
-
+            /*
+             * Terakhir hapus paket induk.
+             */
+            $soal->delete();
+        });
 
         /*
-        * Setelah transaksi database berhasil,
-        * bersihkan file audio fisik.
-        */
+         * Setelah transaksi database berhasil,
+         * bersihkan file audio fisik.
+         */
         foreach ($audioFiles as $audioFile) {
+            $audioPath = public_path('assets/audios/' . $audioFile);
 
-            $audioPath =
-                public_path(
-                    'assets/audios/'.
-                    $audioFile
-                );
-
-
-            if (
-                File::exists(
-                    $audioPath
-                )
-            ) {
-                File::delete(
-                    $audioPath
-                );
+            if (File::exists($audioPath)) {
+                File::delete($audioPath);
             }
         }
-
 
         if ($request->expectsJson()) {
-
             return response()->json([
-                'message' =>
-                    'Paket soal berhasil dihapus.',
+                'message' => 'Paket soal berhasil dihapus.',
             ]);
-
         }
 
-
-        return redirect()
-            ->route('guru.soal')
-            ->with(
-                'success',
-                'Paket soal berhasil dihapus.'
-            );
+        return redirect()->route('guru.soal')->with('success', 'Paket soal berhasil dihapus.');
     }
 
     public function detail(int $id): View {
-        $user = User::findOrFail(
-            auth()->id()
-        );
+        $user = User::findOrFail(auth()->id());
 
         $school = School::first();
 
-        $soal =
-            $this->findAccessibleSoal(
-                $id
-            );
+        $soal = $this->findAccessibleSoal($id);
 
-        $detailsoals = Detailsoal::query()
-            ->where(
-                'id_soal',
-                (string) $soal->id
-            )
-            ->orderBy('id')
-            ->get();
+        $detailsoals = Detailsoal::query()->where('id_soal', (string) $soal->id)->orderBy('id')->get();
 
-        $kelas = Kelas::query()
-            ->orderBy('nama')
-            ->get();
+        $kelas = Kelas::query()->orderBy('nama')->get();
 
-        $kelasTerdistribusi =
-            Distribusisoal::query()
-                ->where(
-                    'id_soal',
-                    (string) $soal->id
-                )
-                ->pluck('id_kelas')
-                ->map(
-                    fn ($idKelas) =>
-                        (string) $idKelas
-                )
-                ->all();
+        $kelasTerdistribusi = Distribusisoal::query()
+            ->where('id_soal', (string) $soal->id)
+            ->pluck('id_kelas')
+            ->map(fn($idKelas) => (string) $idKelas)
+            ->all();
 
         /*
-        * Schema legacy:
-        * detailsoals.sesi VARCHAR(32)
-        */
-        $sesiBaru =
-            Str::random(32);
+         * Schema legacy:
+         * detailsoals.sesi VARCHAR(32)
+         */
+        $sesiBaru = Str::random(32);
 
         return view(
             'guru.detailsoal',
-            compact(
-                'user',
-                'school',
-                'soal',
-                'detailsoals',
-                'kelas',
-                'kelasTerdistribusi',
-                'sesiBaru'
-            )
+            compact('user', 'school', 'soal', 'detailsoals', 'kelas', 'kelasTerdistribusi', 'sesiBaru'),
         );
     }
 
     public function storeDetail(Request $request): Response {
         $validated = $request->validate(
             [
-                'paket' => [
-                    'required',
-                    'integer',
-                ],
+                'paket' => ['required', 'integer'],
 
-                'sesi' => [
-                    'required',
-                    'string',
-                    'size:32',
-                ],
+                'sesi' => ['required', 'string', 'size:32'],
 
-                'soal' => [
-                    'required',
-                    'string',
-                ],
+                'soal' => ['required', 'string'],
 
-                'pila' => [
-                    'required',
-                    'string',
-                ],
+                'pila' => ['required', 'string'],
 
-                'pilb' => [
-                    'required',
-                    'string',
-                ],
+                'pilb' => ['required', 'string'],
 
-                'pilc' => [
-                    'required',
-                    'string',
-                ],
+                'pilc' => ['required', 'string'],
 
-                'pild' => [
-                    'required',
-                    'string',
-                ],
+                'pild' => ['required', 'string'],
 
-                'pile' => [
-                    'required',
-                    'string',
-                ],
+                'pile' => ['required', 'string'],
 
-                'kunci' => [
-                    'required',
-                    Rule::in([
-                        'A',
-                        'B',
-                        'C',
-                        'D',
-                        'E',
-                    ]),
-                ],
+                'kunci' => ['required', Rule::in(['A', 'B', 'C', 'D', 'E'])],
 
-                'score' => [
-                    'required',
-                    'string',
-                    'max:50',
-                ],
+                'score' => ['required', 'string', 'max:50'],
 
-                'status' => [
-                    'required',
-                    Rule::in([
-                        'Y',
-                        'N',
-                    ]),
-                ],
+                'status' => ['required', Rule::in(['Y', 'N'])],
             ],
             [
-                'soal.required' =>
-                    'Soal belum diisi.',
+                'soal.required' => 'Soal belum diisi.',
 
-                'pila.required' =>
-                    'Pilihan A belum diisi.',
+                'pila.required' => 'Pilihan A belum diisi.',
 
-                'pilb.required' =>
-                    'Pilihan B belum diisi.',
+                'pilb.required' => 'Pilihan B belum diisi.',
 
-                'pilc.required' =>
-                    'Pilihan C belum diisi.',
+                'pilc.required' => 'Pilihan C belum diisi.',
 
-                'pild.required' =>
-                    'Pilihan D belum diisi.',
+                'pild.required' => 'Pilihan D belum diisi.',
 
-                'pile.required' =>
-                    'Pilihan E belum diisi.',
+                'pile.required' => 'Pilihan E belum diisi.',
 
-                'kunci.required' =>
-                    'Kunci jawaban belum dipilih.',
+                'kunci.required' => 'Kunci jawaban belum dipilih.',
 
-                'score.required' =>
-                    'Score belum diisi.',
+                'score.required' => 'Score belum diisi.',
 
-                'status.required' =>
-                    'Status belum dipilih.',
+                'status.required' => 'Status belum dipilih.',
 
-                'sesi.size' =>
-                    'Sesi detail soal tidak valid.',
-            ]
+                'sesi.size' => 'Sesi detail soal tidak valid.',
+            ],
         );
 
         /*
-        * Pastikan paket soal dapat
-        * diakses user login.
-        */
-        $paket =
-            $this->findAccessibleSoal(
-                (int) $validated['paket']
-            );
+         * Pastikan paket soal dapat
+         * diakses user login.
+         */
+        $paket = $this->findAccessibleSoal((int) $validated['paket']);
 
         /*
-        * Audio mungkin sudah di-upload
-        * terlebih dahulu.
-        *
-        * Jika demikian sudah terdapat
-        * placeholder berdasarkan sesi.
-        */
+         * Audio mungkin sudah di-upload
+         * terlebih dahulu.
+         *
+         * Jika demikian sudah terdapat
+         * placeholder berdasarkan sesi.
+         */
         $detail = Detailsoal::query()
-            ->where(
-                'sesi',
-                $validated['sesi']
-            )
-            ->where(
-                'id_user',
-                (string) auth()->id()
-            )
+            ->where('sesi', $validated['sesi'])
+            ->where('id_user', (string) auth()->id())
             ->first();
 
-        if (! $detail) {
-
-            $detail =
-                new Detailsoal();
+        if (!$detail) {
+            $detail = new Detailsoal();
 
             $detail->audio = null;
 
-            $detail->sesi =
-                $validated['sesi'];
+            $detail->sesi = $validated['sesi'];
 
-            $detail->id_user =
-                (string) auth()->id();
+            $detail->id_user = (string) auth()->id();
         }
 
-        $detail->id_soal =
-            (string) $paket->id;
+        $detail->id_soal = (string) $paket->id;
 
         /*
-        * Kolom legacy ini NOT NULL.
-        * Data lama umumnya memakai ''.
-        */
+         * Kolom legacy ini NOT NULL.
+         * Data lama umumnya memakai ''.
+         */
         $detail->jenis = '';
 
-        $detail->soal =
-            $validated['soal'];
+        $detail->soal = $validated['soal'];
 
-        $detail->pila =
-            $validated['pila'];
+        $detail->pila = $validated['pila'];
 
-        $detail->pilb =
-            $validated['pilb'];
+        $detail->pilb = $validated['pilb'];
 
-        $detail->pilc =
-            $validated['pilc'];
+        $detail->pilc = $validated['pilc'];
 
-        $detail->pild =
-            $validated['pild'];
+        $detail->pild = $validated['pild'];
 
-        $detail->pile =
-            $validated['pile'];
+        $detail->pile = $validated['pile'];
 
-        $detail->kunci =
-            $validated['kunci'];
+        $detail->kunci = $validated['kunci'];
 
-        $detail->score =
-            $validated['score'];
+        $detail->score = $validated['score'];
 
-        $detail->status =
-            $validated['status'];
+        $detail->status = $validated['status'];
 
         $detail->save();
 
-        return response(
-            'berhasil'
-        );
+        return response('berhasil');
     }
 
     public function editDetail(int $id): View {
-        $user = User::findOrFail(
-            auth()->id()
-        );
+        $user = User::findOrFail(auth()->id());
 
         $school = School::first();
 
-        $detailsoal =
-            $this->findAccessibleDetail(
-                $id
-            );
+        $detailsoal = $this->findAccessibleDetail($id);
 
-        $soal =
-            $this->findAccessibleSoal(
-                (int) $detailsoal->id_soal
-            );
+        $soal = $this->findAccessibleSoal((int) $detailsoal->id_soal);
 
-        return view(
-            'guru.ubahdetailsoal',
-            compact(
-                'user',
-                'school',
-                'soal',
-                'detailsoal'
-            )
-        );
+        return view('guru.ubahdetailsoal', compact('user', 'school', 'soal', 'detailsoal'));
     }
 
     public function updateDetail(Request $request): Response {
-        $validated = $request->validate(
-            [
-                'id_soal' => [
-                    'required',
-                    'integer',
-                ],
+        $validated = $request->validate([
+            'id_soal' => ['required', 'integer'],
 
-                'soal' => [
-                    'required',
-                    'string',
-                ],
+            'soal' => ['required', 'string'],
 
-                'pila' => [
-                    'required',
-                    'string',
-                ],
+            'pila' => ['required', 'string'],
 
-                'pilb' => [
-                    'required',
-                    'string',
-                ],
+            'pilb' => ['required', 'string'],
 
-                'pilc' => [
-                    'required',
-                    'string',
-                ],
+            'pilc' => ['required', 'string'],
 
-                'pild' => [
-                    'required',
-                    'string',
-                ],
+            'pild' => ['required', 'string'],
 
-                'pile' => [
-                    'required',
-                    'string',
-                ],
+            'pile' => ['required', 'string'],
 
-                'kunci' => [
-                    'required',
-                    Rule::in([
-                        'A',
-                        'B',
-                        'C',
-                        'D',
-                        'E',
-                    ]),
-                ],
+            'kunci' => ['required', Rule::in(['A', 'B', 'C', 'D', 'E'])],
 
-                'score' => [
-                    'required',
-                    'string',
-                    'max:50',
-                ],
+            'score' => ['required', 'string', 'max:50'],
 
-                'status' => [
-                    'required',
-                    Rule::in([
-                        'Y',
-                        'N',
-                    ]),
-                ],
-            ]
-        );
+            'status' => ['required', Rule::in(['Y', 'N'])],
+        ]);
 
-        $detail =
-            $this->findAccessibleDetail(
-                (int) $validated['id_soal']
-            );
+        $detail = $this->findAccessibleDetail((int) $validated['id_soal']);
 
-        $detail->soal =
-            $validated['soal'];
+        $detail->soal = $validated['soal'];
 
-        $detail->pila =
-            $validated['pila'];
+        $detail->pila = $validated['pila'];
 
-        $detail->pilb =
-            $validated['pilb'];
+        $detail->pilb = $validated['pilb'];
 
-        $detail->pilc =
-            $validated['pilc'];
+        $detail->pilc = $validated['pilc'];
 
-        $detail->pild =
-            $validated['pild'];
+        $detail->pild = $validated['pild'];
 
-        $detail->pile =
-            $validated['pile'];
+        $detail->pile = $validated['pile'];
 
-        $detail->kunci =
-            $validated['kunci'];
+        $detail->kunci = $validated['kunci'];
 
-        $detail->score =
-            $validated['score'];
+        $detail->score = $validated['score'];
 
-        $detail->status =
-            $validated['status'];
+        $detail->status = $validated['status'];
 
         $detail->save();
 
-        return response(
-            'berhasil'
-        );
+        return response('berhasil');
     }
 
     public function destroyDetail(Request $request): Response {
         $validated = $request->validate([
-            'id_soal' => [
-                'required',
-                'integer',
-            ],
+            'id_soal' => ['required', 'integer'],
         ]);
 
-        $detail =
-            $this->findAccessibleDetail(
-                (int) $validated['id_soal']
-            );
+        $detail = $this->findAccessibleDetail((int) $validated['id_soal']);
 
-        if (! empty($detail->audio)) {
+        if (!empty($detail->audio)) {
+            $audioPath = public_path('assets/audios/' . basename($detail->audio));
 
-            $audioPath =
-                public_path(
-                    'assets/audios/'.
-                    basename(
-                        $detail->audio
-                    )
-                );
-
-            if (
-                File::exists(
-                    $audioPath
-                )
-            ) {
-                File::delete(
-                    $audioPath
-                );
+            if (File::exists($audioPath)) {
+                File::delete($audioPath);
             }
         }
 
         $detail->delete();
 
-        return response(
-            'Soal berhasil dihapus.'
-        );
+        return response('Soal berhasil dihapus.');
     }
 
     #Audio
     public function uploadAudio(Request $request): Response {
         $request->validate([
-            'file' => [
-                'required',
-                'file',
-                'max:10240',
-            ],
+            'file' => ['required', 'file', 'max:10240'],
 
-            'tampil' => [
-                'required',
-                'string',
-            ],
+            'tampil' => ['required', 'string'],
         ]);
 
-        $file =
-            $request->file('file');
+        $file = $request->file('file');
 
         /*
-        * Validasi extension secara eksplisit
-        * untuk kompatibilitas file audio legacy.
-        */
-        $extension =
-            strtolower(
-                $file
-                    ->getClientOriginalExtension()
-            );
+         * Validasi extension secara eksplisit
+         * untuk kompatibilitas file audio legacy.
+         */
+        $extension = strtolower($file->getClientOriginalExtension());
 
-        $allowedExtensions = [
-            'wav',
-            'wv',
-            'm4a',
-            'm4b',
-            'm4p',
-            'm4v',
-            'm4r',
-            '3gp',
-            'mp4',
-            'aac',
-            'mp3',
-            'wma',
-        ];
+        $allowedExtensions = ['wav', 'wv', 'm4a', 'm4b', 'm4p', 'm4v', 'm4r', '3gp', 'mp4', 'aac', 'mp3', 'wma'];
 
-        if (
-            ! in_array(
-                $extension,
-                $allowedExtensions,
-                true
-            )
-        ) {
-            return response(
-                'Maaf hanya file audio '.
-                'WAV, WV, MP4, MP3, '.
-                'WMA, M4A dan AAC.',
-                422
-            );
+        if (!in_array($extension, $allowedExtensions, true)) {
+            return response('Maaf hanya file audio ' . 'WAV, WV, MP4, MP3, ' . 'WMA, M4A dan AAC.', 422);
         }
 
-        $directory =
-            public_path(
-                'assets/audios'
-            );
+        $directory = public_path('assets/audios');
 
-        File::ensureDirectoryExists(
-            $directory
-        );
+        File::ensureDirectoryExists($directory);
 
-        $filename =
-            now()->format(
-                'ymdHis'
-            ).
-            Str::random(12).
-            '.'.
-            $extension;
+        $filename = now()->format('ymdHis') . Str::random(12) . '.' . $extension;
 
         /*
-        * CREATE MODE
-        *
-        * tampil=N berarti user sedang
-        * membuat detail soal baru.
-        */
-        if (
-            $request->input('tampil')
-            === 'N'
-        ) {
+         * CREATE MODE
+         *
+         * tampil=N berarti user sedang
+         * membuat detail soal baru.
+         */
+        if ($request->input('tampil') === 'N') {
             $request->validate([
-                'sesi' => [
-                    'required',
-                    'string',
-                    'size:32',
-                ],
+                'sesi' => ['required', 'string', 'size:32'],
             ]);
 
-            $sesi =
-                (string)
-                $request->input('sesi');
+            $sesi = (string) $request->input('sesi');
 
-            $detail =
-                Detailsoal::query()
-                    ->where(
-                        'sesi',
-                        $sesi
-                    )
-                    ->where(
-                        'id_user',
-                        (string) auth()->id()
-                    )
-                    ->first();
+            $detail = Detailsoal::query()->where('sesi', $sesi)->where('id_user', (string) auth()->id())->first();
 
-            if (! $detail) {
-
+            if (!$detail) {
                 /*
-                * Placeholder kompatibel
-                * dengan MySQL strict mode.
-                *
-                * Field-field NOT NULL harus
-                * diberi nilai.
-                */
-                $detail =
-                    new Detailsoal();
+                 * Placeholder kompatibel
+                 * dengan MySQL strict mode.
+                 *
+                 * Field-field NOT NULL harus
+                 * diberi nilai.
+                 */
+                $detail = new Detailsoal();
 
                 $detail->id_soal = '';
 
@@ -1122,102 +639,59 @@ class SoalController extends Controller
 
                 $detail->score = null;
 
-                $detail->id_user =
-                    (string) auth()->id();
+                $detail->id_user = (string) auth()->id();
 
                 $detail->status = 'N';
 
-                $detail->sesi =
-                    $sesi;
+                $detail->sesi = $sesi;
             }
-
         } else {
-
             /*
-            * EDIT MODE
-            *
-            * tampil berisi ID detail soal.
-            */
-            $detail =
-                $this->findAccessibleDetail(
-                    (int)
-                    $request->input(
-                        'tampil'
-                    )
-                );
+             * EDIT MODE
+             *
+             * tampil berisi ID detail soal.
+             */
+            $detail = $this->findAccessibleDetail((int) $request->input('tampil'));
         }
 
         /*
-        * Upload file setelah
-        * validasi berhasil.
-        */
-        $file->move(
-            $directory,
-            $filename
-        );
+         * Upload file setelah
+         * validasi berhasil.
+         */
+        $file->move($directory, $filename);
 
-        $oldAudio =
-            $detail->audio;
+        $oldAudio = $detail->audio;
 
-        $detail->audio =
-            $filename;
+        $detail->audio = $filename;
 
         $detail->save();
 
         /*
-        * Hapus audio lama setelah
-        * DB berhasil di-update.
-        */
-        if (
-            ! empty($oldAudio)
-        ) {
-            $oldPath =
-                $directory.
-                DIRECTORY_SEPARATOR.
-                basename(
-                    $oldAudio
-                );
+         * Hapus audio lama setelah
+         * DB berhasil di-update.
+         */
+        if (!empty($oldAudio)) {
+            $oldPath = $directory . DIRECTORY_SEPARATOR . basename($oldAudio);
 
-            if (
-                File::exists(
-                    $oldPath
-                )
-            ) {
-                File::delete(
-                    $oldPath
-                );
+            if (File::exists($oldPath)) {
+                File::delete($oldPath);
             }
         }
 
         return response('ok');
     }
 
-    public function destroyAudio( Request $request): Response {
+    public function destroyAudio(Request $request): Response {
         $validated = $request->validate([
-            'id_soal' => [
-                'required',
-                'integer',
-            ],
+            'id_soal' => ['required', 'integer'],
         ]);
 
-        $detail =
-            $this->findAccessibleDetail(
-                (int) $validated['id_soal']
-            );
+        $detail = $this->findAccessibleDetail((int) $validated['id_soal']);
 
-        if (! empty($detail->audio)) {
+        if (!empty($detail->audio)) {
+            $path = public_path('assets/audios/' . basename($detail->audio));
 
-            $path =
-                public_path(
-                    'assets/audios/'.
-                    basename(
-                        $detail->audio
-                    )
-                );
-
-            if (
-                File::exists($path)
-            ) {
+            if (File::exists($path)) {
                 File::delete($path);
             }
 
@@ -1232,73 +706,42 @@ class SoalController extends Controller
 
     public function storeDistribution(Request $request): Response {
         $validated = $request->validate([
-            'id_soal' => [
-                'required',
-                'integer',
-            ],
+            'id_soal' => ['required', 'integer'],
 
-            'id_kelas' => [
-                'required',
-                'integer',
-                'exists:kelas,id',
-            ],
+            'id_kelas' => ['required', 'integer', 'exists:kelas,id'],
         ]);
 
-        $soal =
-            $this->findAccessibleSoal(
-                (int) $validated['id_soal']
-            );
+        $soal = $this->findAccessibleSoal((int) $validated['id_soal']);
 
         /*
-        * Distribusi kelas hanya
-        * berlaku pada jenis Ujian.
-        */
-        if (
-            (string) $soal->jenis !== '1'
-        ) {
+         * Distribusi kelas hanya
+         * berlaku pada jenis Ujian.
+         */
+        if ((string) $soal->jenis !== '1') {
             abort(422);
         }
 
-        Distribusisoal::query()
-            ->firstOrCreate([
-                'id_soal' =>
-                    (string) $soal->id,
+        Distribusisoal::query()->firstOrCreate([
+            'id_soal' => (string) $soal->id,
 
-                'id_kelas' =>
-                    (string)
-                    $validated['id_kelas'],
-            ]);
+            'id_kelas' => (string) $validated['id_kelas'],
+        ]);
 
         return response('ok');
     }
 
     public function destroyDistribution(Request $request): Response {
         $validated = $request->validate([
-            'id_soal' => [
-                'required',
-                'integer',
-            ],
+            'id_soal' => ['required', 'integer'],
 
-            'id_kelas' => [
-                'required',
-                'integer',
-            ],
+            'id_kelas' => ['required', 'integer'],
         ]);
 
-        $soal =
-            $this->findAccessibleSoal(
-                (int) $validated['id_soal']
-            );
+        $soal = $this->findAccessibleSoal((int) $validated['id_soal']);
 
         Distribusisoal::query()
-            ->where(
-                'id_soal',
-                (string) $soal->id
-            )
-            ->where(
-                'id_kelas',
-                (string) $validated['id_kelas']
-            )
+            ->where('id_soal', (string) $soal->id)
+            ->where('id_kelas', (string) $validated['id_kelas'])
             ->delete();
 
         return response('ok');
@@ -1307,98 +750,67 @@ class SoalController extends Controller
     public function importQuestions(Request $request): RedirectResponse {
         $validated = $request->validate(
             [
-                'file' => [
-                    'required',
-                    'file',
-                    'extensions:xls,xlsx',
-                    'max:10240',
-                ],
+                'file' => ['required', 'file', 'extensions:xls,xlsx', 'max:10240'],
             ],
             [
-                'file.required' =>
-                    'File Excel belum dipilih.',
+                'file.required' => 'File Excel belum dipilih.',
 
-                'file.extensions' =>
-                    'File harus menggunakan format XLS atau XLSX.',
+                'file.extensions' => 'File harus menggunakan format XLS atau XLSX.',
 
-                'file.max' =>
-                    'Ukuran file maksimal 10 MB.',
-            ]
+                'file.max' => 'Ukuran file maksimal 10 MB.',
+            ],
         );
 
         $file = $request->file('file');
 
         try {
+            /*
+             * PhpSpreadsheet otomatis mendeteksi
+             * XLS lama maupun XLSX.
+             */
+            $reader = IOFactory::createReaderForFile($file->getRealPath());
 
             /*
-            * PhpSpreadsheet otomatis mendeteksi
-            * XLS lama maupun XLSX.
-            */
-            $reader =
-                IOFactory::createReaderForFile(
-                    $file->getRealPath()
-                );
-
-            /*
-            * Kita hanya membutuhkan data cell.
-            */
+             * Kita hanya membutuhkan data cell.
+             */
             $reader->setReadDataOnly(true);
 
-            $spreadsheet =
-                $reader->load(
-                    $file->getRealPath()
-                );
+            $spreadsheet = $reader->load($file->getRealPath());
 
-            $sheet =
-                $spreadsheet->getActiveSheet();
+            $sheet = $spreadsheet->getActiveSheet();
 
-            $highestRow =
-                $sheet->getHighestDataRow();
-
+            $highestRow = $sheet->getHighestDataRow();
         } catch (Throwable $exception) {
-
             report($exception);
 
-            return back()
-                ->withErrors([
-                    'import' =>
-                        'File Excel tidak dapat dibaca. '.
-                        'Pastikan file XLS/XLSX valid.',
-                ]);
+            return back()->withErrors([
+                'import' => 'File Excel tidak dapat dibaca. ' . 'Pastikan file XLS/XLSX valid.',
+            ]);
         }
-
 
         /*
-        * Paket soal yang diperbolehkan.
-        *
-        * Admin:
-        * seluruh paket.
-        *
-        * Guru:
-        * hanya paket miliknya.
-        */
-        $paketQuery =
-            Soal::query();
+         * Paket soal yang diperbolehkan.
+         *
+         * Admin:
+         * seluruh paket.
+         *
+         * Guru:
+         * hanya paket miliknya.
+         */
+        $paketQuery = Soal::query();
 
-        if (
-            auth()->user()->status === 'G'
-        ) {
-            $paketQuery->where(
-                'id_user',
-                (string) auth()->id()
-            );
+        if (auth()->user()->status === 'G') {
+            $paketQuery->where('id_user', (string) auth()->id());
         }
 
-        $paketValid =
-            $paketQuery
-                ->pluck('id')
-                ->mapWithKeys(
-                    fn ($id) => [
-                        (string) $id => true,
-                    ]
-                )
-                ->all();
-
+        $paketValid = $paketQuery
+            ->pluck('id')
+            ->mapWithKeys(
+                fn($id) => [
+                    (string) $id => true,
+                ],
+            )
+            ->all();
 
         $sukses = 0;
         $gagal = 0;
@@ -1406,104 +818,32 @@ class SoalController extends Controller
 
         $errors = [];
 
-
         /*
-        * Baris 1 = header.
-        * Data dimulai baris 2.
-        */
-        for (
-            $row = 2;
-            $row <= $highestRow;
-            $row++
-        ) {
+         * Baris 1 = header.
+         * Data dimulai baris 2.
+         */
+        for ($row = 2; $row <= $highestRow; $row++) {
+            $idSoal = $this->spreadsheetCell($sheet->getCell('A' . $row)->getValue());
 
-            $idSoal =
-                $this->spreadsheetCell(
-                    $sheet
-                        ->getCell(
-                            'A'.$row
-                        )
-                        ->getValue()
-                );
+            $soal = $this->spreadsheetCell($sheet->getCell('B' . $row)->getValue());
 
-            $soal =
-                $this->spreadsheetCell(
-                    $sheet
-                        ->getCell(
-                            'B'.$row
-                        )
-                        ->getValue()
-                );
+            $pila = $this->spreadsheetCell($sheet->getCell('C' . $row)->getValue());
 
-            $pila =
-                $this->spreadsheetCell(
-                    $sheet
-                        ->getCell(
-                            'C'.$row
-                        )
-                        ->getValue()
-                );
+            $pilb = $this->spreadsheetCell($sheet->getCell('D' . $row)->getValue());
 
-            $pilb =
-                $this->spreadsheetCell(
-                    $sheet
-                        ->getCell(
-                            'D'.$row
-                        )
-                        ->getValue()
-                );
+            $pilc = $this->spreadsheetCell($sheet->getCell('E' . $row)->getValue());
 
-            $pilc =
-                $this->spreadsheetCell(
-                    $sheet
-                        ->getCell(
-                            'E'.$row
-                        )
-                        ->getValue()
-                );
+            $pild = $this->spreadsheetCell($sheet->getCell('F' . $row)->getValue());
 
-            $pild =
-                $this->spreadsheetCell(
-                    $sheet
-                        ->getCell(
-                            'F'.$row
-                        )
-                        ->getValue()
-                );
+            $pile = $this->spreadsheetCell($sheet->getCell('G' . $row)->getValue());
 
-            $pile =
-                $this->spreadsheetCell(
-                    $sheet
-                        ->getCell(
-                            'G'.$row
-                        )
-                        ->getValue()
-                );
+            $kunci = strtoupper($this->spreadsheetCell($sheet->getCell('H' . $row)->getValue()));
 
-            $kunci =
-                strtoupper(
-                    $this->spreadsheetCell(
-                        $sheet
-                            ->getCell(
-                                'H'.$row
-                            )
-                            ->getValue()
-                    )
-                );
-
-            $score =
-                $this->spreadsheetCell(
-                    $sheet
-                        ->getCell(
-                            'I'.$row
-                        )
-                        ->getValue()
-                );
-
+            $score = $this->spreadsheetCell($sheet->getCell('I' . $row)->getValue());
 
             /*
-            * Lewati baris kosong.
-            */
+             * Lewati baris kosong.
+             */
             if (
                 $idSoal === '' &&
                 $soal === '' &&
@@ -1515,261 +855,148 @@ class SoalController extends Controller
                 $kunci === '' &&
                 $score === ''
             ) {
-
                 $kosong++;
 
                 continue;
             }
 
-
             $rowErrors = [];
 
-
             /*
-            * Validasi paket.
-            */
+             * Validasi paket.
+             */
             if ($idSoal === '') {
-
-                $rowErrors[] =
-                    'ID Paket Soal kosong.';
-
-            } elseif (
-                ! isset(
-                    $paketValid[$idSoal]
-                )
-            ) {
-
-                $rowErrors[] =
-                    'ID Paket Soal '.
-                    $idSoal.
-                    ' tidak ditemukan atau '.
-                    'tidak dapat diakses.';
-
+                $rowErrors[] = 'ID Paket Soal kosong.';
+            } elseif (!isset($paketValid[$idSoal])) {
+                $rowErrors[] = 'ID Paket Soal ' . $idSoal . ' tidak ditemukan atau ' . 'tidak dapat diakses.';
             }
 
-
             /*
-            * Validasi pertanyaan.
-            */
+             * Validasi pertanyaan.
+             */
             if ($soal === '') {
-
-                $rowErrors[] =
-                    'Soal kosong.';
-
+                $rowErrors[] = 'Soal kosong.';
             }
 
-
             /*
-            * Pilihan A-E tetap wajib
-            * seperti business process legacy.
-            */
+             * Pilihan A-E tetap wajib
+             * seperti business process legacy.
+             */
             if ($pila === '') {
-                $rowErrors[] =
-                    'Pilihan A kosong.';
+                $rowErrors[] = 'Pilihan A kosong.';
             }
 
             if ($pilb === '') {
-                $rowErrors[] =
-                    'Pilihan B kosong.';
+                $rowErrors[] = 'Pilihan B kosong.';
             }
 
             if ($pilc === '') {
-                $rowErrors[] =
-                    'Pilihan C kosong.';
+                $rowErrors[] = 'Pilihan C kosong.';
             }
 
             if ($pild === '') {
-                $rowErrors[] =
-                    'Pilihan D kosong.';
+                $rowErrors[] = 'Pilihan D kosong.';
             }
 
             if ($pile === '') {
-                $rowErrors[] =
-                    'Pilihan E kosong.';
+                $rowErrors[] = 'Pilihan E kosong.';
             }
 
-
             /*
-            * Kunci A-E.
-            */
-            if (
-                ! in_array(
-                    $kunci,
-                    [
-                        'A',
-                        'B',
-                        'C',
-                        'D',
-                        'E',
-                    ],
-                    true
-                )
-            ) {
-
-                $rowErrors[] =
-                    'Kunci jawaban harus A, B, C, D, atau E.';
-
+             * Kunci A-E.
+             */
+            if (!in_array($kunci, ['A', 'B', 'C', 'D', 'E'], true)) {
+                $rowErrors[] = 'Kunci jawaban harus A, B, C, D, atau E.';
             }
 
-
             /*
-            * Score legacy varchar(50).
-            */
+             * Score legacy varchar(50).
+             */
             if ($score === '') {
-
-                $rowErrors[] =
-                    'Score kosong.';
-
-            } elseif (
-                mb_strlen($score) > 50
-            ) {
-
-                $rowErrors[] =
-                    'Score melebihi 50 karakter.';
-
+                $rowErrors[] = 'Score kosong.';
+            } elseif (mb_strlen($score) > 50) {
+                $rowErrors[] = 'Score melebihi 50 karakter.';
             }
-
 
             if ($rowErrors !== []) {
-
                 $gagal++;
 
-                $errors[] =
-                    'Baris '.$row.': '.
-                    implode(
-                        ' ',
-                        $rowErrors
-                    );
+                $errors[] = 'Baris ' . $row . ': ' . implode(' ', $rowErrors);
 
                 continue;
             }
 
-
             try {
+                DB::transaction(function () use ($idSoal, $soal, $pila, $pilb, $pilc, $pild, $pile, $kunci, $score) {
+                    $detail = new Detailsoal();
 
-                DB::transaction(
-                    function () use (
-                        $idSoal,
-                        $soal,
-                        $pila,
-                        $pilb,
-                        $pilc,
-                        $pild,
-                        $pile,
-                        $kunci,
-                        $score
-                    ) {
+                    $detail->id_soal = $idSoal;
 
-                        $detail =
-                            new Detailsoal();
+                    /*
+                     * Kolom legacy NOT NULL.
+                     */
+                    $detail->jenis = '';
 
-                        $detail->id_soal =
-                            $idSoal;
+                    $detail->soal = $soal;
 
-                        /*
-                        * Kolom legacy NOT NULL.
-                        */
-                        $detail->jenis = '';
+                    $detail->audio = null;
 
-                        $detail->soal =
-                            $soal;
+                    $detail->pila = $pila;
 
-                        $detail->audio =
-                            null;
+                    $detail->pilb = $pilb;
 
-                        $detail->pila =
-                            $pila;
+                    $detail->pilc = $pilc;
 
-                        $detail->pilb =
-                            $pilb;
+                    $detail->pild = $pild;
 
-                        $detail->pilc =
-                            $pilc;
+                    $detail->pile = $pile;
 
-                        $detail->pild =
-                            $pild;
+                    $detail->kunci = $kunci;
 
-                        $detail->pile =
-                            $pile;
+                    $detail->score = $score;
 
-                        $detail->kunci =
-                            $kunci;
+                    $detail->id_user = (string) auth()->id();
 
-                        $detail->score =
-                            $score;
+                    /*
+                     * Sesuai import legacy:
+                     * hasil import langsung tampil.
+                     */
+                    $detail->status = 'Y';
 
-                        $detail->id_user =
-                            (string) auth()->id();
+                    /*
+                     * Import legacy tidak
+                     * menggunakan sesi.
+                     */
+                    $detail->sesi = null;
 
-                        /*
-                        * Sesuai import legacy:
-                        * hasil import langsung tampil.
-                        */
-                        $detail->status = 'Y';
-
-                        /*
-                        * Import legacy tidak
-                        * menggunakan sesi.
-                        */
-                        $detail->sesi =
-                            null;
-
-                        $detail->save();
-                    }
-                );
+                    $detail->save();
+                });
 
                 $sukses++;
-
             } catch (Throwable $exception) {
-
                 report($exception);
 
                 $gagal++;
 
-                $errors[] =
-                    'Baris '.$row.
-                    ': gagal disimpan ke database.';
-
+                $errors[] = 'Baris ' . $row . ': gagal disimpan ke database.';
             }
-
         }
 
-
         /*
-        * Lepaskan workbook dari memory.
-        */
-        $spreadsheet
-            ->disconnectWorksheets();
+         * Lepaskan workbook dari memory.
+         */
+        $spreadsheet->disconnectWorksheets();
 
         unset($spreadsheet);
 
-
-        $message =
-            'Import soal selesai. '.
-            'Berhasil: '.$sukses.
-            ', Ditolak: '.$gagal.'.';
+        $message = 'Import soal selesai. ' . 'Berhasil: ' . $sukses . ', Ditolak: ' . $gagal . '.';
 
         if ($kosong > 0) {
-
-            $message .=
-                ' Baris kosong dilewati: '.
-                $kosong.'.';
-
+            $message .= ' Baris kosong dilewati: ' . $kosong . '.';
         }
 
-
-        return redirect()
-            ->route('guru.soal')
-            ->with(
-                'success',
-                $message
-            )
-            ->with(
-                'import_errors',
-                $errors
-            );
+        return redirect()->route('guru.soal')->with('success', $message)->with('import_errors', $errors);
     }
-
 
     /**
      * Authorization Paket Soal.
@@ -1778,32 +1005,23 @@ class SoalController extends Controller
      * Guru = hanya miliknya.
      */
     private function findAccessibleSoal(int $id): Soal {
-        $query = Soal::query()
-            ->whereKey($id);
+        $query = Soal::query()->whereKey($id);
 
         if (auth()->user()->status === 'G') {
-            $query->where(
-                'id_user',
-                (string) auth()->id()
-            );
+            $query->where('id_user', (string) auth()->id());
         }
 
         return $query->firstOrFail();
     }
 
     private function findAccessibleDetail(int $id): Detailsoal {
-        $detail =
-            Detailsoal::query()
-                ->whereKey($id)
-                ->firstOrFail();
+        $detail = Detailsoal::query()->whereKey($id)->firstOrFail();
 
         /*
-        * Authorization mengikuti
-        * kepemilikan paket induk.
-        */
-        $this->findAccessibleSoal(
-            (int) $detail->id_soal
-        );
+         * Authorization mengikuti
+         * kepemilikan paket induk.
+         */
+        $this->findAccessibleSoal((int) $detail->id_soal);
 
         return $detail;
     }
@@ -1814,45 +1032,24 @@ class SoalController extends Controller
         }
 
         /*
-        * Cell rich text.
-        */
-        if (
-            $value instanceof RichText
-        ) {
-            $value =
-                $value->getPlainText();
+         * Cell rich text.
+         */
+        if ($value instanceof RichText) {
+            $value = $value->getPlainText();
         }
 
         if (is_bool($value)) {
-            return $value
-                ? '1'
-                : '0';
+            return $value ? '1' : '0';
         }
 
         /*
-        * Angka ID/score tidak boleh
-        * menjadi format scientific.
-        */
-        if (
-            is_int($value) ||
-            is_float($value)
-        ) {
-            return rtrim(
-                rtrim(
-                    number_format(
-                        $value,
-                        10,
-                        '.',
-                        ''
-                    ),
-                    '0'
-                ),
-                '.'
-            );
+         * Angka ID/score tidak boleh
+         * menjadi format scientific.
+         */
+        if (is_int($value) || is_float($value)) {
+            return rtrim(rtrim(number_format($value, 10, '.', ''), '0'), '.');
         }
 
-        return trim(
-            (string) $value
-        );
+        return trim((string) $value);
     }
 }

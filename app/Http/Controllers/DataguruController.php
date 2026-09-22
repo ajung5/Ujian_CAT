@@ -11,50 +11,33 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
-class DataguruController extends Controller
-{
+class DataguruController extends Controller {
     /**
      * Daftar Guru.
      */
-    public function index(): View
-    {
+    public function index(): View {
         $user = auth()->user();
 
         $school = School::first();
 
-        $users = User::query()
-            ->where('status', 'G')
-            ->orderBy('nama')
-            ->paginate(15);
+        $users = User::query()->where('status', 'G')->orderBy('nama')->paginate(15);
 
-        return view('guru.dataguru', compact(
-            'user',
-            'school',
-            'users'
-        ));
+        return view('guru.dataguru', compact('user', 'school', 'users'));
     }
 
     /**
      * Pencarian Guru via AJAX.
      */
-    public function getUser(Request $request): View
-    {
+    public function getUser(Request $request): View {
         $q = trim((string) $request->input('q'));
 
         $users = User::query()
             ->where('status', 'G')
-            ->when(
-                $q !== '',
-                fn ($query) =>
-                    $query->where('nama', 'like', '%'.$q.'%')
-            )
+            ->when($q !== '', fn($query) => $query->where('nama', 'like', '%' . $q . '%'))
             ->orderBy('nama')
             ->paginate(10);
 
-        return view('guru.ajax.get_user', compact(
-            'users',
-            'q'
-        ));
+        return view('guru.ajax.get_user', compact('users', 'q'));
     }
 
     /**
@@ -62,125 +45,84 @@ class DataguruController extends Controller
      *
      * Hanya Administrator.
      */
-public function store(Request $request): Response
-{
-    abort_unless(
-        auth()->user()->status === 'A',
-        403
-    );
+    public function store(Request $request): Response {
+        abort_unless(auth()->user()->status === 'A', 403);
 
-    $validated = $request->validate(
-        [
-            'nama' => [
-                'required',
-                'string',
-                'max:150',
+        $validated = $request->validate(
+            [
+                'nama' => ['required', 'string', 'max:150'],
+                'no_induk' => ['nullable', 'string', 'max:50'],
+                'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
+                'jk' => ['required', Rule::in(['L', 'P'])],
             ],
+            [
+                'nama.required' => 'Anda belum menuliskan nama guru.',
 
-            'no_induk' => [
-                'nullable',
-                'string',
-                'max:50',
+                'email.required' => 'Anda belum menuliskan email guru.',
+
+                'email.email' => 'Email yang Anda masukan tidak valid.',
+
+                'email.unique' => 'Email sudah terpakai, ganti dengan yang lain.',
+
+                'jk.required' => 'Anda belum mengisi jenis kelamin guru.',
             ],
+        );
 
-            'email' => [
-                'required',
-                'email',
-                'max:255',
-                Rule::unique('users', 'email'),
-            ],
+        $guru = new User();
 
-            'jk' => [
-                'required',
-                Rule::in(['L', 'P']),
-            ],
-        ],
-        [
-            'nama.required' =>
-                'Anda belum menuliskan nama guru.',
+        /*
+         * Kolom legacy NOT NULL.
+         * Guru tidak terikat kelas.
+         */
+        $guru->id_kelas = '';
 
-            'email.required' =>
-                'Anda belum menuliskan email guru.',
+        $guru->nama = trim($validated['nama']);
 
-            'email.email' =>
-                'Email yang Anda masukan tidak valid.',
+        $guru->no_induk = trim((string) ($validated['no_induk'] ?? ''));
 
-            'email.unique' =>
-                'Email sudah terpakai, ganti dengan yang lain.',
+        $guru->jk = $validated['jk'];
 
-            'jk.required' =>
-                'Anda belum mengisi jenis kelamin guru.',
-        ]
-    );
+        $guru->status = 'G';
 
-    $guru = new User();
+        /*
+         * Legacy menggunakan string kosong
+         * untuk user yang belum memiliki foto.
+         */
+        $guru->gambar = '';
 
-    /*
-     * Kolom legacy NOT NULL.
-     * Guru tidak terikat kelas.
-     */
-    $guru->id_kelas = '';
+        $guru->email = strtolower(trim($validated['email']));
 
-    $guru->nama = trim($validated['nama']);
+        /*
+         * Password awal aplikasi lama.
+         */
+        $guru->password = Hash::make('123456');
 
-    $guru->no_induk = trim(
-        (string) ($validated['no_induk'] ?? '')
-    );
+        /*
+         * Guru tidak menggunakan sekolah_asal,
+         * tetapi kolom database legacy NOT NULL.
+         */
+        $guru->sekolah_asal = '';
 
-    $guru->jk = $validated['jk'];
+        $guru->save();
 
-    $guru->status = 'G';
+        Aktifitas::create([
+            'id_user' => auth()->id(),
+            'nama' => 'Menambahkan guru atas nama ' . $guru->nama,
+        ]);
 
-    /*
-     * Legacy menggunakan string kosong
-     * untuk user yang belum memiliki foto.
-     */
-    $guru->gambar = '';
-
-    $guru->email = strtolower(
-        trim($validated['email'])
-    );
-
-    /*
-     * Password awal aplikasi lama.
-     */
-    $guru->password = Hash::make('123456');
-
-    /*
-     * Guru tidak menggunakan sekolah_asal,
-     * tetapi kolom database legacy NOT NULL.
-     */
-    $guru->sekolah_asal = '';
-
-    $guru->save();
-
-    Aktifitas::create([
-        'id_user' => auth()->id(),
-        'nama' => 'Menambahkan guru atas nama '.$guru->nama,
-    ]);
-
-    return response('berhasil');
-}
+        return response('berhasil');
+    }
 
     /**
      * Detail Guru.
      */
-    public function show(int $id): View
-    {
-        $user = User::query()
-            ->whereKey($id)
-            ->where('status', 'G')
-            ->firstOrFail();
+    public function show(int $id): View {
+        $user = User::query()->whereKey($id)->where('status', 'G')->firstOrFail();
 
         $school = School::first();
 
         $aktifitas = Aktifitas::query()
-            ->join(
-                'users',
-                'aktifitas.id_user',
-                '=',
-                'users.id'
-            )
+            ->join('users', 'aktifitas.id_user', '=', 'users.id')
             ->select([
                 'users.nama as nama_user',
                 'users.gambar',
@@ -194,11 +136,7 @@ public function store(Request $request): Response
             ->limit(3)
             ->get();
 
-        return view('guru.detailguru', compact(
-            'user',
-            'school',
-            'aktifitas'
-        ));
+        return view('guru.detailguru', compact('user', 'school', 'aktifitas'));
     }
 
     /**
@@ -207,30 +145,18 @@ public function store(Request $request): Response
      * Business logic legacy dipertahankan:
      * akun Guru dihapus langsung, tanpa cascade tambahan.
      */
-    public function destroy(int $id)
-    {
-        abort_unless(
-            auth()->user()->status === 'A',
-            403
-        );
+    public function destroy(int $id) {
+        abort_unless(auth()->user()->status === 'A', 403);
 
-        $guru = User::query()
-            ->whereKey($id)
-            ->where('status', 'G')
-            ->firstOrFail();
+        $guru = User::query()->whereKey($id)->where('status', 'G')->firstOrFail();
 
         Aktifitas::create([
             'id_user' => auth()->id(),
-            'nama' => 'Menghapus guru atas nama '.$guru->nama,
+            'nama' => 'Menghapus guru atas nama ' . $guru->nama,
         ]);
 
         $guru->delete();
 
-        return redirect()
-            ->route('guru.data')
-            ->with(
-                'success',
-                'Data guru berhasil dihapus.'
-            );
+        return redirect()->route('guru.data')->with('success', 'Data guru berhasil dihapus.');
     }
 }

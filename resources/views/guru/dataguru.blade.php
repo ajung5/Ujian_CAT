@@ -2,583 +2,389 @@
 
 @section('title', 'Data Guru')
 
-
 @section('content')
 
-<div class="col-md-12 dash-left">
+    <div class="col-md-12 dash-left">
+        <ol class="breadcrumb">
+            <li>
+                <a href="{{ route('guru.index') }}">
+                    Home
+                </a>
+            </li>
 
-    <ol class="breadcrumb">
+            <li class="active">
+                Data Guru
+            </li>
+        </ol>
 
-        <li>
-            <a href="{{ route('guru.index') }}">
-                Home
-            </a>
-        </li>
+        @if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
 
-        <li class="active">
-            Data Guru
-        </li>
-
-    </ol>
-
-
-    @if (session('success'))
-
-        <div class="alert alert-success">
-            {{ session('success') }}
-        </div>
-
-    @endif
-
-
-    <div class="panel panel-default">
-
-        <div
-            class="panel-heading"
-            style="
+        <div class="panel panel-default">
+            <div class="panel-heading"
+                style="
                 background: #072047;
                 color: #fff;
-            "
-        >
-            Data Guru
-        </div>
-
-
-        <div class="panel-body">
-
-
-            @if (auth()->user()->status === 'A')
-
-                <a
-                    href="#wrapguru"
-                    data-toggle="collapse"
-                >
-
-                    <button
-                        type="button"
-                        class="btn btn-primary"
-                        data-toggle="tooltip"
-                        title="Tambah Guru melalui form."
-                    >
-                        Tambah Guru
-                    </button>
-
-                </a>
-
-
-                <div
-                    class="collapse"
-                    id="wrapguru"
-                    style="margin:15px 0 0 0;"
-                >
-
-                    <div class="well">
-
-                        <form
-                            id="form-tambah-guru"
-                            class="form-horizontal"
-                        >
-
-                            @csrf
-
-
-                            <div class="form-group">
-
-                                <label
-                                    for="nama"
-                                    class="col-sm-2 control-label"
-                                >
-                                    Nama
-                                </label>
-
-                                <div class="col-sm-10">
-
-                                    <input
-                                        type="text"
-                                        class="form-control"
-                                        name="nama"
-                                        id="nama"
-                                        placeholder="Nama Lengkap Guru"
-                                    >
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="form-group">
-
-                                <label
-                                    for="no_induk"
-                                    class="col-sm-2 control-label"
-                                >
-                                    NIP
-                                </label>
-
-                                <div class="col-sm-10">
-
-                                    <input
-                                        type="text"
-                                        class="form-control"
-                                        name="no_induk"
-                                        id="no_induk"
-                                        placeholder="NIP Guru"
-                                    >
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="form-group">
-
-                                <label
-                                    for="email"
-                                    class="col-sm-2 control-label"
-                                >
-                                    Email
-                                </label>
-
-                                <div class="col-sm-10">
-
-                                    <input
-                                        type="email"
-                                        class="form-control"
-                                        name="email"
-                                        id="email"
-                                        placeholder="Email Guru"
-                                    >
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="form-group">
-
-                                <label
-                                    for="jk"
-                                    class="col-sm-2 control-label"
-                                >
-                                    Jenis Kelamin
-                                </label>
-
-                                <div class="col-sm-10">
-
-                                    <select
-                                        name="jk"
-                                        id="jk"
-                                        class="form-control"
-                                    >
-
-                                        <option value="">
-                                            -- Pilih Jenis Kelamin --
-                                        </option>
-
-                                        <option value="L">
-                                            Laki-laki
-                                        </option>
-
-                                        <option value="P">
-                                            Perempuan
-                                        </option>
-
-                                    </select>
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="form-group">
-
-                                <div class="col-sm-offset-2 col-sm-10">
-
-                                    <button
-                                        type="submit"
-                                        class="btn btn-primary"
-                                        id="btnsimpan"
-                                    >
-                                        Simpan
-                                    </button>
-
-                                    <img
-                                        src="{{ asset('img/ajax-loader.gif') }}"
-                                        alt="Loading"
-                                        id="loading-simpan"
-                                        style="display:none;"
-                                    >
-
-                                </div>
-
-                            </div>
-
-
-                            <div
-                                class="alert alert-danger"
-                                id="salah"
-                                style="display:none;"
-                            ></div>
-
-
-                            <div
-                                class="alert alert-info"
-                                id="benar"
-                                style="display:none;"
-                            >
-
-                                <b>Sukses.</b>
-
-                                Data guru berhasil disimpan.
-                                Guru dapat masuk ke sistem menggunakan
-                                email dan password:
-
-                                <strong>123456</strong>
-
-                            </div>
-
-                        </form>
-
-                    </div>
-
-                </div>
-
-                <hr>
-
-            @endif
-
-
-            <div
-                class="form-horizontal"
-                style="margin-bottom:15px;"
-            >
-
-                <input
-                    type="text"
-                    class="form-control"
-                    id="q"
-                    placeholder="Cari berdasarkan Nama (Ketik lalu Enter)"
-                >
-
+            ">
+                Data Guru
             </div>
 
+            <div class="panel-body">
+                @if (auth()->user()->status === 'A')
+                    <a href="#wrapguru" data-toggle="collapse">
+                        <button type="button" class="btn btn-primary" data-toggle="tooltip"
+                            title="Tambah Guru melalui form.">
+                            Tambah Guru
+                        </button>
+                    </a>
 
-            <img
-                src="{{ asset('assets/assets/images/facebook.gif') }}"
-                alt="Loading"
-                id="loading-search"
-                style="display:none;"
-            >
+                    <div class="collapse" id="wrapguru" style="margin:15px 0 0 0;">
+                        <div class="well">
+                            <form id="form-tambah-guru" class="form-horizontal">
+                                @csrf
 
+                                <div class="form-group">
+                                    <label for="nama" class="col-sm-2 control-label">
+                                        Nama
+                                    </label>
 
-            <div
-                class="table-responsive"
-                id="wrap-user"
-            >
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" name="nama" id="nama"
+                                            placeholder="Nama Lengkap Guru">
+                                    </div>
+                                </div>
 
-                <table
-                    class="
+                                <div class="form-group">
+                                    <label for="no_induk" class="col-sm-2 control-label">
+                                        NIP
+                                    </label>
+
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" name="no_induk" id="no_induk"
+                                            placeholder="NIP Guru">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="email" class="col-sm-2 control-label">
+                                        Email
+                                    </label>
+
+                                    <div class="col-sm-10">
+                                        <input type="email" class="form-control" name="email" id="email"
+                                            placeholder="Email Guru">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="jk" class="col-sm-2 control-label">
+                                        Jenis Kelamin
+                                    </label>
+
+                                    <div class="col-sm-10">
+                                        <select name="jk" id="jk" class="form-control">
+                                            <option value="">
+                                                -- Pilih Jenis Kelamin --
+                                            </option>
+
+                                            <option value="L">
+                                                Laki-laki
+                                            </option>
+
+                                            <option value="P">
+                                                Perempuan
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-sm-offset-2 col-sm-10">
+                                        <button type="submit" class="btn btn-primary" id="btnsimpan">
+                                            Simpan
+                                        </button>
+
+                                        <img src="{{ asset('img/ajax-loader.gif') }}" alt="Loading" id="loading-simpan"
+                                            style="display:none;">
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-danger" id="salah" style="display:none;"></div>
+
+                                <div class="alert alert-info" id="benar" style="display:none;">
+                                    <b>Sukses.</b>
+
+                                    Data guru berhasil disimpan.
+                                    Guru dapat masuk ke sistem menggunakan
+                                    email dan password:
+
+                                    <strong>123456</strong>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <hr>
+                @endif
+
+                <div class="form-horizontal" style="margin-bottom:15px;">
+                    <input type="text" class="form-control" id="q"
+                        placeholder="Cari berdasarkan Nama (Ketik lalu Enter)">
+                </div>
+
+                <img src="{{ asset('assets/assets/images/facebook.gif') }}" alt="Loading" id="loading-search"
+                    style="display:none;">
+
+                <div class="table-responsive" id="wrap-user">
+                    <table
+                        class="
                         table
                         table-bordered
                         table-default
                         table-striped
                         nomargin
-                    "
-                >
+                    ">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center;">
+                                    #
+                                </th>
 
-                    <thead>
+                                <th>Nama</th>
 
-                    <tr>
+                                <th>NIP</th>
 
-                        <th style="text-align:center;">
-                            #
-                        </th>
+                                <th>Email</th>
 
-                        <th>Nama</th>
+                                <th>J.Kelamin</th>
 
-                        <th>NIP</th>
+                                <th width="70" style="text-align:center;">
+                                    Aksi
+                                </th>
+                            </tr>
+                        </thead>
 
-                        <th>Email</th>
+                        <tbody>
+                            @forelse ($users as $data)
+                                <tr>
+                                    <td style="text-align:center;">
+                                        {{ $users->firstItem() + $loop->index }}
+                                    </td>
 
-                        <th>J.Kelamin</th>
+                                    <td>
+                                        {{ $data->nama }}
+                                    </td>
 
-                        <th
-                            width="70"
-                            style="text-align:center;"
-                        >
-                            Aksi
-                        </th>
+                                    <td>
+                                        {{ $data->no_induk ?: '-' }}
+                                    </td>
 
-                    </tr>
+                                    <td>
+                                        {{ $data->email }}
+                                    </td>
 
-                    </thead>
+                                    <td>
+                                        @if ($data->jk === 'L')
+                                            Laki-laki
+                                        @elseif ($data->jk === 'P')
+                                            Perempuan
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
 
+                                    <td style="text-align:center;">
+                                        <a href="{{ route('guru.detail', $data->id) }}" class="btn btn-primary btn-xs"
+                                            title="Detail">
+                                            Detail
+                                        </a>
+                                    </td>
+                                </tr>
 
-                    <tbody>
+                            @empty
 
-                    @forelse ($users as $data)
+                                <tr>
+                                    <td colspan="6" class="alert alert-danger">
+                                        Belum ada data untuk ditampilkan.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
 
-                        <tr>
-
-                            <td style="text-align:center;">
-
-                                {{
-                                    $users->firstItem()
-                                    + $loop->index
-                                }}
-
-                            </td>
-
-                            <td>
-                                {{ $data->nama }}
-                            </td>
-
-                            <td>
-                                {{ $data->no_induk ?: '-' }}
-                            </td>
-
-                            <td>
-                                {{ $data->email }}
-                            </td>
-
-                            <td>
-
-                                @if ($data->jk === 'L')
-                                    Laki-laki
-                                @elseif ($data->jk === 'P')
-                                    Perempuan
-                                @else
-                                    -
-                                @endif
-
-                            </td>
-
-                            <td style="text-align:center;">
-
-                                <a
-                                    href="{{
-                                        route(
-                                            'guru.detail',
-                                            $data->id
-                                        )
-                                    }}"
-                                    class="btn btn-primary btn-xs"
-                                    title="Detail"
-                                >
-                                    Detail
-                                </a>
-
-                            </td>
-
-                        </tr>
-
-                    @empty
-
-                        <tr>
-
-                            <td
-                                colspan="6"
-                                class="alert alert-danger"
-                            >
-                                Belum ada data untuk ditampilkan.
-                            </td>
-
-                        </tr>
-
-                    @endforelse
-
-                    </tbody>
-
-                </table>
-
-
-                {{
-                    $users->links(
-                        'vendor.pagination.bootstrap-3'
-                    )
-                }}
-
+                    {{ $users->links('vendor.pagination.bootstrap-3') }}
+                </div>
             </div>
-
         </div>
-
     </div>
-
-</div>
 
 @endsection
 
-
 @push('scripts')
+    <script>
+        $(document).ready(function() {
 
-<script>
-
-$(document).ready(function () {
-
-    'use strict';
+            'use strict';
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | SEARCH
-    |--------------------------------------------------------------------------
-    */
+            /*
+            |--------------------------------------------------------------------------
+            | SEARCH
+            |--------------------------------------------------------------------------
+            */
 
-    $('#q').on('keyup', function (event) {
+            $('#q').on('keyup', function(event) {
 
-        if (event.key !== 'Enter') {
-            return;
-        }
+                if (event.key !== 'Enter') {
+                    return;
+                }
 
-        $('#loading-search').show();
+                $('#loading-search').show();
 
-        $.ajax({
+                $.ajax({
 
-            type: 'POST',
+                    type: 'POST',
 
-            url: '{{ route('guru.search') }}',
+                    url: '{{ route('guru.search') }}',
 
-            data: {
-                q: $('#q').val()
-            },
+                    data: {
+                        q: $('#q').val()
+                    },
 
-            success: function (data) {
+                    success: function(data) {
 
-                $('#loading-search').hide();
+                        $('#loading-search').hide();
 
-                $('#wrap-user')
-                    .hide()
-                    .html(data)
-                    .fadeIn(350);
+                        $('#wrap-user')
+                            .hide()
+                            .html(data)
+                            .fadeIn(350);
 
-            },
+                    },
 
-            error: function () {
+                    error: function() {
 
-                $('#loading-search').hide();
+                        $('#loading-search').hide();
 
-                alert(
-                    'Terjadi kesalahan saat mencari data Guru.'
-                );
-
-            }
-
-        });
-
-    });
-
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | TAMBAH GURU
-    |--------------------------------------------------------------------------
-    */
-
-    $('#form-tambah-guru').on(
-        'submit',
-        function (event) {
-
-            event.preventDefault();
-
-
-            $('#btnsimpan').hide();
-
-            $('#loading-simpan').show();
-
-            $('#salah').hide();
-
-            $('#benar').hide();
-
-
-            $.ajax({
-
-                type: 'POST',
-
-                url: '{{ route('guru.store') }}',
-
-                data: {
-
-                    nama:
-                        $('#nama').val(),
-
-                    no_induk:
-                        $('#no_induk').val(),
-
-                    email:
-                        $('#email').val(),
-
-                    jk:
-                        $('#jk').val()
-
-                },
-
-                success: function (data) {
-
-                    $('#loading-simpan').hide();
-
-                    $('#btnsimpan').show();
-
-
-                    if (data === 'berhasil') {
-
-                        $('#salah').hide();
-
-                        $('#benar').show();
-
-
-                        setTimeout(function () {
-
-                            window.location.reload();
-
-                        }, 700);
+                        alert(
+                            'Terjadi kesalahan saat mencari data Guru.'
+                        );
 
                     }
 
-                },
+                });
 
-                error: function (xhr) {
+            });
 
-                    $('#loading-simpan').hide();
 
-                    $('#btnsimpan').show();
+
+            /*
+            |--------------------------------------------------------------------------
+            | TAMBAH GURU
+            |--------------------------------------------------------------------------
+            */
+
+            $('#form-tambah-guru').on(
+                'submit',
+                function(event) {
+
+                    event.preventDefault();
+
+
+                    $('#btnsimpan').hide();
+
+                    $('#loading-simpan').show();
+
+                    $('#salah').hide();
 
                     $('#benar').hide();
 
 
-                    let message =
-                        'Gagal menyimpan data Guru.';
+                    $.ajax({
+
+                        type: 'POST',
+
+                        url: '{{ route('guru.store') }}',
+
+                        data: {
+
+                            nama: $('#nama').val(),
+
+                            no_induk: $('#no_induk').val(),
+
+                            email: $('#email').val(),
+
+                            jk: $('#jk').val()
+
+                        },
+
+                        success: function(data) {
+
+                            $('#loading-simpan').hide();
+
+                            $('#btnsimpan').show();
 
 
-                    if (
-                        xhr.responseJSON &&
-                        xhr.responseJSON.errors
-                    ) {
+                            if (data === 'berhasil') {
 
-                        const errors =
-                            xhr.responseJSON.errors;
+                                $('#salah').hide();
 
-                        message =
-                            Object.values(errors)
-                                .flat()
-                                .join('<br>');
-
-                    }
+                                $('#benar').show();
 
 
-                    $('#salah')
-                        .html(message)
-                        .show();
+                                setTimeout(function() {
+
+                                    window.location.reload();
+
+                                }, 700);
+
+                            }
+
+                        },
+
+                        error: function(xhr) {
+
+                            $('#loading-simpan').hide();
+
+                            $('#btnsimpan').show();
+
+                            $('#benar').hide();
+
+
+                            let message =
+                                'Gagal menyimpan data Guru.';
+
+
+                            if (
+                                xhr.responseJSON &&
+                                xhr.responseJSON.errors
+                            ) {
+
+                                const errors =
+                                    xhr.responseJSON.errors;
+
+                                message =
+                                    Object.values(errors)
+                                    .flat()
+                                    .join('<br>');
+
+                            }
+
+
+                            $('#salah')
+                                .html(message)
+                                .show();
+
+                        }
+
+                    });
 
                 }
+            );
 
-            });
-
-        }
-    );
-
-});
-
-</script>
-
+        });
+    </script>
 @endpush

@@ -2,168 +2,107 @@
 
 @section('title', 'Profil')
 
-
 @section('breadcrumb')
 
-<li>
+    <li>
+        <a href="{{ route('siswa.index') }}">
+            Home
+        </a>
+    </li>
 
-    <a href="{{ route('siswa.index') }}">
-        Home
-    </a>
-
-</li>
-
-<li class="active">
-    Profil
-</li>
+    <li class="active">
+        Profil
+    </li>
 
 @endsection
 
-
 @section('content')
 
-@php
+    @php
 
-    $jenisKelamin =
-        $user->jk === 'L'
-            ? 'Laki-laki'
-            : 'Perempuan';
+        $jenisKelamin = $user->jk === 'L' ? 'Laki-laki' : 'Perempuan';
 
+        $foto = !empty($user->gambar) ? $user->gambar : 'siswa.png';
 
-    $foto =
-        ! empty($user->gambar)
-            ? $user->gambar
-            : 'siswa.png';
+    @endphp
 
-@endphp
-
-
-<div class="col-md-12">
-
-    <div class="card">
-
-        <div class="card-header bg-white">
-
-            <div class="media">
-
-                <div class="media-body">
-
-                    <h4 class="card-title">
-                        Profil
-                    </h4>
-
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-white">
+                <div class="media">
+                    <div class="media-body">
+                        <h4 class="card-title">
+                            Profil
+                        </h4>
+                    </div>
                 </div>
-
             </div>
 
-        </div>
-
-
-        <div style="padding:15px;">
-
-            <div class="row">
-
-                <div
-                    class="
+            <div style="padding:15px;">
+                <div class="row">
+                    <div class="
                         col-sm-3
                         col-md-3
-                    "
-                >
-
-                    <img
-                        src="{{
-                            asset(
-                                'img/'.$foto
-                            )
-                        }}"
-                        alt="Foto {{ $user->nama }}"
-                        class="
+                    ">
+                        <img src="{{ asset('img/' . $foto) }}" alt="Foto {{ $user->nama }}"
+                            class="
                             img-rounded
                             img-thumbnail
                         "
-                        style="
+                            style="
                             max-width:100%;
-                        "
-                    >
+                        ">
+                    </div>
 
-                </div>
-
-
-                <div
-                    class="
+                    <div class="
                         col-sm-9
                         col-md-9
-                    "
-                >
+                    ">
+                        <blockquote>
+                            <h3>
+                                {{ $user->nama }}
+                            </h3>
 
-                    <blockquote>
+                            <small>
+                                <cite>
+                                    {{ $user->no_induk }}
+                                </cite>
+                            </small>
+                        </blockquote>
 
-                        <h3>
-                            {{ $user->nama }}
-                        </h3>
-
-                        <small>
-
-                            <cite>
-                                {{ $user->no_induk }}
-                            </cite>
-
-                        </small>
-
-                    </blockquote>
-
-
-                    <p>
-
-                        <i
-                            class="
+                        <p>
+                            <i
+                                class="
                                 fa
                                 fa-envelope
-                            "
-                        ></i>
+                            "></i>
 
-                        {{ $user->email }}
+                            {{ $user->email }}
 
-                        <br>
-
-
-                        <i
-                            class="
+                            <br>
+                            <i
+                                class="
                                 fa
                                 fa-venus-mars
-                            "
-                        ></i>
+                            "></i>
 
-                        {{ $jenisKelamin }}
+                            {{ $jenisKelamin }}
 
-                        <br>
-
-
-                        <i
-                            class="
+                            <br>
+                            <i
+                                class="
                                 fa
                                 fa-drivers-license
-                            "
-                        ></i>
+                            "></i>
 
-                        {{
-                            $user->nama_kelas
-                            ?? 'Belum memiliki kelas'
-                        }}
+                            {{ $user->nama_kelas ?? 'Belum memiliki kelas' }}
+                        </p>
 
-                    </p>
-
-
-                    <div class="clearfix"></div>
-
+                        <div class="clearfix"></div>
+                    </div>
                 </div>
-
             </div>
-
         </div>
-
     </div>
-
-</div>
 
 @endsection

@@ -22,8 +22,7 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class HasilController extends Controller
-{
+class HasilController extends Controller {
     /**
      * Daftar paket yang sudah memiliki hasil.
      *
@@ -33,74 +32,42 @@ class HasilController extends Controller
      * Guru:
      * - hanya paket miliknya sendiri.
      */
-    public function index(): View{
-        $user = User::findOrFail(
-            auth()->id()
-        );
+    public function index(): View {
+        $user = User::findOrFail(auth()->id());
 
         $school = School::first();
 
-        $jawabs = $this->resultsQuery()
-            ->paginate(10);
+        $jawabs = $this->resultsQuery()->paginate(10);
 
-        return view(
-            'guru.hasil',
-            compact(
-                'user',
-                'school',
-                'jawabs'
-            )
-        );
+        return view('guru.hasil', compact('user', 'school', 'jawabs'));
     }
 
     /**
      * Search laporan melalui AJAX.
      */
-    public function search(Request $request): View{
+    public function search(Request $request): View {
         $validated = $request->validate([
-            'q' => [
-                'nullable',
-                'string',
-                'max:150',
-            ],
+            'q' => ['nullable', 'string', 'max:150'],
         ]);
 
-        $q = trim(
-            (string) ($validated['q'] ?? '')
-        );
+        $q = trim((string) ($validated['q'] ?? ''));
 
-        $jawabs = $this->resultsQuery($q)
-            ->limit(50)
-            ->get();
+        $jawabs = $this->resultsQuery($q)->limit(50)->get();
 
-        return view(
-            'guru.ajax.get_hasil_guru',
-            compact('jawabs')
-        );
+        return view('guru.ajax.get_hasil_guru', compact('jawabs'));
     }
 
-    public function classDetail(int $id,int $idSoal): View {
-        $user = User::findOrFail(
-            auth()->id()
-        );
+    public function classDetail(int $id, int $idSoal): View {
+        $user = User::findOrFail(auth()->id());
 
         $school = School::first();
 
-        $soal = $this->findAccessiblePackage(
-            $idSoal
-        );
+        $soal = $this->findAccessiblePackage($idSoal);
 
-        $kelas = Kelas::findOrFail(
-            $id
-        );
+        $kelas = Kelas::findOrFail($id);
 
         $jawabs = Jawab::query()
-            ->join(
-                'users',
-                'jawabs.id_user',
-                '=',
-                'users.id'
-            )
+            ->join('users', 'jawabs.id_user', '=', 'users.id')
             ->select(
                 'jawabs.id_user',
                 'jawabs.id_kelas',
@@ -119,480 +86,247 @@ class HasilController extends Controller
                             AS DECIMAL(10,2)
                         )
                     ) as total_score
-                    "
+                    ",
                 ),
 
-                DB::raw(
-                    'MAX(jawabs.updated_at) as selesai_pada'
-                )
+                DB::raw('MAX(jawabs.updated_at) as selesai_pada'),
             )
-            ->where(
-                'jawabs.id_kelas',
-                (string) $kelas->id
-            )
-            ->where(
-                'jawabs.id_soal',
-                (string) $soal->id
-            )
-            ->where(
-                'jawabs.status',
-                'Y'
-            )
-            ->groupBy(
-                'jawabs.id_user',
-                'jawabs.id_kelas',
-                'jawabs.id_soal',
-                'users.nama',
-                'users.no_induk'
-            )
-            ->orderBy(
-                'users.nama'
-            )
+            ->where('jawabs.id_kelas', (string) $kelas->id)
+            ->where('jawabs.id_soal', (string) $soal->id)
+            ->where('jawabs.status', 'Y')
+            ->groupBy('jawabs.id_user', 'jawabs.id_kelas', 'jawabs.id_soal', 'users.nama', 'users.no_induk')
+            ->orderBy('users.nama')
             ->get();
 
-        $participantIds =
-            $jawabs
-                ->pluck('id_user')
-                ->map(
-                    fn ($id) =>
-                        (string) $id
-                )
-                ->all();
+        $participantIds = $jawabs->pluck('id_user')->map(fn($id) => (string) $id)->all();
 
         $detailJawabs = collect();
 
         if ($participantIds !== []) {
-
-            $detailJawabs =
-                Jawab::query()
-                    ->join(
-                        'detailsoals',
-                        'jawabs.no_soal_id',
-                        '=',
-                        'detailsoals.id'
-                    )
-                    ->select(
-                        'jawabs.id',
-                        'jawabs.id_user',
-                        'jawabs.id_kelas',
-                        'jawabs.id_soal',
-                        'jawabs.no_soal_id',
-                        'jawabs.pilihan',
-                        'jawabs.score',
-                        'detailsoals.soal',
-                        'detailsoals.kunci',
-                        'detailsoals.score as max_score'
-                    )
-                    ->where(
-                        'jawabs.id_kelas',
-                        (string) $kelas->id
-                    )
-                    ->where(
-                        'jawabs.id_soal',
-                        (string) $soal->id
-                    )
-                    ->where(
-                        'jawabs.status',
-                        'Y'
-                    )
-                    ->whereIn(
-                        'jawabs.id_user',
-                        $participantIds
-                    )
-                    ->orderBy(
-                        'jawabs.id_user'
-                    )
-                    ->orderBy(
-                        'jawabs.no_soal_id'
-                    )
-                    ->get();
+            $detailJawabs = Jawab::query()
+                ->join('detailsoals', 'jawabs.no_soal_id', '=', 'detailsoals.id')
+                ->select(
+                    'jawabs.id',
+                    'jawabs.id_user',
+                    'jawabs.id_kelas',
+                    'jawabs.id_soal',
+                    'jawabs.no_soal_id',
+                    'jawabs.pilihan',
+                    'jawabs.score',
+                    'detailsoals.soal',
+                    'detailsoals.kunci',
+                    'detailsoals.score as max_score',
+                )
+                ->where('jawabs.id_kelas', (string) $kelas->id)
+                ->where('jawabs.id_soal', (string) $soal->id)
+                ->where('jawabs.status', 'Y')
+                ->whereIn('jawabs.id_user', $participantIds)
+                ->orderBy('jawabs.id_user')
+                ->orderBy('jawabs.no_soal_id')
+                ->get();
         }
 
-        $answersByUser =
-            $detailJawabs->groupBy(
-                'id_user'
-            );
+        $answersByUser = $detailJawabs->groupBy('id_user');
 
-        return view(
-            'guru.detailhasilsoal',
-            compact(
-                'user',
-                'school',
-                'soal',
-                'kelas',
-                'jawabs',
-                'answersByUser'
-            )
-        );
+        return view('guru.detailhasilsoal', compact('user', 'school', 'soal', 'kelas', 'jawabs', 'answersByUser'));
     }
 
     public function destroyStudentResult(Request $request): JsonResponse {
-        $validated =
-            $request->validate([
-                'id_kelas' => [
-                    'required',
-                    'integer',
-                ],
+        $validated = $request->validate([
+            'id_kelas' => ['required', 'integer'],
 
-                'id_soal' => [
-                    'required',
-                    'integer',
-                ],
+            'id_soal' => ['required', 'integer'],
 
-                'id_user' => [
-                    'required',
-                    'integer',
-                ],
-            ]);
-
+            'id_user' => ['required', 'integer'],
+        ]);
 
         /*
-        * Pastikan paket dapat diakses
-        * oleh Guru/Admin yang sedang login.
-        */
-        $soal =
-            $this->findAccessiblePackage(
-                (int) $validated['id_soal']
-            );
-
+         * Pastikan paket dapat diakses
+         * oleh Guru/Admin yang sedang login.
+         */
+        $soal = $this->findAccessiblePackage((int) $validated['id_soal']);
 
         /*
-        * Kelas yang digunakan adalah kelas
-        * historis ketika ujian berlangsung.
-        */
-        $kelas =
-            Kelas::findOrFail(
-                (int) $validated['id_kelas']
-            );
-
+         * Kelas yang digunakan adalah kelas
+         * historis ketika ujian berlangsung.
+         */
+        $kelas = Kelas::findOrFail((int) $validated['id_kelas']);
 
         /*
-        * Sumber kebenaran histori adalah jawabs,
-        * BUKAN users.id_kelas saat ini.
-        *
-        * Dengan demikian siswa yang sudah pindah
-        * kelas tetap dapat dikelola hasil lamanya.
-        */
-        $historicalAnswer =
-            Jawab::query()
-                ->where(
-                    'id_soal',
-                    (string) $soal->id
-                )
-                ->where(
-                    'id_kelas',
-                    (string) $kelas->id
-                )
-                ->where(
-                    'id_user',
-                    (string) $validated['id_user']
-                )
-                ->first();
+         * Sumber kebenaran histori adalah jawabs,
+         * BUKAN users.id_kelas saat ini.
+         *
+         * Dengan demikian siswa yang sudah pindah
+         * kelas tetap dapat dikelola hasil lamanya.
+         */
+        $historicalAnswer = Jawab::query()
+            ->where('id_soal', (string) $soal->id)
+            ->where('id_kelas', (string) $kelas->id)
+            ->where('id_user', (string) $validated['id_user'])
+            ->first();
 
-
-        if (! $historicalAnswer) {
-
+        if (!$historicalAnswer) {
             return response()->json(
                 [
-                    'message' =>
-                        'Hasil historis siswa tidak ditemukan.',
+                    'message' => 'Hasil historis siswa tidak ditemukan.',
                 ],
-                404
+                404,
             );
         }
 
+        /*
+         * Data user hanya digunakan untuk
+         * mendapatkan nama terbaru.
+         *
+         * Tidak ada validasi terhadap
+         * users.id_kelas karena siswa mungkin
+         * sudah berpindah kelas.
+         */
+        $student = User::find((int) $validated['id_user']);
 
         /*
-        * Data user hanya digunakan untuk
-        * mendapatkan nama terbaru.
-        *
-        * Tidak ada validasi terhadap
-        * users.id_kelas karena siswa mungkin
-        * sudah berpindah kelas.
-        */
-        $student =
-            User::find(
-                (int) $validated['id_user']
-            );
+         * jawabs.nama menyimpan snapshot nama
+         * ketika siswa mengerjakan ujian.
+         *
+         * Digunakan sebagai fallback apabila
+         * akun user sudah tidak tersedia.
+         */
+        $studentName = $student?->nama ?? ($historicalAnswer->nama ?? 'User ID ' . $validated['id_user']);
 
+        $deleted = DB::transaction(function () use ($soal, $kelas, $validated) {
+            /*
+             * Hapus seluruh jawaban milik siswa
+             * pada paket + kelas historis tersebut.
+             */
+            $deleted = Jawab::query()
+                ->where('id_soal', (string) $soal->id)
+                ->where('id_kelas', (string) $kelas->id)
+                ->where('id_user', (string) $validated['id_user'])
+                ->delete();
 
-        /*
-        * jawabs.nama menyimpan snapshot nama
-        * ketika siswa mengerjakan ujian.
-        *
-        * Digunakan sebagai fallback apabila
-        * akun user sudah tidak tersedia.
-        */
-        $studentName =
-            $student?->nama
-            ??
-            $historicalAnswer->nama
-            ??
-            'User ID '.
-            $validated['id_user'];
+            /*
+             * countexamtimes tidak memiliki
+             * kolom id_kelas pada schema legacy.
+             *
+             * Karena timer terikat ke kombinasi
+             * paket + siswa, hapus berdasarkan
+             * dua field tersebut.
+             */
+            Countexamtime::query()
+                ->where('id_soal', (string) $soal->id)
+                ->where('id_user', (string) $validated['id_user'])
+                ->delete();
 
-
-        $deleted =
-            DB::transaction(
-                function () use (
-                    $soal,
-                    $kelas,
-                    $validated
-                ) {
-
-                    /*
-                    * Hapus seluruh jawaban milik siswa
-                    * pada paket + kelas historis tersebut.
-                    */
-                    $deleted =
-                        Jawab::query()
-                            ->where(
-                                'id_soal',
-                                (string) $soal->id
-                            )
-                            ->where(
-                                'id_kelas',
-                                (string) $kelas->id
-                            )
-                            ->where(
-                                'id_user',
-                                (string) $validated['id_user']
-                            )
-                            ->delete();
-
-
-                    /*
-                    * countexamtimes tidak memiliki
-                    * kolom id_kelas pada schema legacy.
-                    *
-                    * Karena timer terikat ke kombinasi
-                    * paket + siswa, hapus berdasarkan
-                    * dua field tersebut.
-                    */
-                    Countexamtime::query()
-                        ->where(
-                            'id_soal',
-                            (string) $soal->id
-                        )
-                        ->where(
-                            'id_user',
-                            (string) $validated['id_user']
-                        )
-                        ->delete();
-
-
-                    return $deleted;
-                }
-            );
-
+            return $deleted;
+        });
 
         Aktifitas::create([
-            'id_user' =>
-                auth()->id(),
+            'id_user' => auth()->id(),
 
             'nama' =>
-                'Menghapus hasil '.
-                strtolower(
-                    $this->assessmentLabel(
-                        $soal
-                    )
-                ).
-                ' siswa '.
-                $studentName.
-                ' pada kelas '.
-                $kelas->nama.
-                ' paket '.
-                $soal->paket.'.',
+                'Menghapus hasil ' .
+                strtolower($this->assessmentLabel($soal)) .
+                ' siswa ' .
+                $studentName .
+                ' pada kelas ' .
+                $kelas->nama .
+                ' paket ' .
+                $soal->paket .
+                '.',
         ]);
-
 
         return response()->json([
             'success' => true,
 
-            'deleted' =>
-                $deleted,
+            'deleted' => $deleted,
 
-            'message' =>
-                'Hasil siswa berhasil dihapus.',
+            'message' => 'Hasil siswa berhasil dihapus.',
         ]);
     }
 
     public function destroyClassResults(Request $request): JsonResponse {
-        $validated =
-            $request->validate([
-                'id_kelas' => [
-                    'required',
-                    'integer',
-                ],
+        $validated = $request->validate([
+            'id_kelas' => ['required', 'integer'],
 
-                'id_soal' => [
-                    'required',
-                    'integer',
-                ],
-            ]);
+            'id_soal' => ['required', 'integer'],
+        ]);
 
-        $soal =
-            $this->findAccessiblePackage(
-                (int) $validated['id_soal']
-            );
+        $soal = $this->findAccessiblePackage((int) $validated['id_soal']);
 
-        $kelas =
-            Kelas::findOrFail(
-                (int) $validated['id_kelas']
-            );
+        $kelas = Kelas::findOrFail((int) $validated['id_kelas']);
 
-        $deleted =
-            DB::transaction(
-                function () use (
-                    $soal,
-                    $kelas
-                ) {
+        $deleted = DB::transaction(function () use ($soal, $kelas) {
+            $studentIds = Jawab::query()
+                ->where('id_soal', (string) $soal->id)
+                ->where('id_kelas', (string) $kelas->id)
+                ->pluck('id_user')
+                ->map(fn($id) => (string) $id)
+                ->unique()
+                ->values()
+                ->all();
 
-                    $studentIds =
-                        Jawab::query()
-                            ->where(
-                                'id_soal',
-                                (string) $soal->id
-                            )
-                            ->where(
-                                'id_kelas',
-                                (string) $kelas->id
-                            )
-                            ->pluck(
-                                'id_user'
-                            )
-                            ->map(
-                                fn ($id) =>
-                                    (string) $id
-                            )
-                            ->unique()
-                            ->values()
-                            ->all();
+            $deleted = Jawab::query()
+                ->where('id_soal', (string) $soal->id)
+                ->where('id_kelas', (string) $kelas->id)
+                ->delete();
 
-                    $deleted =
-                        Jawab::query()
-                            ->where(
-                                'id_soal',
-                                (string) $soal->id
-                            )
-                            ->where(
-                                'id_kelas',
-                                (string) $kelas->id
-                            )
-                            ->delete();
+            if ($studentIds !== []) {
+                Countexamtime::query()->where('id_soal', (string) $soal->id)->whereIn('id_user', $studentIds)->delete();
+            }
 
-                    if (
-                        $studentIds !== []
-                    ) {
-                        Countexamtime::query()
-                            ->where(
-                                'id_soal',
-                                (string) $soal->id
-                            )
-                            ->whereIn(
-                                'id_user',
-                                $studentIds
-                            )
-                            ->delete();
-                    }
-
-                    return $deleted;
-                }
-            );
+            return $deleted;
+        });
 
         Aktifitas::create([
-            'id_user' =>
-                auth()->id(),
+            'id_user' => auth()->id(),
 
             'nama' =>
-                'Menghapus seluruh hasil '.
-                strtolower(
-                    $this->assessmentLabel(
-                        $soal
-                    )
-                ).
-                ' kelas '.
-                $kelas->nama.
-                ' pada paket '.
-                $soal->paket.'.',
+                'Menghapus seluruh hasil ' .
+                strtolower($this->assessmentLabel($soal)) .
+                ' kelas ' .
+                $kelas->nama .
+                ' pada paket ' .
+                $soal->paket .
+                '.',
         ]);
 
         return response()->json([
             'success' => true,
 
-            'deleted' =>
-                $deleted,
+            'deleted' => $deleted,
 
-            'message' =>
-                'Hasil kelas berhasil dihapus.',
+            'message' => 'Hasil kelas berhasil dihapus.',
         ]);
     }
 
-    public function detail(int $id): View{
-        $user = User::findOrFail(
-            auth()->id()
-        );
+    public function detail(int $id): View {
+        $user = User::findOrFail(auth()->id());
 
         $school = School::first();
 
-        $soal = $this->findAccessiblePackage(
-            $id
-        );
+        $soal = $this->findAccessiblePackage($id);
 
         $jawabs = Jawab::query()
-            ->join(
-                'kelas',
-                'jawabs.id_kelas',
-                '=',
-                'kelas.id'
-            )
+            ->join('kelas', 'jawabs.id_kelas', '=', 'kelas.id')
             ->select(
                 'kelas.id as id_kelas',
                 'kelas.nama as nama_kelas',
                 'jawabs.id_soal',
 
-                DB::raw(
-                    'COUNT(DISTINCT jawabs.id_user) as jumlah_peserta'
-                ),
+                DB::raw('COUNT(DISTINCT jawabs.id_user) as jumlah_peserta'),
 
-                DB::raw(
-                    'MAX(jawabs.updated_at) as terakhir_dikerjakan'
-                )
+                DB::raw('MAX(jawabs.updated_at) as terakhir_dikerjakan'),
             )
-            ->where(
-                'jawabs.id_soal',
-                (string) $soal->id
-            )
-            ->where(
-                'jawabs.status',
-                'Y'
-            )
-            ->whereNotNull(
-                'jawabs.id_kelas'
-            )
-            ->groupBy(
-                'kelas.id',
-                'kelas.nama',
-                'jawabs.id_soal'
-            )
-            ->orderBy(
-                'kelas.nama'
-            )
+            ->where('jawabs.id_soal', (string) $soal->id)
+            ->where('jawabs.status', 'Y')
+            ->whereNotNull('jawabs.id_kelas')
+            ->groupBy('kelas.id', 'kelas.nama', 'jawabs.id_soal')
+            ->orderBy('kelas.nama')
             ->paginate(15);
 
-        $aktifitas =
-            $this->recentActivities();
+        $aktifitas = $this->recentActivities();
 
-        return view(
-            'guru.detailhasil',
-            compact(
-                'user',
-                'school',
-                'soal',
-                'jawabs',
-                'aktifitas'
-            )
-        );
+        return view('guru.detailhasil', compact('user', 'school', 'soal', 'jawabs', 'aktifitas'));
     }
 
     /**
@@ -603,12 +337,7 @@ class HasilController extends Controller
      */
     private function resultsQuery(?string $search = null): Builder {
         $query = Jawab::query()
-            ->join(
-                'soals',
-                'jawabs.id_soal',
-                '=',
-                'soals.id'
-            )
+            ->join('soals', 'jawabs.id_soal', '=', 'soals.id')
             ->select(
                 'soals.id as id_soal',
                 'soals.id_user',
@@ -619,18 +348,11 @@ class HasilController extends Controller
                 'soals.jenis',
                 'soals.created_at',
 
-                \DB::raw(
-                    'COUNT(DISTINCT jawabs.id_user) as jumlah_peserta'
-                ),
+                \DB::raw('COUNT(DISTINCT jawabs.id_user) as jumlah_peserta'),
 
-                \DB::raw(
-                    'MAX(jawabs.updated_at) as terakhir_dikerjakan'
-                )
+                \DB::raw('MAX(jawabs.updated_at) as terakhir_dikerjakan'),
             )
-            ->where(
-                'jawabs.status',
-                'Y'
-            );
+            ->where('jawabs.status', 'Y');
 
         /*
          * Guru hanya boleh melihat
@@ -638,24 +360,12 @@ class HasilController extends Controller
          *
          * Admin dapat melihat semua.
          */
-        if (
-            auth()->user()->status === 'G'
-        ) {
-            $query->where(
-                'soals.id_user',
-                (string) auth()->id()
-            );
+        if (auth()->user()->status === 'G') {
+            $query->where('soals.id_user', (string) auth()->id());
         }
 
-        if (
-            $search !== null &&
-            $search !== ''
-        ) {
-            $query->where(
-                'soals.paket',
-                'like',
-                '%'.$search.'%'
-            );
+        if ($search !== null && $search !== '') {
+            $query->where('soals.paket', 'like', '%' . $search . '%');
         }
 
         return $query
@@ -667,29 +377,22 @@ class HasilController extends Controller
                 'soals.kkm',
                 'soals.waktu',
                 'soals.jenis',
-                'soals.created_at'
+                'soals.created_at',
             )
-            ->orderByDesc(
-                'terakhir_dikerjakan'
-            );
+            ->orderByDesc('terakhir_dikerjakan');
     }
 
-    private function classResultRows(int $idKelas,int $idSoal) {
-    return Jawab::query()
-        ->join(
-            'users',
-            'jawabs.id_user',
-            '=',
-            'users.id'
-        )
-        ->select(
-            'jawabs.id_user',
-            'users.no_induk',
-            'users.nama',
-            'users.sekolah_asal',
+    private function classResultRows(int $idKelas, int $idSoal) {
+        return Jawab::query()
+            ->join('users', 'jawabs.id_user', '=', 'users.id')
+            ->select(
+                'jawabs.id_user',
+                'users.no_induk',
+                'users.nama',
+                'users.sekolah_asal',
 
-            DB::raw(
-                "
+                DB::raw(
+                    "
                 SUM(
                     CASE
                         WHEN CAST(
@@ -703,11 +406,11 @@ class HasilController extends Controller
                         ELSE 0
                     END
                 ) as jawaban_benar
-                "
-            ),
+                ",
+                ),
 
-            DB::raw(
-                "
+                DB::raw(
+                    "
                 SUM(
                     CAST(
                         COALESCE(
@@ -717,73 +420,31 @@ class HasilController extends Controller
                         AS DECIMAL(10,2)
                     )
                 ) as nilai
-                "
+                ",
+                ),
             )
-        )
-        ->where(
-            'jawabs.id_kelas',
-            (string) $idKelas
-        )
-        ->where(
-            'jawabs.id_soal',
-            (string) $idSoal
-        )
-        ->where(
-            'jawabs.status',
-            'Y'
-        )
-        ->groupBy(
-            'jawabs.id_user',
-            'users.no_induk',
-            'users.nama',
-            'users.sekolah_asal'
-        )
-        ->orderBy(
-            'users.nama'
-        )
-        ->get();
+            ->where('jawabs.id_kelas', (string) $idKelas)
+            ->where('jawabs.id_soal', (string) $idSoal)
+            ->where('jawabs.status', 'Y')
+            ->groupBy('jawabs.id_user', 'users.no_induk', 'users.nama', 'users.sekolah_asal')
+            ->orderBy('users.nama')
+            ->get();
     }
 
-    public function exportClassResults(int $id,int $idSoal): StreamedResponse {
-        $soal =
-            $this->findAccessiblePackage(
-                $idSoal
-            );
+    public function exportClassResults(int $id, int $idSoal): StreamedResponse {
+        $soal = $this->findAccessiblePackage($idSoal);
 
-        $kelas =
-            Kelas::findOrFail(
-                $id
-            );
+        $kelas = Kelas::findOrFail($id);
 
-        $results =
-            $this->classResultRows(
-                $kelas->id,
-                $soal->id
-            );
+        $results = $this->classResultRows($kelas->id, $soal->id);
 
-        $jumlahSoal =
-            Detailsoal::query()
-                ->where(
-                    'id_soal',
-                    (string) $soal->id
-                )
-                ->where(
-                    'status',
-                    'Y'
-                )
-                ->count();
+        $jumlahSoal = Detailsoal::query()->where('id_soal', (string) $soal->id)->where('status', 'Y')->count();
 
-        $spreadsheet =
-            new Spreadsheet();
+        $spreadsheet = new Spreadsheet();
 
-        $sheet =
-            $spreadsheet
-                ->getActiveSheet();
+        $sheet = $spreadsheet->getActiveSheet();
 
-        $sheet->setTitle(
-            'Rekap Nilai'
-        );
-
+        $sheet->setTitle('Rekap Nilai');
 
         /*
         |--------------------------------------------------------------------------
@@ -791,26 +452,13 @@ class HasilController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $sheet->setCellValue(
-            'A1',
-            'Paket Soal'
-        );
+        $sheet->setCellValue('A1', 'Paket Soal');
 
-        $sheet->setCellValue(
-            'B1',
-            $soal->paket
-        );
+        $sheet->setCellValue('B1', $soal->paket);
 
-        $sheet->setCellValue(
-            'A2',
-            'Kelas'
-        );
+        $sheet->setCellValue('A2', 'Kelas');
 
-        $sheet->setCellValue(
-            'B2',
-            $kelas->nama
-        );
-
+        $sheet->setCellValue('B2', $kelas->nama);
 
         /*
         |--------------------------------------------------------------------------
@@ -818,20 +466,9 @@ class HasilController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $headers = [
-            'NIS',
-            'Nama',
-            'Jumlah Soal',
-            'Jawaban Benar',
-            'Nilai',
-        ];
+        $headers = ['NIS', 'Nama', 'Jumlah Soal', 'Jawaban Benar', 'Nilai'];
 
-        $sheet->fromArray(
-            $headers,
-            null,
-            'A4'
-        );
-
+        $sheet->fromArray($headers, null, 'A4');
 
         /*
         |--------------------------------------------------------------------------
@@ -841,40 +478,19 @@ class HasilController extends Controller
 
         $row = 5;
 
-        foreach (
-            $results
-            as $result
-        ) {
-            $sheet->setCellValue(
-                'A'.$row,
-                (string) $result->no_induk
-            );
+        foreach ($results as $result) {
+            $sheet->setCellValue('A' . $row, (string) $result->no_induk);
 
-            $sheet->setCellValue(
-                'B'.$row,
-                $result->nama
-            );
+            $sheet->setCellValue('B' . $row, $result->nama);
 
-            $sheet->setCellValue(
-                'C'.$row,
-                $jumlahSoal
-            );
+            $sheet->setCellValue('C' . $row, $jumlahSoal);
 
-            $sheet->setCellValue(
-                'D'.$row,
-                (int)
-                $result->jawaban_benar
-            );
+            $sheet->setCellValue('D' . $row, (int) $result->jawaban_benar);
 
-            $sheet->setCellValue(
-                'E'.$row,
-                (float)
-                $result->nilai
-            );
+            $sheet->setCellValue('E' . $row, (float) $result->nilai);
 
             $row++;
         }
-
 
         /*
         |--------------------------------------------------------------------------
@@ -882,78 +498,44 @@ class HasilController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $lastRow =
-            max(
-                5,
-                $row - 1
-            );
+        $lastRow = max(5, $row - 1);
+
+        $sheet->getStyle('A1:A2')->getFont()->setBold(true);
+
+        $sheet->getStyle('A4:E4')->getFont()->setBold(true);
 
         $sheet
-            ->getStyle('A1:A2')
-            ->getFont()
-            ->setBold(true);
-
-        $sheet
-            ->getStyle('A4:E4')
-            ->getFont()
-            ->setBold(true);
-
-        $sheet
-            ->getStyle(
-                'A4:E'.$lastRow
-            )
+            ->getStyle('A4:E' . $lastRow)
             ->getBorders()
             ->getAllBorders()
-            ->setBorderStyle(
-                Border::BORDER_THIN
-            );
+            ->setBorderStyle(Border::BORDER_THIN);
 
         $sheet
-            ->getStyle(
-                'A4:E'.$lastRow
-            )
+            ->getStyle('A4:E' . $lastRow)
             ->getAlignment()
-            ->setVertical(
-                Alignment::VERTICAL_CENTER
-            );
+            ->setVertical(Alignment::VERTICAL_CENTER);
 
         $sheet
-            ->getStyle(
-                'A4:A'.$lastRow
-            )
+            ->getStyle('A4:A' . $lastRow)
             ->getAlignment()
-            ->setHorizontal(
-                Alignment::HORIZONTAL_CENTER
-            );
+            ->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         $sheet
-            ->getStyle(
-                'C4:E'.$lastRow
-            )
+            ->getStyle('C4:E' . $lastRow)
             ->getAlignment()
-            ->setHorizontal(
-                Alignment::HORIZONTAL_CENTER
-            );
+            ->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        $sheet->getColumnDimension('A')
-            ->setWidth(18);
+        $sheet->getColumnDimension('A')->setWidth(18);
 
-        $sheet->getColumnDimension('B')
-            ->setWidth(32);
+        $sheet->getColumnDimension('B')->setWidth(32);
 
-        $sheet->getColumnDimension('C')
-            ->setWidth(15);
+        $sheet->getColumnDimension('C')->setWidth(15);
 
-        $sheet->getColumnDimension('D')
-            ->setWidth(18);
+        $sheet->getColumnDimension('D')->setWidth(18);
 
-        $sheet->getColumnDimension('E')
-            ->setWidth(12);
+        $sheet->getColumnDimension('E')->setWidth(12);
 
-        $sheet->freezePane(
-            'A5'
-        );
-
+        $sheet->freezePane('A5');
 
         /*
         |--------------------------------------------------------------------------
@@ -961,33 +543,20 @@ class HasilController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $filename =
-            Str::slug(
-                'rekap-'.$kelas->nama.'-'.$soal->paket
-            ).
-            '.xlsx';
+        $filename = Str::slug('rekap-' . $kelas->nama . '-' . $soal->paket) . '.xlsx';
 
         return response()->streamDownload(
-            function () use (
-                $spreadsheet
-            ) {
-                $writer =
-                    new Xlsx(
-                        $spreadsheet
-                    );
+            function () use ($spreadsheet) {
+                $writer = new Xlsx($spreadsheet);
 
-                $writer->save(
-                    'php://output'
-                );
+                $writer->save('php://output');
 
-                $spreadsheet
-                    ->disconnectWorksheets();
+                $spreadsheet->disconnectWorksheets();
             },
             $filename,
             [
-                'Content-Type' =>
-                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            ]
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ],
         );
     }
 
@@ -997,71 +566,39 @@ class HasilController extends Controller
             ->when(
                 auth()->user()->status === 'G',
 
-                fn ($query) =>
-                    $query->where(
-                        'id_user',
-                        (string) auth()->id()
-                    )
+                fn($query) => $query->where('id_user', (string) auth()->id()),
             )
             ->firstOrFail();
     }
 
-    private function recentActivities(){
-    return Aktifitas::query()
-        ->join(
-            'users',
-            'aktifitas.id_user',
-            '=',
-            'users.id'
-        )
-        ->select(
-            'users.nama as nama_user',
-            'users.gambar',
-            'aktifitas.id',
-            'aktifitas.id_user',
-            'aktifitas.nama',
-            'aktifitas.created_at',
-            'aktifitas.updated_at'
-        )
-        ->orderByDesc(
-            'aktifitas.id'
-        )
-        ->limit(3)
-        ->get();
+    private function recentActivities() {
+        return Aktifitas::query()
+            ->join('users', 'aktifitas.id_user', '=', 'users.id')
+            ->select(
+                'users.nama as nama_user',
+                'users.gambar',
+                'aktifitas.id',
+                'aktifitas.id_user',
+                'aktifitas.nama',
+                'aktifitas.created_at',
+                'aktifitas.updated_at',
+            )
+            ->orderByDesc('aktifitas.id')
+            ->limit(3)
+            ->get();
     }
 
-    public function displayClassResults(int $id,int $idSoal): View {
-        $soal =
-            $this->findAccessiblePackage(
-                $idSoal
-            );
+    public function displayClassResults(int $id, int $idSoal): View {
+        $soal = $this->findAccessiblePackage($idSoal);
 
-        $kelas =
-            Kelas::findOrFail(
-                $id
-            );
+        $kelas = Kelas::findOrFail($id);
 
-        $results =
-            $this->classResultRows(
-                $kelas->id,
-                $soal->id
-            );
+        $results = $this->classResultRows($kelas->id, $soal->id);
 
-        return view(
-            'guru.tampil',
-            compact(
-                'soal',
-                'kelas',
-                'results'
-            )
-        );
+        return view('guru.tampil', compact('soal', 'kelas', 'results'));
     }
 
     private function assessmentLabel(Soal $soal): string {
-    return (string) $soal->jenis === '2'
-        ? 'Latihan'
-        : 'Ujian';
+        return (string) $soal->jenis === '2' ? 'Latihan' : 'Ujian';
     }
-
-    
 }
