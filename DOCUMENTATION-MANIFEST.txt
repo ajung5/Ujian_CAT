@@ -1,0 +1,19 @@
+Ujian CAT Documentation Bundle
+
+Root files:
+- README.md
+- SECURITY.md
+- CONTRIBUTING.md
+- CHANGELOG.md
+- .env.example
+
+docs/:
+- INSTALLATION.md
+- DEPLOYMENT.md
+- ARCHITECTURE.md
+- DATABASE.md
+- TESTING.md
+- OPERATIONS.md
+- MIGRATION-NOTES.md
+
+Baseline: Laravel 13 / MySQL legacy `ujian` / 30 tests passed.
