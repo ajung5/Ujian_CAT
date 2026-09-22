@@ -45,11 +45,6 @@
         href="{{ asset('img/favicon.png') }}"
     >
 
-    <link
-        rel="stylesheet"
-        href="{{ asset('lib/jquery-toggles/toggles-full.css') }}"
-    >
-
     @stack('styles')
 
 </head>
@@ -583,8 +578,6 @@
 <script src="{{ asset('assets/assets/vendor/jquery.min.js') }}"></script>
 
 <script src="{{ asset('lib/bootstrap/js/bootstrap.js') }}"></script>
-
-<script src="{{ asset('lib/jquery-toggles/toggles.js') }}"></script>
 
 <script src="{{ asset('js/quirk.js') }}"></script>
 

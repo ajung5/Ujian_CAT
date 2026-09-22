@@ -391,24 +391,159 @@ class SoalController extends Controller
     }
 
     /**
-     * Eksekusi delete Paket Soal.
+     * Menghapus Paket Soal.
      *
-     * Dibuat POST agar GET tidak melakukan
-     * perubahan data.
+     * Paket yang sudah pernah dikerjakan siswa
+     * tidak boleh dihapus agar histori hasil ujian
+     * tetap terjaga.
+     *
+     * Paket yang belum pernah dikerjakan akan
+     * dibersihkan bersama detail soal, distribusi,
+     * dan file audio terkait.
      */
     public function destroy(Request $request,int $id): JsonResponse|RedirectResponse {
-
         $soal =
             $this->findAccessibleSoal(
                 $id
             );
 
+
         /*
-        * Pertahankan behavior database legacy:
-        * saat ini hanya record paket soal
-        * yang dihapus.
+        * Jangan menghapus paket yang sudah
+        * mempunyai histori pengerjaan.
+        *
+        * jawabs:
+        * - draft jawaban
+        * - hasil final
+        *
+        * countexamtimes:
+        * - menandakan siswa pernah
+        *   memulai assessment
         */
-        $soal->delete();
+        $sudahDikerjakan =
+            $soal
+                ->jawabs()
+                ->exists()
+            ||
+            $soal
+                ->countexamtimes()
+                ->exists();
+
+
+        if ($sudahDikerjakan) {
+
+            $message =
+                'Paket soal tidak dapat dihapus '.
+                'karena sudah memiliki riwayat '.
+                'pengerjaan siswa.';
+
+
+            if ($request->expectsJson()) {
+
+                return response()->json(
+                    [
+                        'message' =>
+                            $message,
+                    ],
+                    409
+                );
+
+            }
+
+
+            return redirect()
+                ->route('guru.soal')
+                ->withErrors([
+                    'delete' =>
+                        $message,
+                ]);
+        }
+
+
+        /*
+        * Simpan daftar file audio terlebih dahulu.
+        *
+        * File baru dihapus SETELAH transaksi
+        * database berhasil, sehingga rollback
+        * database tidak menyebabkan referensi
+        * audio rusak.
+        */
+        $audioFiles =
+            $soal
+                ->detailsoals()
+                ->whereNotNull('audio')
+                ->pluck('audio')
+                ->filter()
+                ->map(
+                    fn ($audio) =>
+                        basename(
+                            (string) $audio
+                        )
+                )
+                ->unique()
+                ->values()
+                ->all();
+
+
+        /*
+        * Bersihkan dependent records secara
+        * atomik.
+        *
+        * Jika salah satu query gagal,
+        * seluruh operasi database di-rollback.
+        */
+        DB::transaction(
+            function () use ($soal) {
+
+                /*
+                * Hapus distribusi paket
+                * ke kelas.
+                */
+                $soal
+                    ->distribusisoals()
+                    ->delete();
+
+
+                /*
+                * Hapus seluruh pertanyaan
+                * dalam paket.
+                */
+                $soal
+                    ->detailsoals()
+                    ->delete();
+
+
+                /*
+                * Terakhir hapus paket induk.
+                */
+                $soal->delete();
+            }
+        );
+
+
+        /*
+        * Setelah transaksi database berhasil,
+        * bersihkan file audio fisik.
+        */
+        foreach ($audioFiles as $audioFile) {
+
+            $audioPath =
+                public_path(
+                    'assets/audios/'.
+                    $audioFile
+                );
+
+
+            if (
+                File::exists(
+                    $audioPath
+                )
+            ) {
+                File::delete(
+                    $audioPath
+                );
+            }
+        }
 
 
         if ($request->expectsJson()) {

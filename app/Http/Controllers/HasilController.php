@@ -245,35 +245,105 @@ class HasilController extends Controller
                 ],
             ]);
 
+
+        /*
+        * Pastikan paket dapat diakses
+        * oleh Guru/Admin yang sedang login.
+        */
         $soal =
             $this->findAccessiblePackage(
                 (int) $validated['id_soal']
             );
 
+
+        /*
+        * Kelas yang digunakan adalah kelas
+        * historis ketika ujian berlangsung.
+        */
         $kelas =
             Kelas::findOrFail(
                 (int) $validated['id_kelas']
             );
 
-        $student =
-            User::query()
-                ->whereKey(
-                    (int) $validated['id_user']
+
+        /*
+        * Sumber kebenaran histori adalah jawabs,
+        * BUKAN users.id_kelas saat ini.
+        *
+        * Dengan demikian siswa yang sudah pindah
+        * kelas tetap dapat dikelola hasil lamanya.
+        */
+        $historicalAnswer =
+            Jawab::query()
+                ->where(
+                    'id_soal',
+                    $soal->id
                 )
                 ->where(
                     'id_kelas',
                     $kelas->id
                 )
-                ->firstOrFail();
+                ->where(
+                    'id_user',
+                    (int) $validated['id_user']
+                )
+                ->first();
+
+
+        if (! $historicalAnswer) {
+
+            return response()->json(
+                [
+                    'message' =>
+                        'Hasil historis siswa tidak ditemukan.',
+                ],
+                404
+            );
+        }
+
+
+        /*
+        * Data user hanya digunakan untuk
+        * mendapatkan nama terbaru.
+        *
+        * Tidak ada validasi terhadap
+        * users.id_kelas karena siswa mungkin
+        * sudah berpindah kelas.
+        */
+        $student =
+            User::find(
+                (int) $validated['id_user']
+            );
+
+
+        /*
+        * jawabs.nama menyimpan snapshot nama
+        * ketika siswa mengerjakan ujian.
+        *
+        * Digunakan sebagai fallback apabila
+        * akun user sudah tidak tersedia.
+        */
+        $studentName =
+            $student?->nama
+            ??
+            $historicalAnswer->nama
+            ??
+            'User ID '.
+            $validated['id_user'];
+
 
         $deleted =
             DB::transaction(
                 function () use (
                     $soal,
                     $kelas,
-                    $student
+                    $validated
                 ) {
 
+                    /*
+                    * Hapus seluruh jawaban milik siswa
+                    * pada paket + kelas historis tersebut.
+                    */
                     $deleted =
                         Jawab::query()
                             ->where(
@@ -286,10 +356,19 @@ class HasilController extends Controller
                             )
                             ->where(
                                 'id_user',
-                                $student->id
+                                (int) $validated['id_user']
                             )
                             ->delete();
 
+
+                    /*
+                    * countexamtimes tidak memiliki
+                    * kolom id_kelas pada schema legacy.
+                    *
+                    * Karena timer terikat ke kombinasi
+                    * paket + siswa, hapus berdasarkan
+                    * dua field tersebut.
+                    */
                     Countexamtime::query()
                         ->where(
                             'id_soal',
@@ -297,13 +376,15 @@ class HasilController extends Controller
                         )
                         ->where(
                             'id_user',
-                            $student->id
+                            (int) $validated['id_user']
                         )
                         ->delete();
+
 
                     return $deleted;
                 }
             );
+
 
         Aktifitas::create([
             'id_user' =>
@@ -317,10 +398,13 @@ class HasilController extends Controller
                     )
                 ).
                 ' siswa '.
-                $student->nama.
-                ' pada paket '.
+                $studentName.
+                ' pada kelas '.
+                $kelas->nama.
+                ' paket '.
                 $soal->paket.'.',
         ]);
+
 
         return response()->json([
             'success' => true,

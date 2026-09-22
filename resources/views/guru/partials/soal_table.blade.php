@@ -208,10 +208,6 @@
                 >
                     <i class="fa fa-trash"></i>
                 </button>
-                    <i class="fa fa-trash"></i>
-
-                </a>
-
             </td>
 
         </tr>
