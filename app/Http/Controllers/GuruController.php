@@ -94,26 +94,17 @@ class GuruController extends Controller {
             $request->all(),
             [
                 'nama' => ['required', 'string', 'max:150'],
-
                 'nis' => ['nullable', 'string', 'max:50'],
-
                 'jk' => ['required', Rule::in(['L', 'P'])],
-
                 'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
-
                 'password' => ['nullable', 'string', 'max:255'],
             ],
             [
                 'nama.required' => 'Nama tidak boleh kosong.',
-
                 'email.required' => 'Email tidak boleh kosong.',
-
                 'email.email' => 'Email yang Anda masukan tidak valid.',
-
                 'email.unique' => 'Email sudah terpakai, ganti dengan yang lain.',
-
                 'jk.required' => 'Jenis kelamin wajib dipilih.',
-
                 'jk.in' => 'Jenis kelamin tidak valid.',
             ],
         );
@@ -150,7 +141,6 @@ class GuruController extends Controller {
     public function uploadFotoUser(Request $request): Response {
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'integer'],
-
             'file' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ]);
 
@@ -206,11 +196,8 @@ class GuruController extends Controller {
             $request->all(),
             [
                 'id' => ['required', 'integer', 'exists:schools,id'],
-
                 'nama_sekolah' => ['required', 'string', 'max:150'],
-
                 'alamat_sekolah' => ['nullable', 'string', 'max:255'],
-
                 'motto_sekolah' => ['nullable', 'string', 'max:250'],
             ],
             [
@@ -246,7 +233,6 @@ class GuruController extends Controller {
     public function uploadFotoSekolah(Request $request): Response {
         $validator = Validator::make($request->all(), [
             'id_sekolah' => ['required', 'integer', 'exists:schools,id'],
-
             'file' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ]);
 
@@ -327,7 +313,6 @@ class GuruController extends Controller {
         $validated = $request->validate(
             [
                 'id' => ['required', 'integer', 'exists:kelas,id'],
-
                 'nama' => ['required', 'string', 'max:255'],
             ],
             [
@@ -483,7 +468,6 @@ class GuruController extends Controller {
         $validated = $request->validate(
             [
                 'siswa' => ['required', 'integer'],
-
                 'id_kelas' => ['required', 'integer', 'exists:kelas,id'],
             ],
             [
@@ -511,7 +495,6 @@ class GuruController extends Controller {
 
         Aktifitas::create([
             'id_user' => auth()->id(),
-
             'nama' =>
                 'Memindahkan kelas siswa atas nama ' .
                 $siswa->nama .
@@ -546,7 +529,6 @@ class GuruController extends Controller {
 
         Aktifitas::create([
             'id_user' => auth()->id(),
-
             'nama' =>
                 'Mengeluarkan kelas siswa atas nama ' .
                 $siswa->nama .

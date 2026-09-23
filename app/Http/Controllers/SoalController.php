@@ -93,34 +93,21 @@ class SoalController extends Controller {
         $validated = $request->validate(
             [
                 'jenis' => ['required', Rule::in(['1', '2'])],
-
                 'materi' => ['nullable', 'integer', 'exists:materis,id'],
-
                 'paket' => ['required', 'string', 'max:255'],
-
                 'deskripsi' => ['required', 'string', 'max:255'],
-
                 'kkm' => ['required', 'integer', 'min:0', 'max:99999'],
-
                 'waktu' => ['required', 'integer', 'min:1'],
             ],
             [
                 'jenis.required' => 'Anda belum memilih jenis soal.',
-
                 'jenis.in' => 'Jenis soal tidak valid.',
-
                 'materi.exists' => 'Materi yang dipilih tidak ditemukan.',
-
                 'paket.required' => 'Anda belum menuliskan paket soal.',
-
                 'deskripsi.required' => 'Anda belum menuliskan deskripsi soal.',
-
                 'kkm.required' => 'Anda belum menuliskan KKM soal.',
-
                 'kkm.integer' => 'KKM harus berupa bilangan bulat.',
-
                 'waktu.required' => 'Anda belum menuliskan waktu soal.',
-
                 'waktu.integer' => 'Waktu harus ditulis dalam detik.',
             ],
         );
@@ -203,22 +190,15 @@ class SoalController extends Controller {
         $validated = $request->validate(
             [
                 'id_soal' => ['required', 'integer'],
-
                 'paket' => ['required', 'string', 'max:255'],
-
                 'deskripsi' => ['required', 'string', 'max:255'],
-
                 'kkm' => ['required', 'integer', 'min:0', 'max:99999'],
-
                 'waktu' => ['required', 'integer', 'min:1'],
             ],
             [
                 'paket.required' => 'Anda belum menuliskan paket soal.',
-
                 'deskripsi.required' => 'Anda belum menuliskan deskripsi soal.',
-
                 'kkm.required' => 'Anda belum menuliskan KKM soal.',
-
                 'waktu.required' => 'Anda belum menuliskan waktu soal.',
             ],
         );
@@ -383,46 +363,27 @@ class SoalController extends Controller {
         $validated = $request->validate(
             [
                 'paket' => ['required', 'integer'],
-
                 'sesi' => ['required', 'string', 'size:32'],
-
                 'soal' => ['required', 'string'],
-
                 'pila' => ['required', 'string'],
-
                 'pilb' => ['required', 'string'],
-
                 'pilc' => ['required', 'string'],
-
                 'pild' => ['required', 'string'],
-
                 'pile' => ['required', 'string'],
-
                 'kunci' => ['required', Rule::in(['A', 'B', 'C', 'D', 'E'])],
-
                 'score' => ['required', 'string', 'max:50'],
-
                 'status' => ['required', Rule::in(['Y', 'N'])],
             ],
             [
                 'soal.required' => 'Soal belum diisi.',
-
                 'pila.required' => 'Pilihan A belum diisi.',
-
                 'pilb.required' => 'Pilihan B belum diisi.',
-
                 'pilc.required' => 'Pilihan C belum diisi.',
-
                 'pild.required' => 'Pilihan D belum diisi.',
-
                 'pile.required' => 'Pilihan E belum diisi.',
-
                 'kunci.required' => 'Kunci jawaban belum dipilih.',
-
                 'score.required' => 'Score belum diisi.',
-
                 'status.required' => 'Status belum dipilih.',
-
                 'sesi.size' => 'Sesi detail soal tidak valid.',
             ],
         );
@@ -501,23 +462,14 @@ class SoalController extends Controller {
     public function updateDetail(Request $request): Response {
         $validated = $request->validate([
             'id_soal' => ['required', 'integer'],
-
             'soal' => ['required', 'string'],
-
             'pila' => ['required', 'string'],
-
             'pilb' => ['required', 'string'],
-
             'pilc' => ['required', 'string'],
-
             'pild' => ['required', 'string'],
-
             'pile' => ['required', 'string'],
-
             'kunci' => ['required', Rule::in(['A', 'B', 'C', 'D', 'E'])],
-
             'score' => ['required', 'string', 'max:50'],
-
             'status' => ['required', Rule::in(['Y', 'N'])],
         ]);
 
@@ -570,7 +522,6 @@ class SoalController extends Controller {
     public function uploadAudio(Request $request): Response {
         $request->validate([
             'file' => ['required', 'file', 'max:10240'],
-
             'tampil' => ['required', 'string'],
         ]);
 
@@ -707,7 +658,6 @@ class SoalController extends Controller {
     public function storeDistribution(Request $request): Response {
         $validated = $request->validate([
             'id_soal' => ['required', 'integer'],
-
             'id_kelas' => ['required', 'integer', 'exists:kelas,id'],
         ]);
 
@@ -723,7 +673,6 @@ class SoalController extends Controller {
 
         Distribusisoal::query()->firstOrCreate([
             'id_soal' => (string) $soal->id,
-
             'id_kelas' => (string) $validated['id_kelas'],
         ]);
 
@@ -733,7 +682,6 @@ class SoalController extends Controller {
     public function destroyDistribution(Request $request): Response {
         $validated = $request->validate([
             'id_soal' => ['required', 'integer'],
-
             'id_kelas' => ['required', 'integer'],
         ]);
 
@@ -754,9 +702,7 @@ class SoalController extends Controller {
             ],
             [
                 'file.required' => 'File Excel belum dipilih.',
-
                 'file.extensions' => 'File harus menggunakan format XLS atau XLSX.',
-
                 'file.max' => 'Ukuran file maksimal 10 MB.',
             ],
         );

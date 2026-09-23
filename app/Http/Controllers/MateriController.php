@@ -66,22 +66,15 @@ class MateriController extends Controller {
         $validated = $request->validate(
             [
                 'sesi' => ['required', 'string', 'size:32'],
-
                 'judul' => ['required', 'string', 'max:255'],
-
                 'isi' => ['required', 'string'],
-
                 'status' => ['required', Rule::in(['Y', 'N'])],
             ],
             [
                 'sesi.required' => 'Sesi materi tidak ditemukan.',
-
                 'judul.required' => 'Judul tidak boleh kosong.',
-
                 'isi.required' => 'Isi materi tidak boleh kosong.',
-
                 'status.required' => 'Status materi wajib dipilih.',
-
                 'status.in' => 'Status materi tidak valid.',
             ],
         );
@@ -116,7 +109,6 @@ class MateriController extends Controller {
 
         Aktifitas::create([
             'id_user' => auth()->id(),
-
             'nama' => $isNew
                 ? 'Menulis materi baru dengan judul ' . $materi->judul . '.'
                 : 'Merubah materi dengan judul ' . $materi->judul . '.',
@@ -147,16 +139,12 @@ class MateriController extends Controller {
         $validated = $request->validate(
             [
                 'sesi' => ['required', 'string', 'size:32'],
-
                 'file' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             ],
             [
                 'file.required' => 'File gambar wajib dipilih.',
-
                 'file.image' => 'File harus berupa gambar.',
-
                 'file.mimes' => 'Gambar harus JPG, JPEG, PNG, atau WEBP.',
-
                 'file.max' => 'Ukuran gambar maksimal 5 MB.',
             ],
         );
@@ -254,7 +242,6 @@ class MateriController extends Controller {
 
         Aktifitas::create([
             'id_user' => auth()->id(),
-
             'nama' => 'Menghapus materi miliknya ' . 'yang berjudul ' . $judul . '.',
         ]);
 

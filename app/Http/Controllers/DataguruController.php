@@ -57,13 +57,9 @@ class DataguruController extends Controller {
             ],
             [
                 'nama.required' => 'Anda belum menuliskan nama guru.',
-
                 'email.required' => 'Anda belum menuliskan email guru.',
-
                 'email.email' => 'Email yang Anda masukan tidak valid.',
-
                 'email.unique' => 'Email sudah terpakai, ganti dengan yang lain.',
-
                 'jk.required' => 'Anda belum mengisi jenis kelamin guru.',
             ],
         );

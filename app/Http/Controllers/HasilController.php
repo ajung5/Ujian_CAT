@@ -74,7 +74,6 @@ class HasilController extends Controller {
                 'jawabs.id_soal',
                 'users.nama',
                 'users.no_induk',
-
                 DB::raw(
                     "
                     SUM(
@@ -88,7 +87,6 @@ class HasilController extends Controller {
                     ) as total_score
                     ",
                 ),
-
                 DB::raw('MAX(jawabs.updated_at) as selesai_pada'),
             )
             ->where('jawabs.id_kelas', (string) $kelas->id)
@@ -134,9 +132,7 @@ class HasilController extends Controller {
     public function destroyStudentResult(Request $request): JsonResponse {
         $validated = $request->validate([
             'id_kelas' => ['required', 'integer'],
-
             'id_soal' => ['required', 'integer'],
-
             'id_user' => ['required', 'integer'],
         ]);
 
@@ -222,7 +218,6 @@ class HasilController extends Controller {
 
         Aktifitas::create([
             'id_user' => auth()->id(),
-
             'nama' =>
                 'Menghapus hasil ' .
                 strtolower($this->assessmentLabel($soal)) .
@@ -237,9 +232,7 @@ class HasilController extends Controller {
 
         return response()->json([
             'success' => true,
-
             'deleted' => $deleted,
-
             'message' => 'Hasil siswa berhasil dihapus.',
         ]);
     }
@@ -247,7 +240,6 @@ class HasilController extends Controller {
     public function destroyClassResults(Request $request): JsonResponse {
         $validated = $request->validate([
             'id_kelas' => ['required', 'integer'],
-
             'id_soal' => ['required', 'integer'],
         ]);
 
@@ -279,7 +271,6 @@ class HasilController extends Controller {
 
         Aktifitas::create([
             'id_user' => auth()->id(),
-
             'nama' =>
                 'Menghapus seluruh hasil ' .
                 strtolower($this->assessmentLabel($soal)) .
@@ -292,9 +283,7 @@ class HasilController extends Controller {
 
         return response()->json([
             'success' => true,
-
             'deleted' => $deleted,
-
             'message' => 'Hasil kelas berhasil dihapus.',
         ]);
     }
@@ -312,9 +301,7 @@ class HasilController extends Controller {
                 'kelas.id as id_kelas',
                 'kelas.nama as nama_kelas',
                 'jawabs.id_soal',
-
                 DB::raw('COUNT(DISTINCT jawabs.id_user) as jumlah_peserta'),
-
                 DB::raw('MAX(jawabs.updated_at) as terakhir_dikerjakan'),
             )
             ->where('jawabs.id_soal', (string) $soal->id)
@@ -347,9 +334,7 @@ class HasilController extends Controller {
                 'soals.waktu',
                 'soals.jenis',
                 'soals.created_at',
-
                 \DB::raw('COUNT(DISTINCT jawabs.id_user) as jumlah_peserta'),
-
                 \DB::raw('MAX(jawabs.updated_at) as terakhir_dikerjakan'),
             )
             ->where('jawabs.status', 'Y');
@@ -390,7 +375,6 @@ class HasilController extends Controller {
                 'users.no_induk',
                 'users.nama',
                 'users.sekolah_asal',
-
                 DB::raw(
                     "
                 SUM(
@@ -408,7 +392,6 @@ class HasilController extends Controller {
                 ) as jawaban_benar
                 ",
                 ),
-
                 DB::raw(
                     "
                 SUM(
@@ -563,11 +546,7 @@ class HasilController extends Controller {
     private function findAccessiblePackage(int $id): Soal {
         return Soal::query()
             ->whereKey($id)
-            ->when(
-                auth()->user()->status === 'G',
-
-                fn($query) => $query->where('id_user', (string) auth()->id()),
-            )
+            ->when(auth()->user()->status === 'G', fn($query) => $query->where('id_user', (string) auth()->id()))
             ->firstOrFail();
     }
 

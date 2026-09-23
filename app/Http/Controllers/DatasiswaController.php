@@ -75,7 +75,6 @@ class DatasiswaController extends Controller {
     public function search(Request $request): View {
         $validated = $request->validate([
             'q' => ['nullable', 'string', 'max:150'],
-
             'status' => ['required', Rule::in(['S', 'C'])],
         ]);
 
@@ -121,30 +120,19 @@ class DatasiswaController extends Controller {
         $validated = $request->validate(
             [
                 'nama' => ['required', 'string', 'max:150'],
-
                 'no_induk' => ['required', 'string', 'max:50', Rule::unique('users', 'no_induk')],
-
                 'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
-
                 'jk' => ['required', Rule::in(['L', 'P'])],
-
                 'id_kelas' => ['required', 'integer', 'exists:kelas,id'],
             ],
             [
                 'nama.required' => 'Anda belum menuliskan nama siswa.',
-
                 'no_induk.required' => 'Anda belum menuliskan NIS.',
-
                 'no_induk.unique' => 'NIS sudah terdaftar.',
-
                 'email.required' => 'Anda belum menuliskan email siswa.',
-
                 'email.email' => 'Email yang Anda masukan tidak valid.',
-
                 'email.unique' => 'Email sudah terdaftar.',
-
                 'jk.required' => 'Anda belum mengisi jenis kelamin siswa.',
-
                 'id_kelas.required' => 'Anda belum mengisi kelas siswa.',
             ],
         );
@@ -284,13 +272,9 @@ class DatasiswaController extends Controller {
     public function update(Request $request): Response {
         $validated = $request->validate([
             'id_siswa' => ['required', 'integer'],
-
             'nama' => ['required', 'string', 'max:150'],
-
             'nis' => ['required', 'string', 'max:50'],
-
             'jk' => ['required', Rule::in(['L', 'P'])],
-
             'password' => ['nullable', 'string', 'max:255'],
         ]);
 
@@ -345,20 +329,14 @@ class DatasiswaController extends Controller {
         $validated = $request->validate(
             [
                 'id_siswa' => ['required', 'integer'],
-
                 'nis' => ['required', 'string', 'max:50'],
-
                 'id_kelas' => ['required', 'integer', 'exists:kelas,id'],
             ],
             [
                 'id_siswa.required' => 'Calon siswa belum dipilih.',
-
                 'nis.required' => 'NIS final wajib diisi.',
-
                 'nis.max' => 'NIS maksimal 50 karakter.',
-
                 'id_kelas.required' => 'Kelas tujuan wajib dipilih.',
-
                 'id_kelas.exists' => 'Kelas tujuan tidak ditemukan.',
             ],
         );
@@ -425,7 +403,6 @@ class DatasiswaController extends Controller {
              */
             Aktifitas::create([
                 'id_user' => auth()->id(),
-
                 'nama' =>
                     'Menerima calon siswa ' .
                     $siswa->nama .
@@ -464,12 +441,10 @@ class DatasiswaController extends Controller {
         $validated = $request->validate(
             [
                 'id_siswa' => ['required', 'integer'],
-
                 'file' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:1024'],
             ],
             [
                 'file.max' => 'Ukuran foto maksimal 1 MB.',
-
                 'file.mimes' => 'Foto harus berupa JPG, JPEG, atau PNG.',
             ],
         );
@@ -613,9 +588,7 @@ class DatasiswaController extends Controller {
             ],
             [
                 'file.required' => 'File Excel siswa wajib dipilih.',
-
                 'file.mimes' => 'File harus berformat XLS atau XLSX.',
-
                 'file.max' => 'Ukuran file maksimal 5 MB.',
             ],
         );
@@ -643,9 +616,7 @@ class DatasiswaController extends Controller {
             ],
             [
                 'filecalon.required' => 'File Excel calon siswa wajib dipilih.',
-
                 'filecalon.mimes' => 'File harus berformat XLS atau XLSX.',
-
                 'filecalon.max' => 'Ukuran file maksimal 5 MB.',
             ],
         );
@@ -916,7 +887,6 @@ class DatasiswaController extends Controller {
 
         Aktifitas::create([
             'id_user' => auth()->id(),
-
             'nama' => 'Import Excel ' . $jenisImport . ': ' . $sukses . ' berhasil, ' . $gagal . ' ditolak.',
         ]);
 

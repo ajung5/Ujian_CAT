@@ -15,6 +15,18 @@ abstract class TestCase extends BaseTestCase {
     private static int $userSequence = 1;
 
     protected function setUp(): void {
+        /*
+         * Paksa environment testing sebelum Laravel
+         * membuat application instance.
+         *
+         * Ini mencegah APP_ENV global dari shell/VS Code
+         * seperti APP_ENV=local memengaruhi regression test.
+         */
+        putenv('APP_ENV=testing');
+
+        $_ENV['APP_ENV'] = 'testing';
+        $_SERVER['APP_ENV'] = 'testing';
+
         parent::setUp();
 
         /*
@@ -52,13 +64,9 @@ abstract class TestCase extends BaseTestCase {
             array_merge(
                 [
                     'nama' => 'Sekolah Test',
-
                     'alamat' => 'Alamat Test',
-
                     'logo' => '',
-
                     'header' => '',
-
                     'motto' => 'Testing',
                 ],
                 $attributes,
@@ -73,21 +81,13 @@ abstract class TestCase extends BaseTestCase {
             array_merge(
                 [
                     'id_kelas' => null,
-
                     'nama' => 'User Test ' . $sequence,
-
                     'no_induk' => 'TEST-' . $sequence,
-
                     'jk' => 'L',
-
                     'status' => 'S',
-
                     'gambar' => '',
-
                     'email' => 'user' . $sequence . '@example.test',
-
                     'password' => Hash::make('password123'),
-
                     'sekolah_asal' => '',
                 ],
                 $attributes,
