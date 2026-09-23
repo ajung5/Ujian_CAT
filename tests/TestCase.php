@@ -5,6 +5,7 @@ namespace Tests;
 use App\Models\School;
 use App\Models\User;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Tests\Support\CreatesLegacySchema;
 
@@ -16,6 +17,31 @@ abstract class TestCase extends BaseTestCase {
     protected function setUp(): void {
         parent::setUp();
 
+        /*
+         * SAFETY:
+         * Regression test HARUS menggunakan SQLite in-memory.
+         *
+         * Jangan pernah membiarkan test menggunakan database
+         * development/production dari .env atau config cache.
+         */
+        config([
+            'database.default' => 'sqlite',
+            'database.connections.sqlite.url' => null,
+            'database.connections.sqlite.database' => ':memory:',
+            'database.connections.sqlite.foreign_key_constraints' => true,
+        ]);
+
+        /*
+         * Buang koneksi SQLite yang mungkin sudah pernah dibuat
+         * kemudian jadikan SQLite sebagai default connection.
+         */
+        DB::purge('sqlite');
+        DB::setDefaultConnection('sqlite');
+
+        /*
+         * CreatesLegacySchema mempunyai fail-safe tambahan:
+         * hanya boleh berjalan pada SQLite :memory:.
+         */
         $this->createLegacySchema();
 
         $this->createSchool();

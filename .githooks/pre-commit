@@ -1,0 +1,56 @@
+#!/bin/sh
+set -eu
+
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+#
+# Pastikan binary standar/Homebrew diprioritaskan.
+#
+PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+export PATH
+
+#
+# PHP project.
+#
+if [ -x "/opt/homebrew/bin/php" ]; then
+    PHP_BIN="/opt/homebrew/bin/php"
+else
+    PHP_BIN="$(command -v php || true)"
+fi
+
+if [ -z "$PHP_BIN" ]; then
+    echo "ERROR: PHP tidak ditemukan."
+    exit 1
+fi
+
+echo "==> PHP runtime"
+
+"$PHP_BIN" -r '
+echo "PHP " . PHP_VERSION . " (" . PHP_SAPI . ")" . PHP_EOL;
+'
+
+#
+# Laravel 13 / dependency project membutuhkan PHP >= 8.4.1.
+#
+"$PHP_BIN" -r '
+if (version_compare(PHP_VERSION, "8.4.1", "<")) {
+    fwrite(
+        STDERR,
+        "ERROR: PHP >= 8.4.1 diperlukan. PHP aktif: " . PHP_VERSION . PHP_EOL
+    );
+
+    exit(1);
+}
+'
+
+echo "==> Checking source formatting"
+npm run format:check
+
+echo "==> Checking staged diff whitespace"
+git diff --cached --check
+
+echo "==> Running regression tests"
+APP_ENV=testing "$PHP_BIN" artisan test
+
+echo "==> Pre-commit checks passed"

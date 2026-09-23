@@ -20,6 +20,10 @@
                 Paket <small>Soal</small>
             </th>
 
+            <th class="text-center">
+                Jenis Soal
+            </th>
+
             <th>
                 Deskripsi
             </th>
@@ -37,9 +41,9 @@
             </th>
 
             <th style="
-                width:130px;
-                text-align:center;
-            ">
+                    width:130px;
+                    text-align:center;
+                ">
                 Aksi
             </th>
         </tr>
@@ -58,6 +62,9 @@
 
                 <td>
                     {{ $soal->paket }}
+                </td>
+
+                <td class="text-center">
                     @if ($soal->jenis === '2')
                         <span class="label label-info">
                             Latihan
@@ -89,34 +96,35 @@
                 <td class="text-center">
                     <a href="{{ route('guru.soal.edit', $soal->id) }}"
                         class="
-                        btn
-                        btn-xs
-                        btn-success
-                    "
+                            btn
+                            btn-xs
+                            btn-success
+                        "
                         title="Ubah Soal">
                         <i
                             class="
-                            fa
-                            fa-pencil-square-o
-                        "></i>
+                                fa
+                                fa-pencil-square-o
+                            "></i>
                     </a>
 
                     <a href="{{ url('/detail-soal/' . $soal->id) }}"
                         class="
-                        btn
-                        btn-xs
-                        btn-primary
-                    "
+                            btn
+                            btn-xs
+                            btn-primary
+                        "
                         title="Detail Soal">
                         <i class="fa fa-search"></i>
                     </a>
+
                     <button type="button"
                         class="
-                        btn
-                        btn-xs
-                        btn-danger
-                        js-delete-soal
-                    "
+                            btn
+                            btn-xs
+                            btn-danger
+                            js-delete-soal
+                        "
                         data-url="{{ route('guru.soal.destroy', $soal->id) }}" data-paket="{{ $soal->paket }}"
                         title="Hapus Soal">
                         <i class="fa fa-trash"></i>
@@ -127,7 +135,7 @@
         @empty
 
             <tr>
-                <td colspan="8" class="alert alert-danger">
+                <td colspan="9" class="alert alert-danger">
                     Belum ada data untuk ditampilkan.
                 </td>
             </tr>

@@ -4,9 +4,21 @@ namespace Tests\Support;
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use RuntimeException;
 
 trait CreatesLegacySchema {
     protected function createLegacySchema(): void {
+        $connection = Schema::getConnection();
+
+        if ($connection->getDriverName() !== 'sqlite' || $connection->getDatabaseName() !== ':memory:') {
+            throw new RuntimeException(
+                'SAFETY ABORT: test schema hanya boleh dijalankan pada SQLite :memory:. ' .
+                    'Connection aktif: ' .
+                    $connection->getDriverName() .
+                    ', database: ' .
+                    $connection->getDatabaseName(),
+            );
+        }
         $tables = [
             'aktifitas',
             'countexamtimes',
