@@ -334,8 +334,8 @@ class HasilController extends Controller {
                 'soals.waktu',
                 'soals.jenis',
                 'soals.created_at',
-                \DB::raw('COUNT(DISTINCT jawabs.id_user) as jumlah_peserta'),
-                \DB::raw('MAX(jawabs.updated_at) as terakhir_dikerjakan'),
+                DB::raw('COUNT(DISTINCT jawabs.id_user) as jumlah_peserta'),
+                DB::raw('MAX(jawabs.updated_at) as terakhir_dikerjakan'),
             )
             ->where('jawabs.status', 'Y');
 
@@ -345,7 +345,7 @@ class HasilController extends Controller {
          *
          * Admin dapat melihat semua.
          */
-        if (auth()->user()->status === 'G') {
+        if (Auth::user()->status === 'G') {
             $query->where('soals.id_user', (string) auth()->id());
         }
 
