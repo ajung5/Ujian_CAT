@@ -2,8 +2,7 @@
 
 ## Tujuan
 
-Source code first-party dibuat compact, konsisten, mudah dibaca, dan tidak
-mengubah business logic aplikasi.
+Source code first-party dibuat compact, konsisten, mudah dibaca, ramah IDE/static analyzer, dan tidak mengubah business logic aplikasi.
 
 ## Indentasi
 
@@ -19,9 +18,13 @@ mengubah business logic aplikasi.
 Gunakan 1TBS / same-line opening brace.
 
 ```php
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
+
 class ExampleController extends Controller {
     public function show(int $id): View {
-        $user = auth()->user();
+        $user = User::findOrFail((int) Auth::id());
 
         $siswa = User::query()
             ->whereKey($id)
@@ -55,6 +58,38 @@ public function show(int $id): View {
 }
 ```
 
+## Laravel Facades dan Static Analysis
+
+Untuk authentication pada controller, project menggunakan facade `Auth` secara eksplisit:
+
+```php
+use Illuminate\Support\Facades\Auth;
+
+$userId = Auth::id();
+```
+
+Untuk object user yang membutuhkan type model eksplisit:
+
+```php
+$user = User::findOrFail((int) Auth::id());
+```
+
+Untuk database expression gunakan facade yang di-import:
+
+```php
+use Illuminate\Support\Facades\DB;
+
+DB::raw('COUNT(*) as total');
+```
+
+Hindari pola global yang tidak di-import seperti:
+
+```php
+\DB::raw('COUNT(*) as total');
+```
+
+Tujuannya menjaga source konsisten dan mengurangi false-positive diagnostic dari IDE/static analyzer seperti Intelephense.
+
 ## Blade / HTML
 
 - 4 spaces.
@@ -73,7 +108,7 @@ public function show(int $id): View {
 
 ## Scope Formatter
 
-Formatter hanya ditujukan untuk source first-party:
+Formatter ditujukan untuk first-party source:
 
 - `app/**/*.php`
 - `bootstrap/*.php`
@@ -82,15 +117,14 @@ Formatter hanya ditujukan untuk source first-party:
 - `routes/**/*.php`
 - `tests/**/*.php`
 - `resources/views/**/*.blade.php`
-- `resources/js/**/*.js`
-- `resources/css/**/*.css`
+- `resources/js/**/*.{js,ts,jsx,tsx}`
+- `resources/css/**/*.{css,scss}`
 
-`public/` sengaja di-ignore karena berisi asset legacy, third-party, dan file
-minified.
+`public/` sengaja di-ignore karena berisi asset legacy, third-party, dan file minified.
 
 ## Commands
 
-Format semua source:
+Format seluruh source:
 
 ```bash
 npm run format
@@ -105,15 +139,24 @@ npm run format:check
 Regression test:
 
 ```bash
-php artisan optimize:clear
 php artisan test
+```
+
+Git whitespace check:
+
+```bash
+git diff --check
 ```
 
 ## Blade Whitespace Cleanup
 
-Selain Prettier, project menggunakan `scripts/cleanup_blade_whitespace.py`
-untuk menghapus blank line berlebih tepat setelah opening HTML container dan
-tepat sebelum closing HTML container.
+Selain Prettier, project menggunakan:
+
+```text
+scripts/cleanup_blade_whitespace.py
+```
+
+untuk menghapus blank line berlebih tepat setelah opening HTML container dan tepat sebelum closing HTML container.
 
 Contoh target:
 
@@ -123,23 +166,16 @@ Contoh target:
 </div>
 ```
 
-Blank line struktural milik root `<html>` dipertahankan agar hasil
-`prettier-plugin-blade` tetap idempotent.
+Blank line struktural milik root `<html>` dipertahankan agar hasil `prettier-plugin-blade` tetap idempotent.
 
-Isi `<pre>`, `<textarea>`, `<script>`, dan `<style>` tidak dimodifikasi oleh
-cleanup script.
+Isi `<pre>`, `<textarea>`, `<script>`, dan `<style>` tidak dimodifikasi oleh cleanup script.
 
-### Format
+## Pre-commit
 
-```bash
-npm run format
-```
-
-### Check
+Aktifkan repository hook:
 
 ```bash
-npm run format:check
+git config core.hooksPath .githooks
 ```
 
-`format:check` akan gagal dengan exit code 1 jika aturan whitespace custom
-atau aturan Prettier belum terpenuhi.
+Hook akan memastikan formatting, staged diff, PHP runtime, dan regression test lolos sebelum commit dibuat.

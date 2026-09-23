@@ -7,6 +7,15 @@ Root files:
 - CHANGELOG.md
 - .env.example
 
+Updated by this documentation package:
+- README.md
+- CHANGELOG.md
+- CONTRIBUTING.md
+- DOCUMENTATION-MANIFEST.txt
+- docs/INSTALLATION.md
+- docs/TESTING.md
+- docs/CODE-STYLE.md
+
 docs/:
 - INSTALLATION.md
 - DEPLOYMENT.md
@@ -15,5 +24,12 @@ docs/:
 - TESTING.md
 - OPERATIONS.md
 - MIGRATION-NOTES.md
+- CODE-STYLE.md
 
-Baseline: Laravel 13 / MySQL legacy `ujian` / 30 tests passed.
+Baseline:
+- Laravel 13
+- MySQL legacy `ujian`
+- 47 regression tests passed
+- 0 failed
+- Regression database: SQLite :memory:
+- Docker not required for local development

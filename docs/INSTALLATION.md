@@ -10,11 +10,12 @@ Aplikasi merupakan hasil modernisasi dari aplikasi CAT legacy dan tetap mengguna
 
 Pastikan perangkat sudah memiliki:
 
-- PHP 8.3 atau lebih baru
-- Composer 2.x
-- MySQL
-- Node.js dan npm
-- Git
+- PHP sesuai constraint Composer `^8.3`;
+- PHP `>= 8.4.1` direkomendasikan untuk menyamakan dengan validasi pre-commit repository saat ini;
+- Composer 2.x;
+- MySQL;
+- Node.js dan npm;
+- Git.
 
 Cek versi:
 
@@ -62,8 +63,6 @@ cp .env.example .env
 
 File `.env` digunakan untuk konfigurasi lokal dan **tidak boleh di-commit ke Git**.
 
-Pastikan `.env` tercantum di `.gitignore`.
-
 ---
 
 ## 5. Generate Application Key
@@ -78,9 +77,7 @@ Verifikasi:
 grep '^APP_KEY=' .env
 ```
 
-`APP_KEY` harus terisi.
-
-Jangan membagikan atau memasukkan `APP_KEY` asli ke repository.
+`APP_KEY` harus terisi. Jangan membagikan atau memasukkan `APP_KEY` asli ke repository.
 
 ---
 
@@ -117,7 +114,7 @@ CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
 ```
 
-Kemudian import database CAT legacy yang digunakan oleh aplikasi sebelumnya.
+Kemudian import backup database CAT legacy yang sesuai.
 
 Contoh:
 
@@ -125,13 +122,13 @@ Contoh:
 mysql -u root -p ujian < backup_ujian.sql
 ```
 
-> Nama file SQL pada contoh di atas hanya contoh. Gunakan file backup database yang Anda miliki.
+Nama file SQL pada contoh hanya contoh. Gunakan backup yang memang akan digunakan untuk environment tersebut.
 
 ---
 
 ## 8. Jangan Menjalankan Migration pada Database Legacy
 
-Aplikasi ini tidak menggunakan migration Laravel sebagai sumber utama schema production.
+Aplikasi ini tidak menggunakan migration Laravel sebagai sumber utama schema production legacy.
 
 Jangan menjalankan:
 
@@ -145,9 +142,7 @@ atau:
 php artisan migrate:fresh
 ```
 
-terhadap database CAT yang berisi data existing.
-
-Perintah tersebut dapat menyebabkan perubahan atau kehilangan struktur/data database legacy.
+terhadap database CAT existing tanpa review dan backup.
 
 ---
 
@@ -173,8 +168,6 @@ npm run dev
 
 ## 10. Clear Laravel Cache
 
-Setelah instalasi atau perubahan konfigurasi:
-
 ```bash
 php artisan optimize:clear
 ```
@@ -189,14 +182,14 @@ Sebelum menjalankan aplikasi:
 php artisan test
 ```
 
-Baseline saat dokumentasi ini dibuat:
+Baseline saat dokumentasi ini diperbarui:
 
 ```text
-30 passed
+47 passed
 0 failed
 ```
 
-Testing menggunakan database SQLite terisolasi dan tidak menggunakan database production/local `ujian`.
+Testing menggunakan SQLite `:memory:` dan memiliki fail-safe agar schema regression tidak dibuat pada database MySQL development/production.
 
 ---
 
@@ -212,13 +205,13 @@ Default URL:
 http://127.0.0.1:8000
 ```
 
-Aplikasi dapat dijalankan menggunakan `php artisan serve` dan tidak membutuhkan Docker.
+Aplikasi dapat dijalankan langsung dengan `php artisan serve` dan tidak membutuhkan Docker.
 
 ---
 
-## 13. Struktur Environment yang Direkomendasikan
+## 13. Struktur Environment Development
 
-Contoh konfigurasi development:
+Contoh:
 
 ```dotenv
 APP_NAME="Ujian CAT"
@@ -249,88 +242,72 @@ APP_ENV=production
 APP_DEBUG=false
 ```
 
-`APP_URL`, database credential, mail configuration, dan secret lainnya harus disesuaikan dengan server production.
+`APP_URL`, credential database, mail configuration, dan secret lain harus disesuaikan dengan server production.
 
 ---
 
 ## 14. Validasi Instalasi
 
-Jalankan:
-
 ```bash
 php artisan about
-```
-
-Kemudian:
-
-```bash
 php artisan route:list
-```
-
-Pastikan route aplikasi berhasil dimuat.
-
-Lanjutkan:
-
-```bash
 php artisan test
-```
-
-dan:
-
-```bash
 composer validate
 ```
 
 ---
 
-## 15. Troubleshooting
+## 15. Aktifkan Pre-commit Hook
+
+Repository menyediakan hook lokal:
+
+```text
+.githooks/pre-commit
+```
+
+Aktifkan sekali:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Hook menjalankan:
+
+```text
+PHP runtime validation
+npm run format:check
+git diff --cached --check
+APP_ENV=testing php artisan test
+```
+
+---
+
+## 16. Troubleshooting
 
 ### Missing APP_KEY
 
-Jika muncul error:
+Jika muncul:
 
 ```text
 No application encryption key has been specified.
 ```
 
-Jalankan:
+jalankan:
 
 ```bash
 php artisan key:generate
 php artisan optimize:clear
 ```
 
-Kemudian restart:
-
-```bash
-php artisan serve
-```
-
----
-
 ### Database Connection Error
 
-Periksa `.env`:
-
-```dotenv
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=ujian
-DB_USERNAME=root
-DB_PASSWORD=
-```
-
-Tes koneksi MySQL:
+Periksa `.env` dan tes koneksi MySQL:
 
 ```bash
 mysql -h 127.0.0.1 -P 3306 -u root -p
 ```
 
----
-
 ### Port 8000 Sudah Digunakan
-
-Gunakan port lain:
 
 ```bash
 php artisan serve --port=8080
@@ -342,11 +319,7 @@ Akses:
 http://127.0.0.1:8080
 ```
 
----
-
 ### Perubahan `.env` Tidak Terbaca
-
-Jalankan:
 
 ```bash
 php artisan optimize:clear
@@ -354,43 +327,30 @@ php artisan optimize:clear
 
 Kemudian restart development server.
 
----
-
 ### Composer Dependency Bermasalah
-
-Jalankan:
 
 ```bash
 composer install
 composer validate
 ```
 
-Hindari menghapus `composer.lock` tanpa alasan yang jelas karena file tersebut menjaga versi dependency tetap konsisten.
-
----
+Hindari menghapus `composer.lock` tanpa alasan yang jelas.
 
 ### Frontend Asset Tidak Muncul
-
-Jalankan:
 
 ```bash
 npm install
 npm run build
-```
-
-Kemudian:
-
-```bash
 php artisan optimize:clear
 ```
 
-Reload browser dengan hard refresh.
+Kemudian lakukan hard refresh pada browser.
 
 ---
 
-## 16. Security Notes
+## 17. Security Notes
 
-Jangan commit file atau data berikut:
+Jangan commit:
 
 ```text
 .env
@@ -411,14 +371,19 @@ Pastikan `.env` tidak masuk staged files.
 
 ---
 
-## 17. Development Validation
+## 18. Development Validation
 
-Setelah melakukan perubahan source code:
+Setelah perubahan source code:
 
 ```bash
-php artisan optimize:clear
+npm run format:check
 php artisan test
-./vendor/bin/pint
+git diff --check
+```
+
+Tambahan bila diperlukan:
+
+```bash
 composer validate
 composer audit
 npm audit
@@ -434,7 +399,7 @@ tanpa review dependency dan regression test.
 
 ---
 
-## 18. Catatan Database Legacy
+## 19. Catatan Database Legacy
 
 Tabel inti yang digunakan aplikasi antara lain:
 
@@ -451,15 +416,11 @@ countexamtimes
 aktifitas
 ```
 
-Beberapa kolom menggunakan tipe dan constraint legacy untuk menjaga kompatibilitas dengan data aplikasi lama.
-
-Perubahan schema harus dilakukan melalui proses review dan pengujian terlebih dahulu.
+Beberapa kolom menggunakan tipe dan constraint legacy untuk menjaga kompatibilitas dengan data aplikasi lama. Perubahan schema harus melalui review dan pengujian terlebih dahulu.
 
 ---
 
-## 19. Quick Start
-
-Setelah database tersedia, instalasi development secara ringkas:
+## 20. Quick Start
 
 ```bash
 git clone https://github.com/ajung5/Ujian_CAT.git

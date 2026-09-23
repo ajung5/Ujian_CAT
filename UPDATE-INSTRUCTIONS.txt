@@ -1,0 +1,44 @@
+Ujian CAT - README / Documentation Update Package
+
+Paket ini dibuat untuk menyinkronkan dokumentasi dengan baseline repository terbaru.
+
+Baseline yang didokumentasikan:
+- Laravel 13
+- MySQL legacy database `ujian`
+- 47 regression tests passed / 0 failed
+- Candidate acceptance + access restriction
+- Student / Candidate data tabs
+- SQLite :memory: test safety guard
+- Explicit Laravel Auth/DB facade usage for controller/static analysis
+- Repository Prettier + Blade whitespace formatting workflow
+- Pre-commit hook validation
+
+File yang akan menggantikan file existing:
+- README.md
+- CHANGELOG.md
+- CONTRIBUTING.md
+- DOCUMENTATION-MANIFEST.txt
+- docs/INSTALLATION.md
+- docs/TESTING.md
+- docs/CODE-STYLE.md
+
+Cara menerapkan dari folder root Ujian_CAT:
+
+1. Backup opsional:
+   cp README.md README.md.bak
+
+2. Copy isi paket ke root repository dengan mempertahankan struktur folder.
+
+3. Review:
+   git diff -- README.md CHANGELOG.md CONTRIBUTING.md DOCUMENTATION-MANIFEST.txt docs/INSTALLATION.md docs/TESTING.md docs/CODE-STYLE.md
+
+4. Validasi source project:
+   npm run format:check
+   php artisan test
+   git diff --check
+
+Target regression:
+   47 passed
+   0 failed
+
+Paket ini hanya mengubah dokumentasi. Tidak ada controller, route, model, migration, atau database yang diubah.
