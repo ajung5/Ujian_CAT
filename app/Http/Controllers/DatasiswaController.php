@@ -15,6 +15,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -30,7 +31,7 @@ class DatasiswaController extends Controller {
      * calon = status C
      */
     public function index(Request $request): View {
-        $user = auth()->user();
+        $user = Auth::user();
 
         $school = School::first();
 
@@ -163,7 +164,7 @@ class DatasiswaController extends Controller {
         $siswa->save();
 
         Aktifitas::create([
-            'id_user' => auth()->id(),
+            'id_user' => Auth::id(),
             'nama' => 'Menambahkan siswa atas nama ' . $siswa->nama . ', NIS: ' . $siswa->no_induk,
         ]);
 
@@ -174,7 +175,7 @@ class DatasiswaController extends Controller {
      * Detail siswa beserta histori ujian.
      */
     public function show(int $id): View {
-        $user = auth()->user();
+        $user = Auth::user();
 
         $school = School::first();
 
@@ -305,7 +306,7 @@ class DatasiswaController extends Controller {
         $siswa->save();
 
         Aktifitas::create([
-            'id_user' => auth()->id(),
+            'id_user' => Auth::id(),
             'nama' => 'Merubah data siswa atas nama ' . $siswa->nama . ', NIS: ' . $siswa->no_induk,
         ]);
 
@@ -402,7 +403,7 @@ class DatasiswaController extends Controller {
              * audit trail tetap konsisten.
              */
             Aktifitas::create([
-                'id_user' => auth()->id(),
+                'id_user' => Auth::id(),
                 'nama' =>
                     'Menerima calon siswa ' .
                     $siswa->nama .
@@ -478,7 +479,7 @@ class DatasiswaController extends Controller {
         }
 
         Aktifitas::create([
-            'id_user' => auth()->id(),
+            'id_user' => Auth::id(),
             'nama' => 'Merubah foto siswa atas nama ' . $siswa->nama,
         ]);
 
@@ -521,7 +522,7 @@ class DatasiswaController extends Controller {
         }
 
         Aktifitas::create([
-            'id_user' => auth()->id(),
+            'id_user' => Auth::id(),
             'nama' => 'Menghapus data siswa atas nama ' . $nama,
         ]);
 
@@ -561,7 +562,7 @@ class DatasiswaController extends Controller {
         }
 
         Aktifitas::create([
-            'id_user' => auth()->id(),
+            'id_user' => Auth::id(),
             'nama' => 'Menghapus seluruh data calon siswa ' . '(peserta PSB).',
         ]);
 
@@ -886,7 +887,7 @@ class DatasiswaController extends Controller {
         $jenisImport = $status === 'S' ? 'siswa' : 'calon siswa';
 
         Aktifitas::create([
-            'id_user' => auth()->id(),
+            'id_user' => Auth::id(),
             'nama' => 'Import Excel ' . $jenisImport . ': ' . $sukses . ' berhasil, ' . $gagal . ' ditolak.',
         ]);
 

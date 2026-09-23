@@ -49,7 +49,7 @@ class GuruController extends Controller {
      * Profil Guru / Admin.
      */
     public function profil(): View {
-        $user = User::findOrFail(auth()->id());
+        $user = User::findOrFail(Auth::id());
 
         $school = School::first();
 
@@ -85,7 +85,7 @@ class GuruController extends Controller {
             ->whereIn('status', ['A', 'G'])
             ->firstOrFail();
 
-        $actor = auth()->user();
+        $actor = Auth::user();
 
         if ($actor->status !== 'A' && $actor->id !== $user->id) {
             abort(403);
@@ -129,7 +129,7 @@ class GuruController extends Controller {
         $user->save();
 
         Aktifitas::create([
-            'id_user' => auth()->id(),
+            'id_user' => Auth::id(),
             'nama' => 'Merubah data guru atas nama ' . $user->nama,
         ]);
 
@@ -154,7 +154,7 @@ class GuruController extends Controller {
             ->whereIn('status', ['A', 'G'])
             ->firstOrFail();
 
-        $actor = auth()->user();
+        $actor = Auth::user();
 
         if ($actor->status !== 'A' && $actor->id !== $user->id) {
             abort(403);
@@ -182,7 +182,7 @@ class GuruController extends Controller {
         $user->save();
 
         Aktifitas::create([
-            'id_user' => auth()->id(),
+            'id_user' => Auth::id(),
             'nama' => 'Merubah foto profil',
         ]);
 
@@ -221,7 +221,7 @@ class GuruController extends Controller {
         $school->save();
 
         Aktifitas::create([
-            'id_user' => auth()->id(),
+            'id_user' => Auth::id(),
             'nama' => 'Merubah data profil sekolah',
         ]);
 
@@ -265,7 +265,7 @@ class GuruController extends Controller {
         $school->save();
 
         Aktifitas::create([
-            'id_user' => auth()->id(),
+            'id_user' => Auth::id(),
             'nama' => 'Merubah logo sekolah',
         ]);
 
@@ -276,7 +276,7 @@ class GuruController extends Controller {
      * Master Data Kelas.
      */
     public function kelas(): View {
-        $user = auth()->user();
+        $user = Auth::user();
 
         $school = School::first();
 
@@ -328,7 +328,7 @@ class GuruController extends Controller {
         $kelas->save();
 
         Aktifitas::create([
-            'id_user' => auth()->id(),
+            'id_user' => Auth::id(),
             'nama' => 'Merubah kelas dengan nama ' . $kelas->nama,
         ]);
 
@@ -353,7 +353,7 @@ class GuruController extends Controller {
         ]);
 
         Aktifitas::create([
-            'id_user' => auth()->id(),
+            'id_user' => Auth::id(),
             'nama' => 'Membuat kelas dengan nama ' . $kelas->nama,
         ]);
 
@@ -382,7 +382,7 @@ class GuruController extends Controller {
                 ]);
 
             Aktifitas::create([
-                'id_user' => auth()->id(),
+                'id_user' => Auth::id(),
                 'nama' => 'Menghapus kelas dengan nama ' . $kelas->nama,
             ]);
 
@@ -396,7 +396,7 @@ class GuruController extends Controller {
      * Detail kelas dan daftar siswa.
      */
     public function detailKelas(int $id): View {
-        $user = auth()->user();
+        $user = Auth::user();
 
         $school = School::first();
 
@@ -495,7 +495,7 @@ class GuruController extends Controller {
         $siswa->save();
 
         Aktifitas::create([
-            'id_user' => auth()->id(),
+            'id_user' => Auth::id(),
             'nama' =>
                 'Memindahkan kelas siswa atas nama ' .
                 $siswa->nama .
@@ -529,7 +529,7 @@ class GuruController extends Controller {
         $siswa->save();
 
         Aktifitas::create([
-            'id_user' => auth()->id(),
+            'id_user' => Auth::id(),
             'nama' =>
                 'Mengeluarkan kelas siswa atas nama ' .
                 $siswa->nama .

@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use App\Models\Detailsoal;
 use Illuminate\Support\Str;
@@ -33,7 +34,7 @@ class HasilController extends Controller {
      * - hanya paket miliknya sendiri.
      */
     public function index(): View {
-        $user = User::findOrFail(auth()->id());
+        $user = User::findOrFail(Auth::id());
 
         $school = School::first();
 
@@ -58,7 +59,7 @@ class HasilController extends Controller {
     }
 
     public function classDetail(int $id, int $idSoal): View {
-        $user = User::findOrFail(auth()->id());
+        $user = User::findOrFail(Auth::id());
 
         $school = School::first();
 
@@ -217,7 +218,7 @@ class HasilController extends Controller {
         });
 
         Aktifitas::create([
-            'id_user' => auth()->id(),
+            'id_user' => Auth::id(),
             'nama' =>
                 'Menghapus hasil ' .
                 strtolower($this->assessmentLabel($soal)) .
@@ -270,7 +271,7 @@ class HasilController extends Controller {
         });
 
         Aktifitas::create([
-            'id_user' => auth()->id(),
+            'id_user' => Auth::id(),
             'nama' =>
                 'Menghapus seluruh hasil ' .
                 strtolower($this->assessmentLabel($soal)) .
@@ -289,7 +290,7 @@ class HasilController extends Controller {
     }
 
     public function detail(int $id): View {
-        $user = User::findOrFail(auth()->id());
+        $user = User::findOrFail(Auth::id());
 
         $school = School::first();
 
@@ -346,7 +347,7 @@ class HasilController extends Controller {
          * Admin dapat melihat semua.
          */
         if (Auth::user()->status === 'G') {
-            $query->where('soals.id_user', (string) auth()->id());
+            $query->where('soals.id_user', (string) Auth::id());
         }
 
         if ($search !== null && $search !== '') {
@@ -546,7 +547,7 @@ class HasilController extends Controller {
     private function findAccessiblePackage(int $id): Soal {
         return Soal::query()
             ->whereKey($id)
-            ->when(auth()->user()->status === 'G', fn($query) => $query->where('id_user', (string) auth()->id()))
+            ->when(Auth::user()->status === 'G', fn($query) => $query->where('id_user', (string) Auth::id()))
             ->firstOrFail();
     }
 

@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -18,13 +19,13 @@ class MateriController extends Controller {
      * Daftar materi milik Guru/Admin yang login.
      */
     public function index(): View {
-        $user = User::findOrFail(auth()->id());
+        $user = User::findOrFail(Auth::id());
 
         $school = School::first();
 
         $aktifitas = $this->recentActivities();
 
-        $materis = Materi::query()->where('id_user', auth()->id())->orderByDesc('id')->paginate(15);
+        $materis = Materi::query()->where('id_user', Auth::id())->orderByDesc('id')->paginate(15);
 
         /*
          * Dipakai untuk menghubungkan upload gambar
@@ -39,7 +40,7 @@ class MateriController extends Controller {
      * Halaman ubah materi.
      */
     public function edit(int $id): View {
-        $user = User::findOrFail(auth()->id());
+        $user = User::findOrFail(Auth::id());
 
         $school = School::first();
 
@@ -51,7 +52,7 @@ class MateriController extends Controller {
          * Legacy hanya mencari berdasarkan ID sehingga
          * berpotensi IDOR.
          */
-        $materi = Materi::query()->whereKey($id)->where('id_user', auth()->id())->firstOrFail();
+        $materi = Materi::query()->whereKey($id)->where('id_user', Auth::id())->firstOrFail();
 
         return view('guru.ubah_materi', compact('user', 'school', 'aktifitas', 'materi'));
     }
@@ -79,14 +80,14 @@ class MateriController extends Controller {
             ],
         );
 
-        $materi = Materi::query()->where('sesi', $validated['sesi'])->where('id_user', auth()->id())->first();
+        $materi = Materi::query()->where('sesi', $validated['sesi'])->where('id_user', Auth::id())->first();
 
         $isNew = !$materi;
 
         if (!$materi) {
             $materi = new Materi();
 
-            $materi->id_user = auth()->id();
+            $materi->id_user = Auth::id();
 
             $materi->gambar = '';
 
@@ -108,7 +109,7 @@ class MateriController extends Controller {
         $materi->save();
 
         Aktifitas::create([
-            'id_user' => auth()->id(),
+            'id_user' => Auth::id(),
             'nama' => $isNew
                 ? 'Menulis materi baru dengan judul ' . $materi->judul . '.'
                 : 'Merubah materi dengan judul ' . $materi->judul . '.',
@@ -121,13 +122,13 @@ class MateriController extends Controller {
      * Detail materi.
      */
     public function show(int $id): View {
-        $user = User::findOrFail(auth()->id());
+        $user = User::findOrFail(Auth::id());
 
         $school = School::first();
 
         $aktifitas = $this->recentActivities();
 
-        $materi = Materi::query()->whereKey($id)->where('id_user', auth()->id())->firstOrFail();
+        $materi = Materi::query()->whereKey($id)->where('id_user', Auth::id())->firstOrFail();
 
         return view('guru.detail_materi', compact('user', 'school', 'aktifitas', 'materi'));
     }
@@ -168,7 +169,7 @@ class MateriController extends Controller {
 
         File::put($directory . '/' . $filename, $image->toBytes());
 
-        $materi = Materi::query()->where('sesi', $validated['sesi'])->where('id_user', auth()->id())->first();
+        $materi = Materi::query()->where('sesi', $validated['sesi'])->where('id_user', Auth::id())->first();
 
         /*
          * Bila user upload gambar sebelum tombol
@@ -178,7 +179,7 @@ class MateriController extends Controller {
         if (!$materi) {
             $materi = new Materi();
 
-            $materi->id_user = auth()->id();
+            $materi->id_user = Auth::id();
 
             $materi->judul = '-';
             $materi->isi = '-';
@@ -224,7 +225,7 @@ class MateriController extends Controller {
             'id' => ['required', 'integer'],
         ]);
 
-        $materi = Materi::query()->whereKey($validated['id'])->where('id_user', auth()->id())->firstOrFail();
+        $materi = Materi::query()->whereKey($validated['id'])->where('id_user', Auth::id())->firstOrFail();
 
         $judul = $materi->judul;
 
@@ -241,7 +242,7 @@ class MateriController extends Controller {
         }
 
         Aktifitas::create([
-            'id_user' => auth()->id(),
+            'id_user' => Auth::id(),
             'nama' => 'Menghapus materi miliknya ' . 'yang berjudul ' . $judul . '.',
         ]);
 
@@ -255,7 +256,7 @@ class MateriController extends Controller {
         $q = trim((string) $request->input('q', ''));
 
         $materis = Materi::query()
-            ->where('id_user', auth()->id())
+            ->where('id_user', Auth::id())
             ->when($q !== '', fn($query) => $query->where('judul', 'like', '%' . $q . '%'))
             ->orderByDesc('id')
             ->limit(15)

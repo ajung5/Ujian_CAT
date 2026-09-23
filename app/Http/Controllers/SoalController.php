@@ -13,13 +13,13 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
-use Illuminate\Http\JsonResponse;
-
-use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\RichText\RichText;
 use Throwable;
@@ -29,7 +29,7 @@ class SoalController extends Controller {
      * Daftar Paket Soal.
      */
     public function index(): View {
-        $user = User::findOrFail(auth()->id());
+        $user = User::findOrFail(Auth::id());
 
         $query = Soal::query();
 
@@ -38,8 +38,8 @@ class SoalController extends Controller {
          * Admin melihat seluruh paket soal.
          * Guru hanya melihat paket soal miliknya.
          */
-        if (auth()->user()->status === 'G') {
-            $query->where('id_user', (string) auth()->id());
+        if (Auth::user()->status === 'G') {
+            $query->where('id_user', (string) Auth::id());
         }
 
         $soals = $query->orderByDesc('id')->paginate(10);
@@ -54,7 +54,7 @@ class SoalController extends Controller {
         $materiTerpakai = Soal::query()->whereNotNull('materi')->where('materi', '!=', 0)->pluck('materi');
 
         $materis = Materi::query()
-            ->where('id_user', auth()->id())
+            ->where('id_user', Auth::id())
             ->whereNotIn('id', $materiTerpakai)
             ->orderBy('judul')
             ->get();
@@ -70,8 +70,8 @@ class SoalController extends Controller {
 
         $query = Soal::query();
 
-        if (auth()->user()->status === 'G') {
-            $query->where('id_user', (string) auth()->id());
+        if (Auth::user()->status === 'G') {
+            $query->where('id_user', (string) Auth::id());
         }
 
         if ($q !== '') {
@@ -125,7 +125,7 @@ class SoalController extends Controller {
          * Materi harus dimiliki user yang login.
          */
         if ($validated['jenis'] === '2') {
-            $materiValid = Materi::query()->whereKey($validated['materi'])->where('id_user', auth()->id())->exists();
+            $materiValid = Materi::query()->whereKey($validated['materi'])->where('id_user', Auth::id())->exists();
 
             if (!$materiValid) {
                 abort(403);
@@ -134,7 +134,7 @@ class SoalController extends Controller {
 
         $soal = new Soal();
 
-        $soal->id_user = (string) auth()->id();
+        $soal->id_user = (string) Auth::id();
 
         $soal->jenis = $validated['jenis'];
 
@@ -168,7 +168,7 @@ class SoalController extends Controller {
      * Form edit Paket Soal.
      */
     public function edit(int $id): View {
-        $user = User::findOrFail(auth()->id());
+        $user = User::findOrFail(Auth::id());
 
         $soal = $this->findAccessibleSoal($id);
 
@@ -331,7 +331,7 @@ class SoalController extends Controller {
     }
 
     public function detail(int $id): View {
-        $user = User::findOrFail(auth()->id());
+        $user = User::findOrFail(Auth::id());
 
         $school = School::first();
 
@@ -403,7 +403,7 @@ class SoalController extends Controller {
          */
         $detail = Detailsoal::query()
             ->where('sesi', $validated['sesi'])
-            ->where('id_user', (string) auth()->id())
+            ->where('id_user', (string) Auth::id())
             ->first();
 
         if (!$detail) {
@@ -413,7 +413,7 @@ class SoalController extends Controller {
 
             $detail->sesi = $validated['sesi'];
 
-            $detail->id_user = (string) auth()->id();
+            $detail->id_user = (string) Auth::id();
         }
 
         $detail->id_soal = (string) $paket->id;
@@ -448,7 +448,7 @@ class SoalController extends Controller {
     }
 
     public function editDetail(int $id): View {
-        $user = User::findOrFail(auth()->id());
+        $user = User::findOrFail(Auth::id());
 
         $school = School::first();
 
@@ -558,7 +558,7 @@ class SoalController extends Controller {
 
             $sesi = (string) $request->input('sesi');
 
-            $detail = Detailsoal::query()->where('sesi', $sesi)->where('id_user', (string) auth()->id())->first();
+            $detail = Detailsoal::query()->where('sesi', $sesi)->where('id_user', (string) Auth::id())->first();
 
             if (!$detail) {
                 /*
@@ -590,7 +590,7 @@ class SoalController extends Controller {
 
                 $detail->score = null;
 
-                $detail->id_user = (string) auth()->id();
+                $detail->id_user = (string) Auth::id();
 
                 $detail->status = 'N';
 
@@ -745,8 +745,8 @@ class SoalController extends Controller {
          */
         $paketQuery = Soal::query();
 
-        if (auth()->user()->status === 'G') {
-            $paketQuery->where('id_user', (string) auth()->id());
+        if (Auth::user()->status === 'G') {
+            $paketQuery->where('id_user', (string) Auth::id());
         }
 
         $paketValid = $paketQuery
@@ -901,7 +901,7 @@ class SoalController extends Controller {
 
                     $detail->score = $score;
 
-                    $detail->id_user = (string) auth()->id();
+                    $detail->id_user = (string) Auth::id();
 
                     /*
                      * Sesuai import legacy:
@@ -953,8 +953,8 @@ class SoalController extends Controller {
     private function findAccessibleSoal(int $id): Soal {
         $query = Soal::query()->whereKey($id);
 
-        if (auth()->user()->status === 'G') {
-            $query->where('id_user', (string) auth()->id());
+        if (Auth::user()->status === 'G') {
+            $query->where('id_user', (string) Auth::id());
         }
 
         return $query->firstOrFail();

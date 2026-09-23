@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -16,7 +17,7 @@ class DataguruController extends Controller {
      * Daftar Guru.
      */
     public function index(): View {
-        $user = auth()->user();
+        $user = Auth::user();
 
         $school = School::first();
 
@@ -46,7 +47,7 @@ class DataguruController extends Controller {
      * Hanya Administrator.
      */
     public function store(Request $request): Response {
-        abort_unless(auth()->user()->status === 'A', 403);
+        abort_unless(Auth::user()->status === 'A', 403);
 
         $validated = $request->validate(
             [
@@ -102,7 +103,7 @@ class DataguruController extends Controller {
         $guru->save();
 
         Aktifitas::create([
-            'id_user' => auth()->id(),
+            'id_user' => Auth::id(),
             'nama' => 'Menambahkan guru atas nama ' . $guru->nama,
         ]);
 
@@ -142,12 +143,12 @@ class DataguruController extends Controller {
      * akun Guru dihapus langsung, tanpa cascade tambahan.
      */
     public function destroy(int $id) {
-        abort_unless(auth()->user()->status === 'A', 403);
+        abort_unless(Auth::user()->status === 'A', 403);
 
         $guru = User::query()->whereKey($id)->where('status', 'G')->firstOrFail();
 
         Aktifitas::create([
-            'id_user' => auth()->id(),
+            'id_user' => Auth::id(),
             'nama' => 'Menghapus guru atas nama ' . $guru->nama,
         ]);
 

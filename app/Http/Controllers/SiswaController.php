@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -58,7 +59,7 @@ class SiswaController extends Controller {
         );
 
         $user = User::query()
-            ->whereKey(auth()->id())
+            ->whereKey(Auth::id())
             ->whereIn('status', ['S', 'C'])
             ->firstOrFail();
 
@@ -103,7 +104,7 @@ class SiswaController extends Controller {
         $school = School::first();
 
         $completedExamIds = Jawab::query()
-            ->where('id_user', (string) auth()->id())
+            ->where('id_user', (string) Auth::id())
             ->where('status', 'Y')
             ->pluck('id_soal')
             ->map(fn($id) => (string) $id)
@@ -210,7 +211,7 @@ class SiswaController extends Controller {
 
         $answeredIds = Jawab::query()
             ->where('id_soal', (string) $soal->id)
-            ->where('id_user', (string) auth()->id())
+            ->where('id_user', (string) Auth::id())
             ->where('status', 'N')
             ->pluck('no_soal_id')
             ->map(fn($id) => (int) $id)
@@ -219,7 +220,7 @@ class SiswaController extends Controller {
 
         $counter = Countexamtime::query()
             ->where('id_soal', (string) $soal->id)
-            ->where('id_user', (string) auth()->id())
+            ->where('id_user', (string) Auth::id())
             ->first();
 
         $hasStarted = $counter !== null;
@@ -278,14 +279,14 @@ class SiswaController extends Controller {
         $result = DB::transaction(function () use ($soal) {
             $counter = Countexamtime::query()
                 ->where('id_soal', (string) $soal->id)
-                ->where('id_user', (string) auth()->id())
+                ->where('id_user', (string) Auth::id())
                 ->lockForUpdate()
                 ->first();
 
             if (!$counter) {
                 $counter = new Countexamtime();
                 $counter->id_soal = (string) $soal->id;
-                $counter->id_user = (string) auth()->id();
+                $counter->id_user = (string) Auth::id();
                 $counter->waktu = (string) max(0, (int) $soal->waktu);
                 $counter->save();
 
@@ -328,7 +329,7 @@ class SiswaController extends Controller {
 
         Log::info('assessment.started', [
             'type' => (string) $soal->jenis,
-            'user_id' => auth()->id(),
+            'user_id' => Auth::id(),
             'id_soal' => $soal->id,
             'remaining_seconds' => $result['remaining'],
             'ip' => request()->ip(),
@@ -356,7 +357,7 @@ class SiswaController extends Controller {
 
         $counter = Countexamtime::query()
             ->where('id_soal', (string) $soal->id)
-            ->where('id_user', (string) auth()->id())
+            ->where('id_user', (string) Auth::id())
             ->first();
 
         if (!$counter) {
@@ -376,7 +377,7 @@ class SiswaController extends Controller {
         $cekJawaban = Jawab::query()
             ->where('no_soal_id', (string) $detailsoal->id)
             ->where('id_soal', (string) $soal->id)
-            ->where('id_user', (string) auth()->id())
+            ->where('id_user', (string) Auth::id())
             ->where('status', 'N')
             ->first();
 
@@ -421,7 +422,7 @@ class SiswaController extends Controller {
         $result = DB::transaction(function () use ($soal, $detail, $validated) {
             $counter = Countexamtime::query()
                 ->where('id_soal', (string) $soal->id)
-                ->where('id_user', (string) auth()->id())
+                ->where('id_user', (string) Auth::id())
                 ->lockForUpdate()
                 ->first();
 
@@ -447,7 +448,7 @@ class SiswaController extends Controller {
 
             $score = $pilihan === $kunci ? (string) $detail->score : '0';
 
-            $user = auth()->user();
+            $user = Auth::user();
 
             Jawab::query()->updateOrCreate(
                 [
@@ -524,7 +525,7 @@ class SiswaController extends Controller {
         $result = DB::transaction(function () use ($soal) {
             $counter = Countexamtime::query()
                 ->where('id_soal', (string) $soal->id)
-                ->where('id_user', (string) auth()->id())
+                ->where('id_user', (string) Auth::id())
                 ->lockForUpdate()
                 ->first();
 
@@ -597,7 +598,7 @@ class SiswaController extends Controller {
         $result = DB::transaction(function () use ($soal) {
             $counter = Countexamtime::query()
                 ->where('id_soal', (string) $soal->id)
-                ->where('id_user', (string) auth()->id())
+                ->where('id_user', (string) Auth::id())
                 ->lockForUpdate()
                 ->first();
 
@@ -631,13 +632,13 @@ class SiswaController extends Controller {
 
         $score = Jawab::query()
             ->where('id_soal', (string) $soal->id)
-            ->where('id_user', (string) auth()->id())
+            ->where('id_user', (string) Auth::id())
             ->where('status', 'Y')
             ->sum('score');
 
         Log::info('assessment.finished', [
             'type' => (string) $soal->jenis,
-            'user_id' => auth()->id(),
+            'user_id' => Auth::id(),
             'id_soal' => $soal->id,
             'score' => $score,
             'ip' => request()->ip(),
@@ -688,19 +689,19 @@ class SiswaController extends Controller {
 
         $hasFinalAnswer = Jawab::query()
             ->where('id_soal', (string) $soal->id)
-            ->where('id_user', (string) auth()->id())
+            ->where('id_user', (string) Auth::id())
             ->where('status', 'Y')
             ->exists();
 
         $hasDraftAnswer = Jawab::query()
             ->where('id_soal', (string) $soal->id)
-            ->where('id_user', (string) auth()->id())
+            ->where('id_user', (string) Auth::id())
             ->where('status', 'N')
             ->exists();
 
         if (!$hasFinalAnswer || $hasDraftAnswer) {
             Log::warning('assessment.review.denied', [
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'id_soal' => $soal->id,
                 'has_finished_answer' => $hasFinalAnswer,
                 'has_draft_answer' => $hasDraftAnswer,
@@ -717,7 +718,7 @@ class SiswaController extends Controller {
                 $join
                     ->on('detailsoals.id', '=', 'jawabs.no_soal_id')
                     ->where('jawabs.id_soal', '=', (string) $soal->id)
-                    ->where('jawabs.id_user', '=', (string) auth()->id())
+                    ->where('jawabs.id_user', '=', (string) Auth::id())
                     ->where('jawabs.status', '=', 'Y');
             })
             ->select(
@@ -767,7 +768,7 @@ class SiswaController extends Controller {
 
         Log::info('assessment.review.opened', [
             'type' => (string) $soal->jenis,
-            'user_id' => auth()->id(),
+            'user_id' => Auth::id(),
             'id_soal' => $soal->id,
             'score' => $nilai,
             'correct' => $benar,
@@ -821,7 +822,7 @@ class SiswaController extends Controller {
                 ),
                 DB::raw('MAX(jawabs.updated_at) as completed_at'),
             )
-            ->where('jawabs.id_user', (string) auth()->id())
+            ->where('jawabs.id_user', (string) Auth::id())
             ->where('jawabs.status', 'Y');
 
         if ($search !== null && $search !== '') {
@@ -840,7 +841,7 @@ class SiswaController extends Controller {
         return User::query()
             ->leftJoin('kelas', 'users.id_kelas', '=', 'kelas.id')
             ->select('users.*', 'kelas.nama as nama_kelas')
-            ->where('users.id', auth()->id())
+            ->where('users.id', Auth::id())
             ->firstOrFail();
     }
 
@@ -848,7 +849,7 @@ class SiswaController extends Controller {
      * Ujian jenis=1 wajib didistribusikan ke kelas siswa.
      */
     private function findDistributedExam(int $id): Soal {
-        $user = auth()->user();
+        $user = Auth::user();
 
         if (empty($user->id_kelas)) {
             abort(404);
@@ -902,7 +903,7 @@ class SiswaController extends Controller {
     private function isExamFinished(int $idSoal): bool {
         return Jawab::query()
             ->where('id_soal', (string) $idSoal)
-            ->where('id_user', (string) auth()->id())
+            ->where('id_user', (string) Auth::id())
             ->where('status', 'Y')
             ->exists();
     }
@@ -939,7 +940,7 @@ class SiswaController extends Controller {
      * Soal yang tidak dijawab tetap dibuat score=0.
      */
     private function finalizeExamRecords(Soal $soal): void {
-        $user = auth()->user();
+        $user = Auth::user();
 
         $details = Detailsoal::query()->where('id_soal', (string) $soal->id)->where('status', 'Y')->get();
 
@@ -969,7 +970,7 @@ class SiswaController extends Controller {
      * Key session untuk mempertahankan urutan random soal.
      */
     private function examOrderSessionKey(int $idSoal): string {
-        return 'exam_order.' . auth()->id() . '.' . $idSoal;
+        return 'exam_order.' . Auth::id() . '.' . $idSoal;
     }
 
     /**

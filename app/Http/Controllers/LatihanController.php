@@ -7,6 +7,7 @@ use App\Models\School;
 use App\Models\Soal;
 use App\Models\User;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Auth;
 
 class LatihanController extends Controller {
     /**
@@ -18,7 +19,7 @@ class LatihanController extends Controller {
      * - pagination 4 materi
      */
     public function index(): View {
-        $user = User::findOrFail(auth()->id());
+        $user = User::findOrFail(Auth::id());
 
         $school = School::first();
 
@@ -38,7 +39,7 @@ class LatihanController extends Controller {
      * /latihan/read/{id}/{judul}
      */
     public function detail(int $id, string $judul): View {
-        $user = User::findOrFail(auth()->id());
+        $user = User::findOrFail(Auth::id());
 
         $school = School::first();
 
