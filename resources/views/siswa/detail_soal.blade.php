@@ -1751,14 +1751,6 @@
                     }
                 );
 
-
-            $('#konfirmasi-selesai').on('click', function() {
-
-                finishExam();
-
-            });
-
-
             $('#konfirmasi-selesai').on('click', function() {
 
                 finishExam();
