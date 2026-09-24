@@ -721,14 +721,11 @@
 
             'use strict';
 
-
             const examId =
                 {{ (int) $soal->id }};
 
-
             const questionIds =
                 @json(array_values($questionOrder));
-
 
             const answeredIds =
                 @json(array_values($answeredIds));
@@ -764,7 +761,6 @@
             let examFinished =
                 false;
 
-
             function formatTime(seconds) {
 
                 seconds =
@@ -775,7 +771,6 @@
                             10
                         ) || 0
                     );
-
 
                 const hours =
                     Math.floor(
@@ -791,7 +786,6 @@
                 const secs =
                     seconds % 60;
 
-
                 return [
                     String(hours)
                     .padStart(2, '0'),
@@ -806,7 +800,6 @@
 
             }
 
-
             function renderTimer() {
 
                 $('#defaultCountdown')
@@ -817,7 +810,6 @@
                     );
 
             }
-
 
             function getCurrentIndex() {
 
@@ -831,16 +823,13 @@
 
             }
 
-
             function updateNavigation() {
 
                 const index =
                     getCurrentIndex();
 
-
                 $('.question-number')
                     .removeClass('current');
-
 
                 if (
                     currentQuestionId !== null
@@ -850,7 +839,6 @@
                     ).addClass('current');
                 }
 
-
                 $('#soal-sebelumnya')
                     .prop(
                         'disabled',
@@ -858,7 +846,6 @@
                         isSavingAnswer ||
                         isLoadingQuestion
                     );
-
 
                 $('#soal-berikutnya')
                     .prop(
@@ -872,7 +859,6 @@
 
             }
 
-
             function handleExpired(
                 response
             ) {
@@ -881,9 +867,7 @@
                     return;
                 }
 
-
                 examFinished = true;
-
 
                 clearInterval(
                     timerInterval
@@ -893,19 +877,16 @@
                     syncInterval
                 );
 
-
                 alert(
                     response.message ||
                     'Waktu ujian telah habis.'
                 );
-
 
                 window.location.href =
                     response.redirect ||
                     '{{ route('siswa.results') }}';
 
             }
-
 
             function loadQuestion(
                 questionId
@@ -917,7 +898,6 @@
                         10
                     );
 
-
                 if (
                     isLoadingQuestion ||
                     isSavingAnswer ||
@@ -928,12 +908,10 @@
                     return;
                 }
 
-
                 isLoadingQuestion =
                     true;
 
                 updateNavigation();
-
 
                 $.ajax({
 
@@ -947,12 +925,10 @@
                         currentQuestionId =
                             questionId;
 
-
                         $('#wrap-soal')
                             .hide()
                             .html(html)
                             .fadeIn(200);
-
 
                         isLoadingQuestion =
                             false;
@@ -961,14 +937,12 @@
 
                     },
 
-
                     error: function(xhr) {
 
                         isLoadingQuestion =
                             false;
 
                         updateNavigation();
-
 
                         if (
                             xhr.status === 409
@@ -988,7 +962,6 @@
 
                         }
 
-
                         alert(
                             'Soal gagal dimuat.'
                         );
@@ -998,7 +971,6 @@
                 });
 
             }
-
 
             function firstQuestionToOpen() {
 
@@ -1016,18 +988,15 @@
 
                 }
 
-
                 return questionIds[0];
 
             }
-
 
             function syncTimer() {
 
                 if (examFinished) {
                     return;
                 }
-
 
                 $.ajax({
 
@@ -1038,7 +1007,6 @@
                     data: {
                         id_soal: examId
                     },
-
 
                     success: function(response) {
 
@@ -1054,7 +1022,6 @@
                             return;
                         }
 
-
                         remainingSeconds =
                             parseInt(
                                 response
@@ -1065,7 +1032,6 @@
                         renderTimer();
 
                     },
-
 
                     error: function(xhr) {
 
@@ -1086,7 +1052,6 @@
 
             }
 
-
             function startLocalTimer() {
 
                 clearInterval(
@@ -1097,9 +1062,7 @@
                     syncInterval
                 );
 
-
                 renderTimer();
-
 
                 timerInterval =
                     setInterval(
@@ -1108,7 +1071,6 @@
                             remainingSeconds--;
 
                             renderTimer();
-
 
                             if (
                                 remainingSeconds <= 0
@@ -1126,7 +1088,6 @@
                         1000
                     );
 
-
                 /*
                  * Server menjadi sumber waktu utama.
                  */
@@ -1138,7 +1099,6 @@
 
             }
 
-
             $('#trigger_soal')
                 .on(
                     'click',
@@ -1149,10 +1109,8 @@
                                 'wrap_soal'
                             );
 
-
                         $('#wrap_soal')
                             .show();
-
 
                         if (
                             element
@@ -1175,7 +1133,6 @@
                     }
                 );
 
-
             $('#batal-ujian')
                 .on(
                     'click',
@@ -1187,7 +1144,6 @@
                     }
                 );
 
-
             $('#siap-ujian')
                 .on(
                     'click',
@@ -1196,19 +1152,16 @@
                         const button =
                             $(this);
 
-
                         button.prop(
                             'disabled',
                             true
                         );
-
 
                         $.ajax({
 
                             type: 'POST',
 
                             url: @json($startUrl),
-
 
                             success: function(
                                 response
@@ -1221,17 +1174,13 @@
                                         10
                                     );
 
-
                                 $('#wrap-siap-ujian')
                                     .hide();
-
 
                                 $('.wrap_ujian')
                                     .fadeIn(250);
 
-
                                 startLocalTimer();
-
 
                                 loadQuestion(
                                     firstQuestionToOpen()
@@ -1239,14 +1188,12 @@
 
                             },
 
-
                             error: function(xhr) {
 
                                 button.prop(
                                     'disabled',
                                     false
                                 );
-
 
                                 if (
                                     xhr.responseJSON &&
@@ -1266,7 +1213,6 @@
 
                                 }
 
-
                                 alert(
                                     xhr.responseJSON
                                     ?.message ||
@@ -1280,7 +1226,6 @@
                     }
                 );
 
-
             $(document)
                 .on(
                     'click',
@@ -1288,7 +1233,6 @@
                     function(event) {
 
                         event.preventDefault();
-
 
                         loadQuestion(
                             $(this)
@@ -1299,7 +1243,6 @@
 
                     }
                 );
-
 
             $('#soal-sebelumnya')
                 .on(
@@ -1323,7 +1266,6 @@
                     }
                 );
 
-
             $('#soal-berikutnya')
                 .on(
                     'click',
@@ -1331,7 +1273,6 @@
 
                         const index =
                             getCurrentIndex();
-
 
                         if (
                             index >= 0 &&
@@ -1350,7 +1291,6 @@
                     }
                 );
 
-
             $(document)
                 .on(
                     'change',
@@ -1364,13 +1304,11 @@
                             return;
                         }
 
-
                         const radio =
                             $(this);
 
                         const container =
                             $('#wrap-soal');
-
 
                         const pilihan =
                             radio.val();
@@ -1391,10 +1329,8 @@
                             .first()
                             .val();
 
-
                         isSavingAnswer =
                             true;
-
 
                         container
                             .find(
@@ -1405,9 +1341,7 @@
                                 true
                             );
 
-
                         updateNavigation();
-
 
                         $.ajax({
 
@@ -1425,7 +1359,6 @@
 
                             },
 
-
                             success: function(
                                 response
                             ) {
@@ -1438,13 +1371,11 @@
                                         'benar'
                                     );
 
-
                                 radio
                                     .closest('tr')
                                     .addClass(
                                         'benar'
                                     );
-
 
                                 $('#get-soal' +
                                         detailId
@@ -1482,13 +1413,11 @@
                                         10
                                     );
 
-
                                 renderTimer();
 
 
                                 isSavingAnswer =
                                     false;
-
 
                                 container
                                     .find(
@@ -1499,13 +1428,10 @@
                                         false
                                     );
 
-
                                 updateNavigation();
-
 
                                 const index =
                                     getCurrentIndex();
-
 
                                 if (
                                     index >= 0 &&
@@ -1530,12 +1456,10 @@
 
                             },
 
-
                             error: function(xhr) {
 
                                 isSavingAnswer =
                                     false;
-
 
                                 container
                                     .find(
@@ -1546,9 +1470,7 @@
                                         false
                                     );
 
-
                                 updateNavigation();
-
 
                                 if (
                                     xhr.responseJSON &&
@@ -1563,7 +1485,6 @@
                                     return;
 
                                 }
-
 
                                 alert(
                                     xhr.responseJSON
@@ -1660,7 +1581,6 @@
 
             }
 
-
             $('#kirim').on('click', function() {
 
                 if (
@@ -1721,7 +1641,6 @@
 
             });
 
-
             $('#ke-soal-belum-dijawab')
                 .on(
                     'click',
@@ -1757,7 +1676,6 @@
 
             });
 
-
             /*
              * Saat browser keluar fullscreen,
              * ujian tetap berjalan.
@@ -1772,13 +1690,11 @@
                         return;
                     }
 
-
                     $('#wrap_soal')
                         .show();
 
                 }
             );
-
 
             renderTimer();
             updateAnswerProgress();
