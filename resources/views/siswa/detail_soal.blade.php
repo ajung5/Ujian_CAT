@@ -11,21 +11,32 @@
             color: #003284;
         }
 
-        .pagination {
+        .question-grid {
+            display: grid;
+            grid-template-columns: repeat(8, minmax(0, 1fr));
+            gap: 10px;
+            width: 100%;
+            padding: 12px 0;
             background: #fff;
-            color: #000 !important;
         }
 
-        .page {
-            display: inline-block;
-            padding: 4px 10px;
-            margin: 8px 4px 0 0;
-            border-radius: 3px;
+        .question-grid .page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-width: 0;
+            height: 48px;
+            padding: 0;
+            margin: 0;
             border: 1px solid #c0c0c0;
+            border-radius: 4px;
             background: #e9e9e9;
-            font-weight: bold;
-            text-decoration: none;
             color: #717171;
+            font-weight: bold;
+            font-size: 18px;
+            line-height: 1;
+            text-decoration: none;
         }
 
         .page.active {
@@ -48,6 +59,18 @@
             margin-top: 15px;
             padding: 12px 0;
             border-top: 1px solid #e3e9f2;
+        }
+
+        @media (max-width: 767px) {
+            .question-grid {
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+                gap: 8px;
+            }
+
+            .question-grid .page {
+                height: 44px;
+                font-size: 16px;
+            }
         }
     </style>
 @endpush
@@ -375,7 +398,7 @@
                         </div>
 
                         <div style="padding:0 15px;">
-                            <div class="pagination">
+                            <div class="question-grid">
                                 @foreach ($questionOrder as $index => $questionId)
                                     <a href="#"
                                         class="
