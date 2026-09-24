@@ -119,42 +119,28 @@
 
                 <td class="center">
                     @if (!$isExam)
-                        <a href="{{ route('siswa.results.detail', [
-                            'id' => $result->id_soal,
-                            'attempt' => $result->attempt_no,
-                        ]) }}"
-                            class="
-                                btn
-                                btn-sm
-                                btn-info
-                            ">
-                            <i class="fa fa-eye"></i>
-
-                            Review
-                        </a>
-
-                        @if ($canRetry)
-                            <a href="{{ route('siswa.training', $result->id_soal) }}"
-                                class="
-                                    btn
-                                    btn-sm
-                                    btn-primary
-                                ">
-                                <i class="fa fa-repeat"></i>
-
-                                Ulangi
+                        <div class="result-action-buttons">
+                            <a href="{{ route('siswa.results.detail', [
+                                'id' => $result->id_soal,
+                                'attempt' => $result->attempt_no,
+                            ]) }}"
+                                class="btn btn-sm btn-info">
+                                <i class="fa fa-eye"></i>
+                                Review
                             </a>
-                        @else
-                            <button type="button"
-                                class="
-                                    btn
-                                    btn-sm
-                                    btn-default
-                                "
-                                disabled>
-                                Maksimal 3x
-                            </button>
-                        @endif
+
+                            @if ($canRetry)
+                                <a href="{{ route('siswa.training', $result->id_soal) }}"
+                                    class="btn btn-sm btn-primary">
+                                    <i class="fa fa-repeat"></i>
+                                    Ulangi
+                                </a>
+                            @else
+                                <button type="button" class="btn btn-sm btn-default" disabled>
+                                    Maksimal 3x
+                                </button>
+                            @endif
+                        </div>
                     @else
                         <span class="text-muted">
                             Tidak Tersedia
@@ -205,7 +191,7 @@
                                                 Tanggal
                                             </th>
 
-                                            <th class="center">
+                                            <th class="center" style="min-width: 200px;">
                                                 Aksi
                                             </th>
                                         </tr>

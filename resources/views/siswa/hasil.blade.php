@@ -18,6 +18,33 @@
 
 @section('content')
 
+    <style>
+        .result-action-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: nowrap;
+            min-width: 190px;
+        }
+
+        .result-action-buttons .btn {
+            min-width: 82px;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 767px) {
+            .result-action-buttons {
+                flex-wrap: wrap;
+                min-width: 120px;
+            }
+
+            .result-action-buttons .btn {
+                width: 100%;
+            }
+        }
+    </style>
+
     <div class="col-md-12">
         <div class="card">
             <div class="card-header bg-white">
