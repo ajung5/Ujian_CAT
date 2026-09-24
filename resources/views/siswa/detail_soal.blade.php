@@ -93,6 +93,10 @@
             border-radius: 3px;
         }
 
+        .question-sidebar-body {
+            padding: 0 15px;
+        }
+
         .question-legend-box.unanswered {
             border: 1px solid #c0c0c0;
             background: #e9e9e9;
@@ -200,20 +204,30 @@
                 display: flex;
                 flex-direction: column;
                 max-height: calc(100vh - 30px);
+                overflow: hidden;
+            }
+
+            .question-sidebar-body {
+                display: flex;
+                flex: 1 1 auto;
+                flex-direction: column;
+                min-height: 0;
+                overflow: hidden;
             }
 
             .question-list-wrapper {
                 flex: 1 1 auto;
                 min-height: 0;
+                padding: 0;
                 overflow-y: auto;
             }
 
             .question-actions {
-                z-index: 10;
-                display: flex;
-                justify-content: flex-end;
-                padding: 12px 15px;
-                border-top: 1px solid #e3e9f2;
+                flex: 0 0 auto;
+                position: sticky;
+                bottom: 0;
+                z-index: 20;
+                padding: 12px 0;
                 background: #fff;
             }
         }
@@ -664,7 +678,7 @@
                             </div>
                         </div>
 
-                        <div style="padding:0 15px;">
+                        <div class="question-sidebar-body"">
                             <div class="question-list-wrapper">
                                 <div class="question-grid">
                                     @foreach ($questionOrder as $index => $questionId)
