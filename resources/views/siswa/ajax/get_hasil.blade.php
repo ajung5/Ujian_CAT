@@ -108,16 +108,22 @@
                 </td>
 
                 <td class="center">
-                    <a href="{{ route('siswa.results.detail', $result->id_soal) }}"
-                        class="
-                        btn
-                        btn-sm
-                        btn-info
-                    ">
-                        <i class="fa fa-eye"></i>
+                    @if ((int) $result->jenis_soal === 2)
+                        <a href="{{ route('siswa.results.detail', $result->id_soal) }}"
+                            class="
+                btn
+                btn-sm
+                btn-info
+            ">
+                            <i class="fa fa-eye"></i>
 
-                        Review Jawaban
-                    </a>
+                            Review Jawaban
+                        </a>
+                    @else
+                        <span class="text-muted">
+                            Tidak Tersedia
+                        </span>
+                    @endif
                 </td>
             </tr>
 

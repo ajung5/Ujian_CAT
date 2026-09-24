@@ -5,7 +5,9 @@ use App\Models\Detailsoal;
 use App\Models\Distribusisoal;
 use App\Models\Jawab;
 use App\Models\Kelas;
+use App\Models\Materi;
 use App\Models\Soal;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 /*
@@ -19,19 +21,12 @@ function createLifecycleExam(int $ownerId, Kelas $kelas, array $attributes = [])
         array_merge(
             [
                 'id_user' => (string) $ownerId,
-
                 'jenis' => '1',
-
                 'materi' => null,
-
                 'paket' => 'Ujian Lifecycle Test',
-
                 'deskripsi' => 'Regression test lifecycle ujian',
-
                 'kkm' => '75',
-
                 'waktu' => '3600',
-
                 'tampil' => 'Y',
             ],
             $attributes,
@@ -40,11 +35,37 @@ function createLifecycleExam(int $ownerId, Kelas $kelas, array $attributes = [])
 
     Distribusisoal::query()->create([
         'id_soal' => (string) $soal->id,
-
         'id_kelas' => (string) $kelas->id,
     ]);
 
     return $soal;
+}
+
+function createLifecycleTraining(int $ownerId, array $attributes = []): Soal {
+    $materi = Materi::query()->create([
+        'id_user' => $ownerId,
+        'judul' => 'Materi Lifecycle Test',
+        'isi' => 'Materi untuk regression test latihan.',
+        'status' => 'Y',
+        'hits' => 0,
+        'sesi' => 'lifecycle-training',
+    ]);
+
+    return Soal::query()->create(
+        array_merge(
+            [
+                'id_user' => (string) $ownerId,
+                'jenis' => '2',
+                'materi' => $materi->id,
+                'paket' => 'Latihan Lifecycle Test',
+                'deskripsi' => 'Regression test lifecycle latihan',
+                'kkm' => '75',
+                'waktu' => '1800',
+                'tampil' => 'Y',
+            ],
+            $attributes,
+        ),
+    );
 }
 
 function createLifecycleQuestion(Soal $soal, int $ownerId, array $attributes = []): Detailsoal {
@@ -52,32 +73,37 @@ function createLifecycleQuestion(Soal $soal, int $ownerId, array $attributes = [
         array_merge(
             [
                 'id_soal' => (string) $soal->id,
-
-                'jenis' => '1',
-
+                'jenis' => (string) $soal->jenis,
                 'soal' => 'Pertanyaan lifecycle test',
-
                 'audio' => null,
-
                 'pila' => 'Jawaban A',
-
                 'pilb' => 'Jawaban B',
-
                 'pilc' => 'Jawaban C',
-
                 'pild' => 'Jawaban D',
-
                 'pile' => 'Jawaban E',
-
                 'kunci' => 'A',
-
                 'score' => '100',
-
                 'id_user' => (string) $ownerId,
-
                 'status' => 'Y',
-
                 'sesi' => null,
+            ],
+            $attributes,
+        ),
+    );
+}
+
+function createLifecycleStudentAnswer(Soal $soal, Detailsoal $detail, User $student, array $attributes = []): Jawab {
+    return Jawab::query()->create(
+        array_merge(
+            [
+                'no_soal_id' => $detail->id,
+                'id_soal' => (string) $soal->id,
+                'id_user' => (string) $student->id,
+                'id_kelas' => $student->id_kelas !== null ? (string) $student->id_kelas : null,
+                'nama' => $student->nama,
+                'pilihan' => 'A',
+                'score' => '100',
+                'status' => 'Y',
             ],
             $attributes,
         ),
@@ -101,7 +127,6 @@ test('siswa tidak dapat memulai ujian yang tidak didistribusikan ke kelasnya', f
 
     $siswa = $this->createUser([
         'status' => 'S',
-
         'id_kelas' => $kelas->id,
     ]);
 
@@ -111,19 +136,12 @@ test('siswa tidak dapat memulai ujian yang tidak didistribusikan ke kelasnya', f
      */
     $ujian = Soal::query()->create([
         'id_user' => (string) $guru->id,
-
         'jenis' => '1',
-
         'materi' => null,
-
         'paket' => 'Ujian Tidak Terdistribusi',
-
         'deskripsi' => 'Tidak boleh dimulai',
-
         'kkm' => '75',
-
         'waktu' => '3600',
-
         'tampil' => 'Y',
     ]);
 
@@ -135,7 +153,6 @@ test('siswa tidak dapat memulai ujian yang tidak didistribusikan ke kelasnya', f
 
     $this->assertDatabaseMissing('countexamtimes', [
         'id_soal' => (string) $ujian->id,
-
         'id_user' => (string) $siswa->id,
     ]);
 });
@@ -157,7 +174,6 @@ test('siswa tidak dapat menyimpan jawaban sebelum ujian dimulai', function () {
 
     $siswa = $this->createUser([
         'status' => 'S',
-
         'id_kelas' => $kelas->id,
     ]);
 
@@ -176,9 +192,7 @@ test('siswa tidak dapat menyimpan jawaban sebelum ujian dimulai', function () {
 
     $response = $this->actingAs($siswa)->postJson(route('siswa.exam.answer'), [
         'id_soal' => $ujian->id,
-
         'no_soal_id' => $detail->id,
-
         'pilihan' => 'A',
     ]);
 
@@ -188,7 +202,6 @@ test('siswa tidak dapat menyimpan jawaban sebelum ujian dimulai', function () {
 
     $this->assertDatabaseMissing('jawabs', [
         'id_soal' => (string) $ujian->id,
-
         'id_user' => (string) $siswa->id,
     ]);
 });
@@ -210,9 +223,7 @@ test('alur ujian start simpan jawaban dan finish berjalan sampai final', functio
 
     $siswa = $this->createUser([
         'status' => 'S',
-
         'id_kelas' => $kelas->id,
-
         'nama' => 'Siswa Lifecycle',
     ]);
 
@@ -220,7 +231,6 @@ test('alur ujian start simpan jawaban dan finish berjalan sampai final', functio
 
     $detail = createLifecycleQuestion($ujian, $guru->id, [
         'kunci' => 'A',
-
         'score' => '100',
     ]);
 
@@ -243,9 +253,7 @@ test('alur ujian start simpan jawaban dan finish berjalan sampai final', functio
 
     $this->assertDatabaseHas('countexamtimes', [
         'id_soal' => (string) $ujian->id,
-
         'id_user' => (string) $siswa->id,
-
         'waktu' => '3600',
     ]);
 
@@ -255,15 +263,12 @@ test('alur ujian start simpan jawaban dan finish berjalan sampai final', functio
      */
     $answerResponse = $this->actingAs($siswa)->postJson(route('siswa.exam.answer'), [
         'id_soal' => $ujian->id,
-
         'no_soal_id' => $detail->id,
-
         'pilihan' => 'A',
     ]);
 
     $answerResponse->assertOk()->assertJson([
         'saved' => true,
-
         'pilihan' => 'A',
     ]);
 
@@ -272,17 +277,11 @@ test('alur ujian start simpan jawaban dan finish berjalan sampai final', functio
      */
     $this->assertDatabaseHas('jawabs', [
         'no_soal_id' => $detail->id,
-
         'id_soal' => (string) $ujian->id,
-
         'id_user' => (string) $siswa->id,
-
         'id_kelas' => (string) $kelas->id,
-
         'pilihan' => 'A',
-
         'score' => '100',
-
         'status' => 'N',
     ]);
 
@@ -303,15 +302,10 @@ test('alur ujian start simpan jawaban dan finish berjalan sampai final', functio
      */
     $this->assertDatabaseHas('jawabs', [
         'no_soal_id' => $detail->id,
-
         'id_soal' => (string) $ujian->id,
-
         'id_user' => (string) $siswa->id,
-
         'pilihan' => 'A',
-
         'score' => '100',
-
         'status' => 'Y',
     ]);
 
@@ -320,9 +314,7 @@ test('alur ujian start simpan jawaban dan finish berjalan sampai final', functio
      */
     $this->assertDatabaseHas('countexamtimes', [
         'id_soal' => (string) $ujian->id,
-
         'id_user' => (string) $siswa->id,
-
         'waktu' => '0',
     ]);
 });
@@ -344,7 +336,6 @@ test('finish membuat jawaban final score nol untuk soal yang tidak dijawab', fun
 
     $siswa = $this->createUser([
         'status' => 'S',
-
         'id_kelas' => $kelas->id,
     ]);
 
@@ -352,13 +343,11 @@ test('finish membuat jawaban final score nol untuk soal yang tidak dijawab', fun
 
     $detailDijawab = createLifecycleQuestion($ujian, $guru->id, [
         'soal' => 'Soal yang dijawab',
-
         'sesi' => 'answered',
     ]);
 
     $detailKosong = createLifecycleQuestion($ujian, $guru->id, [
         'soal' => 'Soal yang tidak dijawab',
-
         'sesi' => 'unanswered',
     ]);
 
@@ -372,9 +361,7 @@ test('finish membuat jawaban final score nol untuk soal yang tidak dijawab', fun
     $this->actingAs($siswa)
         ->postJson(route('siswa.exam.answer'), [
             'id_soal' => $ujian->id,
-
             'no_soal_id' => $detailDijawab->id,
-
             'pilihan' => 'A',
         ])
         ->assertOk();
@@ -394,11 +381,8 @@ test('finish membuat jawaban final score nol untuk soal yang tidak dijawab', fun
      */
     $this->assertDatabaseHas('jawabs', [
         'no_soal_id' => $detailDijawab->id,
-
         'id_user' => (string) $siswa->id,
-
         'score' => '100',
-
         'status' => 'Y',
     ]);
 
@@ -408,15 +392,10 @@ test('finish membuat jawaban final score nol untuk soal yang tidak dijawab', fun
      */
     $this->assertDatabaseHas('jawabs', [
         'no_soal_id' => $detailKosong->id,
-
         'id_soal' => (string) $ujian->id,
-
         'id_user' => (string) $siswa->id,
-
         'pilihan' => '',
-
         'score' => '0',
-
         'status' => 'Y',
     ]);
 });
@@ -438,7 +417,6 @@ test('ujian yang sudah final tidak dapat dimulai atau dijawab ulang', function (
 
     $siswa = $this->createUser([
         'status' => 'S',
-
         'id_kelas' => $kelas->id,
     ]);
 
@@ -453,9 +431,7 @@ test('ujian yang sudah final tidak dapat dimulai atau dijawab ulang', function (
     $this->actingAs($siswa)
         ->postJson(route('siswa.exam.answer'), [
             'id_soal' => $ujian->id,
-
             'no_soal_id' => $detail->id,
-
             'pilihan' => 'A',
         ])
         ->assertOk();
@@ -474,7 +450,6 @@ test('ujian yang sudah final tidak dapat dimulai atau dijawab ulang', function (
         ->assertStatus(409)
         ->assertJson([
             'finished' => true,
-
             'message' => 'Ujian sudah selesai.',
         ]);
 
@@ -484,9 +459,7 @@ test('ujian yang sudah final tidak dapat dimulai atau dijawab ulang', function (
     $this->actingAs($siswa)
         ->postJson(route('siswa.exam.answer'), [
             'id_soal' => $ujian->id,
-
             'no_soal_id' => $detail->id,
-
             'pilihan' => 'B',
         ])
         ->assertStatus(409)
@@ -499,13 +472,9 @@ test('ujian yang sudah final tidak dapat dimulai atau dijawab ulang', function (
      */
     $this->assertDatabaseHas('jawabs', [
         'no_soal_id' => $detail->id,
-
         'id_user' => (string) $siswa->id,
-
         'pilihan' => 'A',
-
         'score' => '100',
-
         'status' => 'Y',
     ]);
 });
@@ -527,7 +496,6 @@ test('siswa tidak dapat mengirim jawaban untuk detail soal milik paket lain', fu
 
     $siswa = $this->createUser([
         'status' => 'S',
-
         'id_kelas' => $kelas->id,
     ]);
 
@@ -561,9 +529,7 @@ test('siswa tidak dapat mengirim jawaban untuk detail soal milik paket lain', fu
      */
     $response = $this->actingAs($siswa)->postJson(route('siswa.exam.answer'), [
         'id_soal' => $ujianA->id,
-
         'no_soal_id' => $detailB->id,
-
         'pilihan' => 'A',
     ]);
 
@@ -571,9 +537,199 @@ test('siswa tidak dapat mengirim jawaban untuk detail soal milik paket lain', fu
 
     $this->assertDatabaseMissing('jawabs', [
         'no_soal_id' => $detailB->id,
-
         'id_user' => (string) $siswa->id,
     ]);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Review Access Control
+|--------------------------------------------------------------------------
+*/
+
+test('siswa tidak dapat mereview jawaban tipe ujian melalui direct url', function () {
+    $kelas = Kelas::query()->create([
+        'nama' => 'Kelas Review Ujian',
+    ]);
+
+    $guru = $this->createUser([
+        'status' => 'G',
+    ]);
+
+    $siswa = $this->createUser([
+        'status' => 'S',
+        'id_kelas' => $kelas->id,
+        'nama' => 'Siswa Review Ujian',
+    ]);
+
+    $ujian = createLifecycleExam($guru->id, $kelas, [
+        'paket' => 'Ujian Tanpa Review',
+    ]);
+
+    $detail = createLifecycleQuestion($ujian, $guru->id);
+
+    /*
+     * Buat jawaban final agar penolakan benar-benar
+     * terjadi karena jenis assessment adalah Ujian,
+     * bukan karena pengerjaan belum selesai.
+     */
+    createLifecycleStudentAnswer($ujian, $detail, $siswa);
+
+    $response = $this->actingAs($siswa)->get(route('siswa.results.detail', $ujian->id));
+
+    $response
+        ->assertRedirect(route('siswa.results'))
+        ->assertSessionHas('error', 'Review jawaban hanya tersedia untuk tipe Latihan.');
+});
+
+test('siswa dapat mereview latihan yang sudah final', function () {
+    $kelas = Kelas::query()->create([
+        'nama' => 'Kelas Review Latihan',
+    ]);
+
+    $guru = $this->createUser([
+        'status' => 'G',
+    ]);
+
+    $siswa = $this->createUser([
+        'status' => 'S',
+        'id_kelas' => $kelas->id,
+        'nama' => 'Siswa Review Latihan',
+    ]);
+
+    $latihan = createLifecycleTraining($guru->id, [
+        'paket' => 'Latihan Review Test',
+    ]);
+
+    $detail = createLifecycleQuestion($latihan, $guru->id, [
+        'jenis' => '2',
+        'soal' => 'Pertanyaan latihan yang dapat direview',
+        'kunci' => 'A',
+        'score' => '100',
+    ]);
+
+    createLifecycleStudentAnswer($latihan, $detail, $siswa, [
+        'pilihan' => 'A',
+        'score' => '100',
+        'status' => 'Y',
+    ]);
+
+    $response = $this->actingAs($siswa)->get(route('siswa.results.detail', $latihan->id));
+
+    $response
+        ->assertOk()
+        ->assertSee('Latihan Review Test')
+        ->assertSee('Pertanyaan latihan yang dapat direview')
+        ->assertSee('Latihan')
+        ->assertSee('Kunci Jawaban');
+});
+
+test('siswa tidak dapat mereview latihan yang belum final', function () {
+    $kelas = Kelas::query()->create([
+        'nama' => 'Kelas Review Draft',
+    ]);
+
+    $guru = $this->createUser([
+        'status' => 'G',
+    ]);
+
+    $siswa = $this->createUser([
+        'status' => 'S',
+        'id_kelas' => $kelas->id,
+        'nama' => 'Siswa Review Draft',
+    ]);
+
+    $latihan = createLifecycleTraining($guru->id, [
+        'paket' => 'Latihan Belum Final',
+    ]);
+
+    $detail = createLifecycleQuestion($latihan, $guru->id, [
+        'jenis' => '2',
+    ]);
+
+    /*
+     * Status N berarti masih draft /
+     * assessment belum difinalisasi.
+     */
+    createLifecycleStudentAnswer($latihan, $detail, $siswa, [
+        'status' => 'N',
+    ]);
+
+    $response = $this->actingAs($siswa)->get(route('siswa.results.detail', $latihan->id));
+
+    $response
+        ->assertRedirect(route('siswa.results'))
+        ->assertSessionHas('error', 'Review jawaban hanya tersedia setelah pengerjaan selesai.');
+});
+
+test('halaman hasil hanya menampilkan tombol review jawaban untuk latihan', function () {
+    $kelas = Kelas::query()->create([
+        'nama' => 'Kelas Review Visibility',
+    ]);
+
+    $guru = $this->createUser([
+        'status' => 'G',
+    ]);
+
+    $siswa = $this->createUser([
+        'status' => 'S',
+        'id_kelas' => $kelas->id,
+        'nama' => 'Siswa Review Visibility',
+    ]);
+
+    /*
+     * Ujian final.
+     */
+    $ujian = createLifecycleExam($guru->id, $kelas, [
+        'paket' => 'Ujian Tanpa Tombol Review',
+    ]);
+
+    $detailUjian = createLifecycleQuestion($ujian, $guru->id, [
+        'soal' => 'Pertanyaan ujian final',
+    ]);
+
+    createLifecycleStudentAnswer($ujian, $detailUjian, $siswa);
+
+    /*
+     * Latihan final.
+     */
+    $latihan = createLifecycleTraining($guru->id, [
+        'paket' => 'Latihan Dengan Tombol Review',
+    ]);
+
+    $detailLatihan = createLifecycleQuestion($latihan, $guru->id, [
+        'jenis' => '2',
+        'soal' => 'Pertanyaan latihan final',
+    ]);
+
+    createLifecycleStudentAnswer($latihan, $detailLatihan, $siswa);
+
+    $response = $this->actingAs($siswa)->get(route('siswa.results'));
+
+    $response
+        ->assertOk()
+        ->assertSee('Ujian Tanpa Tombol Review')
+        ->assertSee('Latihan Dengan Tombol Review')
+        ->assertSee('Review Jawaban');
+
+    $html = $response->getContent();
+
+    /*
+     * URL review Latihan harus ada.
+     */
+    expect($html)->toContain(route('siswa.results.detail', $latihan->id));
+
+    /*
+     * URL review Ujian tidak boleh ada.
+     */
+    expect($html)->not->toContain(route('siswa.results.detail', $ujian->id));
+
+    /*
+     * Karena hanya ada satu Latihan,
+     * tombol Review Jawaban juga hanya
+     * boleh muncul satu kali.
+     */
+    expect(substr_count($html, 'Review Jawaban'))->toBe(1);
 });
 
 /*
@@ -593,7 +749,6 @@ test('timer yang habis otomatis memfinalisasi ujian', function () {
 
     $siswa = $this->createUser([
         'status' => 'S',
-
         'id_kelas' => $kelas->id,
     ]);
 
@@ -627,7 +782,6 @@ test('timer yang habis otomatis memfinalisasi ujian', function () {
 
     $response->assertOk()->assertJson([
         'expired' => true,
-
         'remaining_seconds' => 0,
     ]);
 
@@ -637,21 +791,15 @@ test('timer yang habis otomatis memfinalisasi ujian', function () {
      */
     $this->assertDatabaseHas('jawabs', [
         'no_soal_id' => $detail->id,
-
         'id_soal' => (string) $ujian->id,
-
         'id_user' => (string) $siswa->id,
-
         'score' => '0',
-
         'status' => 'Y',
     ]);
 
     $this->assertDatabaseHas('countexamtimes', [
         'id_soal' => (string) $ujian->id,
-
         'id_user' => (string) $siswa->id,
-
         'waktu' => '0',
     ]);
 });
@@ -673,19 +821,16 @@ test('timer satu paket tidak mengubah timer paket lain', function () {
 
     $siswa = $this->createUser([
         'status' => 'S',
-
         'id_kelas' => $kelas->id,
     ]);
 
     $ujianA = createLifecycleExam($guru->id, $kelas, [
         'paket' => 'Timer Paket A',
-
         'waktu' => '10',
     ]);
 
     $ujianB = createLifecycleExam($guru->id, $kelas, [
         'paket' => 'Timer Paket B',
-
         'waktu' => '120',
     ]);
 
@@ -731,9 +876,7 @@ test('timer satu paket tidak mengubah timer paket lain', function () {
      */
     $this->assertDatabaseHas('countexamtimes', [
         'id_soal' => (string) $ujianA->id,
-
         'id_user' => (string) $siswa->id,
-
         'waktu' => '0',
     ]);
 

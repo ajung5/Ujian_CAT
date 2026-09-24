@@ -688,6 +688,19 @@ class SiswaController extends Controller {
 
         $soal = Soal::query()->whereKey($id)->firstOrFail();
 
+        if ((string) $soal->jenis !== '2') {
+            Log::warning('assessment.review.denied', [
+                'reason' => 'review_not_available_for_exam',
+                'type' => (string) $soal->jenis,
+                'user_id' => Auth::id(),
+                'id_soal' => $soal->id,
+                'ip' => request()->ip(),
+            ]);
+
+            return redirect()
+                ->route('siswa.results')
+                ->with('error', 'Review jawaban hanya tersedia untuk tipe Latihan.');
+        }
         $hasFinalAnswer = Jawab::query()
             ->where('id_soal', (string) $soal->id)
             ->where('id_user', (string) Auth::id())

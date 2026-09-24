@@ -58,6 +58,11 @@
                     <img src="{{ asset('assets/assets/images/facebook.gif') }}" alt="loading">
                 </div>
 
+                <p class="text-muted" style="margin-bottom:10px;">
+                    <i class="fa fa-info-circle"></i>
+                    Review jawaban hanya tersedia untuk tipe Latihan.
+                </p>
+
                 <div id="wrap-hasil" style="overflow-x:auto;">
                     @include('siswa.ajax.get_hasil', [
                         'results' => $results,
