@@ -9,7 +9,9 @@ use App\Http\Controllers\LatihanController;
 use App\Http\Controllers\MateriController;
 use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\SoalController;
+use App\Http\Controllers\ChangelogController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,11 +20,13 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    if (!auth()->check()) {
+    if (!Auth::check()) {
         return redirect()->route('login');
     }
 
-    return match (auth()->user()->status) {
+    $user = Auth::user();
+
+    return match ($user->status) {
         'A', 'G' => redirect()->route('guru.index'),
         'S', 'C' => redirect()->route('siswa.index'),
         default => abort(403, 'Role pengguna tidak dikenali.'),
@@ -251,6 +255,16 @@ Route::middleware('guest')->group(function () {
 Route::post('/auth/logout', [AuthController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
+
+/*
+|--------------------------------------------------------------------------
+| Administrator Only
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'role:A'])->group(function () {
+    Route::get('/admin/changelog', [ChangelogController::class, 'index'])->name('admin.changelog');
+});
 
 /*
 |--------------------------------------------------------------------------

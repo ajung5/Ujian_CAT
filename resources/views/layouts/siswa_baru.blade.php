@@ -259,7 +259,7 @@
                     2016 -
                     {{ date('Y') }}
                     <span class="pull-right">
-                        V 2.0
+                        v{{ config('app.version') }}
                     </span>
                 </div>
             </div>

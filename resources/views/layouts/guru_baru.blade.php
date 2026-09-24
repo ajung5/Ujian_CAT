@@ -248,6 +248,18 @@
                                 </a>
                             </li>
 
+                            @if (auth()->user()->status === 'A')
+                                <li class="{{ request()->routeIs('admin.changelog') ? 'active' : '' }}">
+                                    <a href="{{ route('admin.changelog') }}">
+                                        <i class="fa fa-history"></i>
+
+                                        <span>
+                                            Changelog
+                                        </span>
+                                    </a>
+                                </li>
+                            @endif
+
                             <li>
                                 <a href="#"
                                     onclick="
@@ -283,7 +295,7 @@
                                 2016 - {{ date('Y') }}
 
                                 <span class="pull-right">
-                                    V 2.0
+                                    v{{ config('app.version') }}
                                 </span>
                             </div>
                         </div>
