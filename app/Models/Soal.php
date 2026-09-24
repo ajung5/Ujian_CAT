@@ -25,26 +25,44 @@ class Soal extends Model {
 
     protected $fillable = ['id_user', 'jenis', 'materi', 'paket', 'deskripsi', 'kkm', 'waktu', 'tampil'];
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo {
         return $this->belongsTo(User::class, 'id_user');
     }
 
+    /**
+     * @return HasMany<Detailsoal, $this>
+     */
     public function detailsoals(): HasMany {
         return $this->hasMany(Detailsoal::class, 'id_soal');
     }
 
+    /**
+     * @return HasMany<Distribusisoal, $this>
+     */
     public function distribusisoals(): HasMany {
         return $this->hasMany(Distribusisoal::class, 'id_soal');
     }
 
+    /**
+     * @return HasMany<Jawab, $this>
+     */
     public function jawabs(): HasMany {
         return $this->hasMany(Jawab::class, 'id_soal');
     }
 
+    /**
+     * @return HasMany<Countexamtime, $this>
+     */
     public function countexamtimes(): HasMany {
         return $this->hasMany(Countexamtime::class, 'id_soal');
     }
 
+    /**
+     * @return BelongsTo<Materi, $this>
+     */
     public function materiData(): BelongsTo {
         return $this->belongsTo(Materi::class, 'materi');
     }

@@ -532,7 +532,7 @@ class DatasiswaController extends Controller {
     /**
      * Hapus seluruh calon siswa / peserta PSB.
      */
-    public function destroyCandidates() {
+    public function destroyCandidates(): RedirectResponse {
         $candidates = User::query()
             ->where('status', 'C')
             ->get(['id', 'gambar']);

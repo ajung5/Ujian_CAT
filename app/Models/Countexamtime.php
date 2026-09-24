@@ -19,10 +19,16 @@ class Countexamtime extends Model {
 
     protected $fillable = ['id_soal', 'id_user', 'waktu'];
 
+    /**
+     * @return BelongsTo<Soal, $this>
+     */
     public function soal(): BelongsTo {
         return $this->belongsTo(Soal::class, 'id_soal');
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo {
         return $this->belongsTo(User::class, 'id_user');
     }

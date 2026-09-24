@@ -24,14 +24,23 @@ class Jawab extends Model {
 
     protected $fillable = ['no_soal_id', 'id_soal', 'id_user', 'id_kelas', 'nama', 'pilihan', 'score', 'status'];
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo {
         return $this->belongsTo(User::class, 'id_user');
     }
 
+    /**
+     * @return BelongsTo<Soal, $this>
+     */
     public function soal(): BelongsTo {
         return $this->belongsTo(Soal::class, 'id_soal');
     }
 
+    /**
+     * @return BelongsTo<Kelas, $this>
+     */
     public function kelas(): BelongsTo {
         return $this->belongsTo(Kelas::class, 'id_kelas');
     }

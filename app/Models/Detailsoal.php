@@ -45,10 +45,16 @@ class Detailsoal extends Model {
         'sesi',
     ];
 
+    /**
+     * @return BelongsTo<Soal, $this>
+     */
     public function soalInduk(): BelongsTo {
         return $this->belongsTo(Soal::class, 'id_soal');
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo {
         return $this->belongsTo(User::class, 'id_user');
     }

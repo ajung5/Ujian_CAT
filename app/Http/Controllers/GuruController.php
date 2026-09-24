@@ -310,7 +310,7 @@ class GuruController extends Controller {
     /**
      * Ubah nama kelas.
      */
-    public function ubahKelas(Request $request) {
+    public function ubahKelas(Request $request): Response {
         $validated = $request->validate(
             [
                 'id' => ['required', 'integer', 'exists:kelas,id'],
@@ -338,7 +338,7 @@ class GuruController extends Controller {
     /**
      * Tambah kelas.
      */
-    public function tambahKelas(Request $request) {
+    public function tambahKelas(Request $request): Response {
         $validated = $request->validate(
             [
                 'nama' => ['required', 'string', 'max:255'],
@@ -366,7 +366,7 @@ class GuruController extends Controller {
      * Siswa yang berada di kelas tersebut
      * dikembalikan menjadi tanpa kelas.
      */
-    public function hapusKelas(Request $request) {
+    public function hapusKelas(Request $request): Response {
         $validated = $request->validate([
             'id_kelas' => ['required', 'integer', 'exists:kelas,id'],
         ]);
@@ -425,7 +425,7 @@ class GuruController extends Controller {
     /**
      * Cek kelas siswa sebelum dipindahkan.
      */
-    public function cekKelasSiswa(Request $request) {
+    public function cekKelasSiswa(Request $request): Response {
         $validated = $request->validate(
             [
                 'siswa' => ['required', 'integer'],
@@ -465,7 +465,7 @@ class GuruController extends Controller {
     /**
      * Pindahkan siswa ke kelas tertentu.
      */
-    public function tambahSiswaKeKelas(Request $request) {
+    public function tambahSiswaKeKelas(Request $request): Response {
         $validated = $request->validate(
             [
                 'siswa' => ['required', 'integer'],
@@ -514,7 +514,7 @@ class GuruController extends Controller {
     /**
      * Keluarkan siswa dari kelas.
      */
-    public function hapusKelasSiswa(Request $request) {
+    public function hapusKelasSiswa(Request $request): Response {
         $validated = $request->validate([
             'id_siswa' => ['required', 'integer'],
         ]);

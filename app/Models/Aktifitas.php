@@ -10,6 +10,9 @@ class Aktifitas extends Model {
 
     protected $fillable = ['id_user', 'nama'];
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo {
         return $this->belongsTo(User::class, 'id_user');
     }

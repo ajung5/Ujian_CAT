@@ -40,18 +40,30 @@ class User extends Authenticatable {
 
     protected $hidden = ['password', 'remember_token'];
 
+    /**
+     * @return HasMany<Soal, $this>
+     */
     public function soals(): HasMany {
         return $this->hasMany(Soal::class, 'id_user');
     }
 
+    /**
+     * @return HasMany<Jawab, $this>
+     */
     public function jawabs(): HasMany {
         return $this->hasMany(Jawab::class, 'id_user');
     }
 
+    /**
+     * @return HasMany<Aktifitas, $this>
+     */
     public function aktifitas(): HasMany {
         return $this->hasMany(Aktifitas::class, 'id_user');
     }
 
+    /**
+     * @return HasMany<Countexamtime, $this>
+     */
     public function countexamtimes(): HasMany {
         return $this->hasMany(Countexamtime::class, 'id_user');
     }

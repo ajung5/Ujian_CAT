@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 class MateriController extends Controller {
     /**
@@ -267,6 +268,9 @@ class MateriController extends Controller {
 
     /**
      * Aktivitas sidebar.
+     */
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, \App\Models\Aktifitas>
      */
     private function recentActivities() {
         return Aktifitas::query()

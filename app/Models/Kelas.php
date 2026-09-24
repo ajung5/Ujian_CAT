@@ -17,14 +17,23 @@ class Kelas extends Model {
 
     protected $fillable = ['nama'];
 
+    /**
+     * @return HasMany<User, $this>
+     */
     public function users(): HasMany {
         return $this->hasMany(User::class, 'id_kelas');
     }
 
+    /**
+     * @return HasMany<Distribusisoal, $this>
+     */
     public function distribusisoals(): HasMany {
         return $this->hasMany(Distribusisoal::class, 'id_kelas');
     }
 
+    /**
+     * @return HasMany<Jawab, $this>
+     */
     public function jawabs(): HasMany {
         return $this->hasMany(Jawab::class, 'id_kelas');
     }

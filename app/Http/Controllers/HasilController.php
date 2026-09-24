@@ -10,13 +10,14 @@ use App\Models\School;
 use App\Models\Soal;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use App\Models\Detailsoal;
-use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -324,6 +325,15 @@ class HasilController extends Controller {
      * Hanya jawaban final status=Y yang
      * dianggap sebagai hasil pengerjaan.
      */
+
+    /**
+     * Query dasar laporan.
+     *
+     * Hanya jawaban final status=Y yang
+     * dianggap sebagai hasil pengerjaan.
+     *
+     * @return Builder<Jawab>
+     */
     private function resultsQuery(?string $search = null): Builder {
         $query = Jawab::query()
             ->join('soals', 'jawabs.id_soal', '=', 'soals.id')
@@ -369,7 +379,10 @@ class HasilController extends Controller {
             ->orderByDesc('terakhir_dikerjakan');
     }
 
-    private function classResultRows(int $idKelas, int $idSoal) {
+    /**
+     * @return EloquentCollection<int, Jawab>
+     */
+    private function classResultRows(int $idKelas, int $idSoal): EloquentCollection {
         return Jawab::query()
             ->join('users', 'jawabs.id_user', '=', 'users.id')
             ->select(
@@ -464,15 +477,15 @@ class HasilController extends Controller {
         $row = 5;
 
         foreach ($results as $result) {
-            $sheet->setCellValue('A' . $row, (string) $result->no_induk);
+            $sheet->setCellValue('A' . $row, (string) $result->getAttribute('no_induk'));
 
             $sheet->setCellValue('B' . $row, $result->nama);
 
             $sheet->setCellValue('C' . $row, $jumlahSoal);
 
-            $sheet->setCellValue('D' . $row, (int) $result->jawaban_benar);
+            $sheet->setCellValue('D' . $row, (int) $result->getAttribute('jawaban_benar'));
 
-            $sheet->setCellValue('E' . $row, (float) $result->nilai);
+            $sheet->setCellValue('E' . $row, (float) $result->getAttribute('nilai'));
 
             $row++;
         }
@@ -552,7 +565,10 @@ class HasilController extends Controller {
             ->firstOrFail();
     }
 
-    private function recentActivities() {
+    /**
+     * @return EloquentCollection<int, Aktifitas>
+     */
+    private function recentActivities(): EloquentCollection {
         return Aktifitas::query()
             ->join('users', 'aktifitas.id_user', '=', 'users.id')
             ->select(

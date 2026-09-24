@@ -7,6 +7,7 @@ use App\Models\School;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -142,7 +143,7 @@ class DataguruController extends Controller {
      * Business logic legacy dipertahankan:
      * akun Guru dihapus langsung, tanpa cascade tambahan.
      */
-    public function destroy(int $id) {
+    public function destroy(int $id): RedirectResponse {
         abort_unless(Auth::user()->status === 'A', 403);
 
         $guru = User::query()->whereKey($id)->where('status', 'G')->firstOrFail();

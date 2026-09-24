@@ -10,10 +10,16 @@ class Distribusisoal extends Model {
 
     protected $fillable = ['id_soal', 'id_kelas'];
 
+    /**
+     * @return BelongsTo<Soal, $this>
+     */
     public function soal(): BelongsTo {
         return $this->belongsTo(Soal::class, 'id_soal');
     }
 
+    /**
+     * @return BelongsTo<Kelas, $this>
+     */
     public function kelas(): BelongsTo {
         return $this->belongsTo(Kelas::class, 'id_kelas');
     }

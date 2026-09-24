@@ -12,6 +12,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
@@ -798,6 +799,10 @@ class SiswaController extends Controller {
     /**
      * Query agregasi hasil milik siswa.
      */
+
+    /**
+     * @return Builder<Jawab>
+     */
     private function studentResultsQuery(?string $search = null) {
         $query = Jawab::query()
             ->join('soals', 'jawabs.id_soal', '=', 'soals.id')
@@ -976,21 +981,27 @@ class SiswaController extends Controller {
     /**
      * Validasi urutan soal di session.
      */
-    private function isQuestionOrderValid(mixed $order, array $available): bool {
-        if (!is_array($order)) {
-            return false;
-        }
 
-        if (count($order) !== count($available)) {
-            return false;
-        }
-
-        $orderCopy = array_map('intval', $order);
-        $availableCopy = array_map('intval', $available);
-
-        sort($orderCopy);
-        sort($availableCopy);
-
-        return $orderCopy === $availableCopy;
+    /**
+ * Validasi urutan soal di session.
+ *
+ * @param list<int> $available
+ */
+private function isQuestionOrderValid(mixed $order, array $available): bool {
+    if (!is_array($order)) {
+        return false;
     }
+
+    if (count($order) !== count($available)) {
+        return false;
+    }
+
+    $orderCopy = array_map('intval', $order);
+    $availableCopy = array_map('intval', $available);
+
+    sort($orderCopy);
+    sort($availableCopy);
+
+    return $orderCopy === $availableCopy;
+}
 }
