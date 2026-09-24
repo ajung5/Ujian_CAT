@@ -203,7 +203,8 @@
                 top: 15px;
                 display: flex;
                 flex-direction: column;
-                max-height: calc(100vh - 30px);
+                height: calc(100vh - 95px);
+                max-height: calc(100vh - 95px);
                 overflow: hidden;
             }
 
@@ -212,6 +213,7 @@
                 flex: 1 1 auto;
                 flex-direction: column;
                 min-height: 0;
+                padding: 0 15px;
                 overflow: hidden;
             }
 
@@ -219,15 +221,18 @@
                 flex: 1 1 auto;
                 min-height: 0;
                 padding: 0;
+                overflow-x: hidden;
                 overflow-y: auto;
             }
 
             .question-actions {
                 flex: 0 0 auto;
-                position: sticky;
-                bottom: 0;
+                position: relative;
                 z-index: 20;
-                padding: 12px 0;
+                display: flex;
+                justify-content: flex-end;
+                padding: 10px 0 12px;
+                border-top: 1px solid #e3e9f2;
                 background: #fff;
             }
         }
@@ -678,7 +683,7 @@
                             </div>
                         </div>
 
-                        <div class="question-sidebar-body"">
+                        <div class="question-sidebar-body">
                             <div class="question-list-wrapper">
                                 <div class="question-grid">
                                     @foreach ($questionOrder as $index => $questionId)
@@ -1448,27 +1453,6 @@
                                         'active'
                                     );
 
-
-                                if (
-                                    !answeredIds
-                                    .includes(
-                                        parseInt(
-                                            detailId,
-                                            10
-                                        )
-                                    )
-                                ) {
-
-                                    answeredIds
-                                        .push(
-                                            parseInt(
-                                                detailId,
-                                                10
-                                            )
-                                        );
-
-                                }
-
                                 if (
                                     !answeredIds
                                     .includes(
@@ -1594,6 +1578,22 @@
                     }
                 );
 
+            function getUnansweredIds() {
+
+                return questionIds.filter(
+                    function(questionId) {
+
+                        return !answeredIds.includes(
+                            parseInt(
+                                questionId,
+                                10
+                            )
+                        );
+
+                    }
+                );
+
+            }
 
             function finishExam() {
 
@@ -1671,22 +1671,8 @@
                     return;
                 }
 
-                function getUnansweredIds() {
-
-                    return questionIds.filter(
-                        function(questionId) {
-
-                            return !answeredIds.includes(
-                                parseInt(
-                                    questionId,
-                                    10
-                                )
-                            );
-
-                        }
-                    );
-
-                }
+                const unansweredIds =
+                    getUnansweredIds();
 
                 const unansweredCount =
                     unansweredIds.length;
@@ -1709,6 +1695,9 @@
 
                 } else {
 
+                    $('#ke-soal-belum-dijawab')
+                        .hide();
+
                     $('#finish-unanswered-warning')
                         .hide();
 
@@ -1730,32 +1719,42 @@
                 $('#finish-confirm-overlay')
                     .hide();
 
-                $('#ke-soal-belum-dijawab')
-                    .on(
-                        'click',
-                        function() {
+            });
 
-                            const unansweredIds =
-                                getUnansweredIds();
 
-                            if (
-                                unansweredIds.length === 0
-                            ) {
-                                $('#finish-confirm-overlay')
-                                    .hide();
+            $('#ke-soal-belum-dijawab')
+                .on(
+                    'click',
+                    function() {
 
-                                return;
-                            }
+                        const unansweredIds =
+                            getUnansweredIds();
+
+                        if (
+                            unansweredIds.length === 0
+                        ) {
 
                             $('#finish-confirm-overlay')
                                 .hide();
 
-                            loadQuestion(
-                                unansweredIds[0]
-                            );
+                            return;
 
                         }
-                    );
+
+                        $('#finish-confirm-overlay')
+                            .hide();
+
+                        loadQuestion(
+                            unansweredIds[0]
+                        );
+
+                    }
+                );
+
+
+            $('#konfirmasi-selesai').on('click', function() {
+
+                finishExam();
 
             });
 
