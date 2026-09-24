@@ -61,6 +61,86 @@
             border-top: 1px solid #e3e9f2;
         }
 
+        .question-actions {
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+            display: flex;
+            justify-content: flex-end;
+            padding: 12px 0;
+            border-top: 1px solid #e3e9f2;
+            background: #fff;
+        }
+
+        .question-actions #kirim {
+            min-width: 110px;
+        }
+
+        .finish-confirm-overlay {
+            position: fixed;
+            z-index: 10020;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.55);
+        }
+
+        .finish-confirm-box {
+            width: 100%;
+            max-width: 460px;
+            padding: 28px;
+            border-radius: 8px;
+            background: #fff;
+            text-align: center;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
+        }
+
+        .finish-confirm-icon {
+            margin-bottom: 15px;
+            color: #d9534f;
+            font-size: 42px;
+        }
+
+        .finish-confirm-box h4 {
+            margin-bottom: 15px;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .finish-confirm-box p {
+            margin-bottom: 15px;
+        }
+
+        .finish-confirm-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .finish-confirm-actions .btn {
+            min-width: 130px;
+        }
+
+        @media (max-width: 767px) {
+            .finish-confirm-box {
+                padding: 22px 18px;
+            }
+
+            .finish-confirm-actions {
+                flex-direction: column;
+            }
+
+            .finish-confirm-actions .btn {
+                width: 100%;
+            }
+        }
+
         @media (max-width: 767px) {
             .question-grid {
                 grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -395,6 +475,44 @@
                             <h4 class="card-title">
                                 Nomor Soal
                             </h4>
+
+                            <div id="finish-confirm-overlay" class="finish-confirm-overlay" style="display:none;">
+                                <div class="finish-confirm-box">
+                                    <div class="finish-confirm-icon">
+                                        <i class="fa fa-exclamation-triangle"></i>
+                                    </div>
+
+                                    <h4>
+                                        Selesaikan {{ $assessmentLabel }}?
+                                    </h4>
+
+                                    <p id="finish-confirm-message">
+                                        Pastikan seluruh jawaban sudah diperiksa.
+                                    </p>
+
+                                    <div id="finish-unanswered-warning" class="alert alert-warning" style="display:none;">
+                                        Masih ada
+                                        <strong id="finish-unanswered-count">0</strong>
+                                        soal yang belum dijawab.
+                                    </div>
+
+                                    <p class="text-muted">
+                                        Setelah {{ strtolower($assessmentLabel) }} diselesaikan,
+                                        jawaban tidak dapat diubah kembali.
+                                    </p>
+
+                                    <div class="finish-confirm-actions">
+                                        <button type="button" id="batal-selesai" class="btn btn-default">
+                                            Batal
+                                        </button>
+
+                                        <button type="button" id="konfirmasi-selesai" class="btn btn-danger">
+                                            <i class="fa fa-check"></i>
+                                            Ya, Selesaikan
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div style="padding:0 15px;">
@@ -413,15 +531,11 @@
                             </div>
 
                             <hr>
-                            <button type="button" id="kirim"
-                                class="
-                                btn
-                                btn-primary
-                                pull-right
-                            ">
-                                Selesai
-                            </button>
-
+                            <div class="question-actions">
+                                <button type="button" id="kirim" class="btn btn-primary">
+                                    Selesai
+                                </button>
+                            </div>
                             <div class="clearfix"></div>
 
                             <hr>
@@ -1289,35 +1403,22 @@
                 );
 
 
-            function finishExam(
-                askConfirmation
-            ) {
+            function finishExam() {
 
                 if (examFinished) {
                     return;
                 }
 
+                examFinished = true;
 
-                if (
-                    askConfirmation &&
-                    !confirm(
-                        'Yakin jawaban akan dikirim?'
-                    )
-                ) {
-                    return;
-                }
+                $('#konfirmasi-selesai')
+                    .prop('disabled', true);
 
-
-                examFinished =
-                    true;
-
+                $('#batal-selesai')
+                    .prop('disabled', true);
 
                 $('#kirim')
-                    .prop(
-                        'disabled',
-                        true
-                    );
-
+                    .prop('disabled', true);
 
                 $.ajax({
 
@@ -1329,19 +1430,10 @@
                         id_soal: examId
                     },
 
+                    success: function(response) {
 
-                    success: function(
-                        response
-                    ) {
-
-                        clearInterval(
-                            timerInterval
-                        );
-
-                        clearInterval(
-                            syncInterval
-                        );
-
+                        clearInterval(timerInterval);
+                        clearInterval(syncInterval);
 
                         window.location.href =
                             response.redirect ||
@@ -1349,23 +1441,24 @@
 
                     },
 
-
                     error: function(xhr) {
 
-                        examFinished =
-                            false;
+                        examFinished = false;
 
+                        $('#konfirmasi-selesai')
+                            .prop('disabled', false);
+
+                        $('#batal-selesai')
+                            .prop('disabled', false);
 
                         $('#kirim')
-                            .prop(
-                                'disabled',
-                                false
-                            );
+                            .prop('disabled', false);
 
+                        $('#finish-confirm-overlay')
+                            .hide();
 
                         alert(
-                            xhr.responseJSON
-                            ?.message ||
+                            xhr.responseJSON?.message ||
                             'Jawaban gagal dikirim.'
                         );
 
@@ -1376,15 +1469,72 @@
             }
 
 
-            $('#kirim')
-                .on(
-                    'click',
-                    function() {
+            $('#kirim').on('click', function() {
 
-                        finishExam(true);
+                if (
+                    examFinished ||
+                    isSavingAnswer ||
+                    isLoadingQuestion
+                ) {
+                    return;
+                }
 
-                    }
-                );
+                const unansweredIds =
+                    questionIds.filter(
+                        function(questionId) {
+                            return !answeredIds.includes(
+                                parseInt(questionId, 10)
+                            );
+                        }
+                    );
+
+                const unansweredCount =
+                    unansweredIds.length;
+
+                if (unansweredCount > 0) {
+
+                    $('#finish-unanswered-count')
+                        .text(unansweredCount);
+
+                    $('#finish-unanswered-warning')
+                        .show();
+
+                    $('#finish-confirm-message')
+                        .text(
+                            'Anda masih memiliki soal yang belum dijawab.'
+                        );
+
+                } else {
+
+                    $('#finish-unanswered-warning')
+                        .hide();
+
+                    $('#finish-confirm-message')
+                        .text(
+                            'Semua soal sudah dijawab. Pastikan jawaban Anda sudah benar.'
+                        );
+
+                }
+
+                $('#finish-confirm-overlay')
+                    .css('display', 'flex');
+
+            });
+
+
+            $('#batal-selesai').on('click', function() {
+
+                $('#finish-confirm-overlay')
+                    .hide();
+
+            });
+
+
+            $('#konfirmasi-selesai').on('click', function() {
+
+                finishExam();
+
+            });
 
 
             /*
