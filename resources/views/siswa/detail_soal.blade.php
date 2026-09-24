@@ -139,9 +139,7 @@
             .finish-confirm-actions .btn {
                 width: 100%;
             }
-        }
 
-        @media (max-width: 767px) {
             .question-grid {
                 grid-template-columns: repeat(5, minmax(0, 1fr));
                 gap: 8px;
@@ -529,16 +527,12 @@
                                     </a>
                                 @endforeach
                             </div>
-
-                            <hr>
                             <div class="question-actions">
-                                <button type="button" id="kirim" class="btn btn-primary">
+                                <button type="button" id="kirim" class="btn btn-danger">
+                                    <i class="fa fa-check-circle"></i>
                                     Selesai
                                 </button>
                             </div>
-                            <div class="clearfix"></div>
-
-                            <hr>
                         </div>
                     </div>
                 </div>
