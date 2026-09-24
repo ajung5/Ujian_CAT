@@ -983,25 +983,25 @@ class SiswaController extends Controller {
      */
 
     /**
- * Validasi urutan soal di session.
- *
- * @param list<int> $available
- */
-private function isQuestionOrderValid(mixed $order, array $available): bool {
-    if (!is_array($order)) {
-        return false;
+     * Validasi urutan soal di session.
+     *
+     * @param list<int> $available
+     */
+    private function isQuestionOrderValid(mixed $order, array $available): bool {
+        if (!is_array($order)) {
+            return false;
+        }
+
+        if (count($order) !== count($available)) {
+            return false;
+        }
+
+        $orderCopy = array_map('intval', $order);
+        $availableCopy = array_map('intval', $available);
+
+        sort($orderCopy);
+        sort($availableCopy);
+
+        return $orderCopy === $availableCopy;
     }
-
-    if (count($order) !== count($available)) {
-        return false;
-    }
-
-    $orderCopy = array_map('intval', $order);
-    $availableCopy = array_map('intval', $available);
-
-    sort($orderCopy);
-    sort($availableCopy);
-
-    return $orderCopy === $availableCopy;
-}
 }
