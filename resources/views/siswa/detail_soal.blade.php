@@ -49,10 +49,73 @@
             outline-offset: 2px;
         }
 
+        .question-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .question-header-row .card-title {
+            margin-bottom: 0;
+        }
+
+        .question-progress {
+            color: #555;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .question-progress strong {
+            color: #003284;
+            font-size: 16px;
+        }
+
+        .question-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 14px;
+            margin-top: 12px;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .question-legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .question-legend-box {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+
+        .question-legend-box.unanswered {
+            border: 1px solid #c0c0c0;
+            background: #e9e9e9;
+        }
+
+        .question-legend-box.answered {
+            border: 1px solid #616161;
+            background: #616161;
+        }
+
+        .question-legend-box.current {
+            border: 3px solid #003284;
+            background: #fff;
+        }
+
         .benar {
             padding: 15px;
             background: #045ff2;
             color: #fff;
+        }
+
+        #ke-soal-belum-dijawab {
+            flex-basis: 100%;
         }
 
         #question-navigation {
@@ -62,8 +125,6 @@
         }
 
         .question-actions {
-            position: sticky;
-            bottom: 0;
             z-index: 10;
             display: flex;
             justify-content: flex-end;
@@ -118,6 +179,7 @@
 
         .finish-confirm-actions {
             display: flex;
+            flex-wrap: wrap;
             justify-content: center;
             gap: 10px;
             margin-top: 20px;
@@ -125,6 +187,35 @@
 
         .finish-confirm-actions .btn {
             min-width: 130px;
+        }
+
+        .question-list-wrapper {
+            padding: 0 15px;
+        }
+
+        @media (min-width: 768px) {
+            .question-sidebar {
+                position: sticky;
+                top: 15px;
+                display: flex;
+                flex-direction: column;
+                max-height: calc(100vh - 30px);
+            }
+
+            .question-list-wrapper {
+                flex: 1 1 auto;
+                min-height: 0;
+                overflow-y: auto;
+            }
+
+            .question-actions {
+                z-index: 10;
+                display: flex;
+                justify-content: flex-end;
+                padding: 12px 15px;
+                border-top: 1px solid #e3e9f2;
+                background: #fff;
+            }
         }
 
         @media (max-width: 767px) {
@@ -148,6 +239,30 @@
             .question-grid .page {
                 height: 44px;
                 font-size: 16px;
+            }
+
+            .question-header-row {
+                align-items: flex-start;
+            }
+
+            .question-progress {
+                font-size: 12px;
+            }
+
+            .question-legend {
+                gap: 6px 10px;
+            }
+
+            .question-list-wrapper {
+                padding: 0 10px;
+            }
+
+            .question-actions {
+                padding: 12px 10px;
+            }
+
+            .question-actions #kirim {
+                width: 100%;
             }
         }
     </style>
@@ -454,7 +569,7 @@
                     col-md-4
                     col-sm-12
                 ">
-                    <div class="card">
+                    <div class="card question-sidebar">
                         <div
                             class="
                             card-header
@@ -470,9 +585,39 @@
                             card-header
                             bg-white
                         ">
-                            <h4 class="card-title">
-                                Nomor Soal
-                            </h4>
+                            <div class="question-header-row">
+                                <h4 class="card-title">
+                                    Nomor Soal
+                                </h4>
+
+                                <div class="question-progress">
+                                    <strong id="answered-count">
+                                        {{ count($answeredIds) }}
+                                    </strong>
+                                    /
+                                    <span id="total-question-count">
+                                        {{ count($questionOrder) }}
+                                    </span>
+                                    dijawab
+                                </div>
+                            </div>
+
+                            <div class="question-legend">
+                                <span class="question-legend-item">
+                                    <span class="question-legend-box unanswered"></span>
+                                    Belum dijawab
+                                </span>
+
+                                <span class="question-legend-item">
+                                    <span class="question-legend-box answered"></span>
+                                    Sudah dijawab
+                                </span>
+
+                                <span class="question-legend-item">
+                                    <span class="question-legend-box current"></span>
+                                    Sedang dibuka
+                                </span>
+                            </div>
 
                             <div id="finish-confirm-overlay" class="finish-confirm-overlay" style="display:none;">
                                 <div class="finish-confirm-box">
@@ -500,6 +645,12 @@
                                     </p>
 
                                     <div class="finish-confirm-actions">
+                                        <button type="button" id="ke-soal-belum-dijawab" class="btn btn-primary"
+                                            style="display:none;">
+                                            <i class="fa fa-arrow-left"></i>
+                                            Ke Soal Belum Dijawab
+                                        </button>
+
                                         <button type="button" id="batal-selesai" class="btn btn-default">
                                             Batal
                                         </button>
@@ -514,19 +665,22 @@
                         </div>
 
                         <div style="padding:0 15px;">
-                            <div class="question-grid">
-                                @foreach ($questionOrder as $index => $questionId)
-                                    <a href="#"
-                                        class="
-                                        page
-                                        question-number
-                                        {{ in_array($questionId, $answeredIds, true) ? 'active' : '' }}
-                                    "
-                                        id="get-soal{{ $questionId }}" data-question-id="{{ $questionId }}">
-                                        {{ $index + 1 }}
-                                    </a>
-                                @endforeach
+                            <div class="question-list-wrapper">
+                                <div class="question-grid">
+                                    @foreach ($questionOrder as $index => $questionId)
+                                        <a href="#"
+                                            class="
+                                                page
+                                                question-number
+                                                {{ in_array($questionId, $answeredIds, true) ? 'active' : '' }}
+                                            "
+                                            id="get-soal{{ $questionId }}" data-question-id="{{ $questionId }}">
+                                            {{ $index + 1 }}
+                                        </a>
+                                    @endforeach
+                                </div>
                             </div>
+
                             <div class="question-actions">
                                 <button type="button" id="kirim" class="btn btn-danger">
                                     <i class="fa fa-check-circle"></i>
@@ -560,6 +714,15 @@
             const answeredIds =
                 @json(array_values($answeredIds));
 
+            function updateAnswerProgress() {
+
+                $('#answered-count')
+                    .text(answeredIds.length);
+
+                $('#total-question-count')
+                    .text(questionIds.length);
+
+            }
 
             let currentQuestionId =
                 null;
@@ -1292,6 +1455,27 @@
 
                                 }
 
+                                if (
+                                    !answeredIds
+                                    .includes(
+                                        parseInt(
+                                            detailId,
+                                            10
+                                        )
+                                    )
+                                ) {
+
+                                    answeredIds
+                                        .push(
+                                            parseInt(
+                                                detailId,
+                                                10
+                                            )
+                                        );
+
+                                }
+
+                                updateAnswerProgress();
 
                                 remainingSeconds =
                                     parseInt(
@@ -1473,19 +1657,30 @@
                     return;
                 }
 
-                const unansweredIds =
-                    questionIds.filter(
+                function getUnansweredIds() {
+
+                    return questionIds.filter(
                         function(questionId) {
+
                             return !answeredIds.includes(
-                                parseInt(questionId, 10)
+                                parseInt(
+                                    questionId,
+                                    10
+                                )
                             );
+
                         }
                     );
+
+                }
 
                 const unansweredCount =
                     unansweredIds.length;
 
                 if (unansweredCount > 0) {
+
+                    $('#ke-soal-belum-dijawab')
+                        .show();
 
                     $('#finish-unanswered-count')
                         .text(unansweredCount);
@@ -1521,6 +1716,33 @@
                 $('#finish-confirm-overlay')
                     .hide();
 
+                $('#ke-soal-belum-dijawab')
+                    .on(
+                        'click',
+                        function() {
+
+                            const unansweredIds =
+                                getUnansweredIds();
+
+                            if (
+                                unansweredIds.length === 0
+                            ) {
+                                $('#finish-confirm-overlay')
+                                    .hide();
+
+                                return;
+                            }
+
+                            $('#finish-confirm-overlay')
+                                .hide();
+
+                            loadQuestion(
+                                unansweredIds[0]
+                            );
+
+                        }
+                    );
+
             });
 
 
@@ -1554,6 +1776,7 @@
 
 
             renderTimer();
+            updateAnswerProgress();
 
         });
     </script>
