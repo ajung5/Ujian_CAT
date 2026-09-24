@@ -62,6 +62,7 @@ Route::middleware(['auth', 'role:A,G'])->group(function () {
     Route::post('/hapusguru/{id}', [DataguruController::class, 'destroy'])
         ->whereNumber('id')
         ->name('guru.destroy');
+
     Route::get('/kelas', [GuruController::class, 'kelas'])->name('guru.kelas');
 
     Route::post('/ajax/ubah-kelas', [GuruController::class, 'ubahKelas'])->name('guru.kelas.update-inline');
@@ -308,7 +309,7 @@ Route::middleware(['auth', 'role:S'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Hasil Ujian
+    | Hasil Ujian / Latihan
     |--------------------------------------------------------------------------
     */
 
@@ -316,8 +317,9 @@ Route::middleware(['auth', 'role:S'])->group(function () {
 
     Route::post('/get-hasil', [SiswaController::class, 'searchResults'])->name('siswa.results.search');
 
-    Route::get('/hasil-siswa/detail/{id}', [SiswaController::class, 'resultDetail'])
+    Route::get('/hasil-siswa/detail/{id}/{attempt?}', [SiswaController::class, 'resultDetail'])
         ->whereNumber('id')
+        ->whereNumber('attempt')
         ->name('siswa.results.detail');
 
     /*

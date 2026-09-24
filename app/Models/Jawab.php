@@ -8,6 +8,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property int|null $attempt_id
  * @property int|string $no_soal_id
  * @property string $id_soal
  * @property string $id_user
@@ -22,7 +23,24 @@ use Illuminate\Support\Carbon;
 class Jawab extends Model {
     protected $table = 'jawabs';
 
-    protected $fillable = ['no_soal_id', 'id_soal', 'id_user', 'id_kelas', 'nama', 'pilihan', 'score', 'status'];
+    protected $fillable = [
+        'attempt_id',
+        'no_soal_id',
+        'id_soal',
+        'id_user',
+        'id_kelas',
+        'nama',
+        'pilihan',
+        'score',
+        'status',
+    ];
+
+    /**
+     * @return BelongsTo<AssessmentAttempt, $this>
+     */
+    public function attempt(): BelongsTo {
+        return $this->belongsTo(AssessmentAttempt::class, 'attempt_id');
+    }
 
     /**
      * @return BelongsTo<User, $this>

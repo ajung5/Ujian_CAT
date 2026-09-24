@@ -8,6 +8,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property int|null $attempt_id
  * @property string $id_soal
  * @property string $id_user
  * @property string $waktu
@@ -17,7 +18,14 @@ use Illuminate\Support\Carbon;
 class Countexamtime extends Model {
     protected $table = 'countexamtimes';
 
-    protected $fillable = ['id_soal', 'id_user', 'waktu'];
+    protected $fillable = ['attempt_id', 'id_soal', 'id_user', 'waktu'];
+
+    /**
+     * @return BelongsTo<AssessmentAttempt, $this>
+     */
+    public function attempt(): BelongsTo {
+        return $this->belongsTo(AssessmentAttempt::class, 'attempt_id');
+    }
 
     /**
      * @return BelongsTo<Soal, $this>

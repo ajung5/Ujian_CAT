@@ -1,9 +1,22 @@
-@extends('layouts/siswa_baru')
-@section('title', 'Review Hasil Ujian')
+@extends('layouts.siswa_baru')
+@section('title', 'Review Jawaban Latihan')
+
 @section('breadcrumb')
-    <li><a href="{{ route('siswa.index') }}">Home</a></li>
-    <li><a href="{{ route('siswa.results') }}">Hasil Ujian</a></li>
-    <li class="active">Review Jawaban</li>
+    <li>
+        <a href="{{ route('siswa.index') }}">
+            Home
+        </a>
+    </li>
+
+    <li>
+        <a href="{{ route('siswa.results') }}">
+            Hasil Ujian
+        </a>
+    </li>
+
+    <li class="active">
+        Review Jawaban
+    </li>
 @endsection
 
 @section('content')
@@ -116,7 +129,8 @@
     <div class="col-md-12">
         <div class="review-back">
             <a href="{{ route('siswa.results') }}" class="btn btn-default">
-                <i class="fa fa-chevron-left"></i> Kembali ke Hasil Ujian
+                <i class="fa fa-chevron-left"></i>
+                Kembali ke Hasil Ujian
             </a>
         </div>
 
@@ -124,8 +138,13 @@
             <div class="card-header bg-white">
                 <div class="media">
                     <div class="media-body">
-                        <h4 class="card-title">Review Hasil Ujian</h4>
-                        <p class="card-subtitle">{{ $soal->paket }}</p>
+                        <h4 class="card-title">
+                            Review Jawaban Latihan
+                        </h4>
+
+                        <p class="card-subtitle">
+                            {{ $soal->paket }}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -134,28 +153,82 @@
                 <table class="table table-bordered table-condensed">
                     <tbody>
                         <tr>
-                            <td style="width: 160px;"><strong>Paket Soal</strong></td>
-                            <td>{{ $soal->paket }}</td>
+                            <td style="width: 160px;">
+                                <strong>
+                                    Paket Soal
+                                </strong>
+                            </td>
+
+                            <td>
+                                {{ $soal->paket }}
+                            </td>
                         </tr>
+
                         <tr>
-                            <td><strong>Deskripsi</strong></td>
-                            <td>{{ $soal->deskripsi }}</td>
+                            <td>
+                                <strong>
+                                    Deskripsi
+                                </strong>
+                            </td>
+
+                            <td>
+                                {{ $soal->deskripsi }}
+                            </td>
                         </tr>
+
                         <tr>
-                            <td><strong>Jenis</strong></td>
-                            <td>{{ $jenis }}</td>
+                            <td>
+                                <strong>
+                                    Jenis
+                                </strong>
+                            </td>
+
+                            <td>
+                                {{ $jenis }}
+                            </td>
                         </tr>
+
                         <tr>
-                            <td><strong>KKM</strong></td>
-                            <td>{{ $soal->kkm }}</td>
+                            <td>
+                                <strong>
+                                    Percobaan
+                                </strong>
+                            </td>
+
+                            <td>
+                                {{ $attemptRecord->attempt_no }}
+                                dari 3
+                            </td>
                         </tr>
+
                         <tr>
-                            <td><strong>Status</strong></td>
+                            <td>
+                                <strong>
+                                    KKM
+                                </strong>
+                            </td>
+
+                            <td>
+                                {{ $soal->kkm }}
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <strong>
+                                    Status
+                                </strong>
+                            </td>
+
                             <td>
                                 @if ($lulus)
-                                    <span style="color:#009900; font-size:18px; font-weight:bold;">Lulus</span>
+                                    <span style="color:#009900; font-size:18px; font-weight:bold;">
+                                        Lulus
+                                    </span>
                                 @else
-                                    <span style="color:#e60000; font-size:18px; font-weight:bold;">Tidak Lulus</span>
+                                    <span style="color:#e60000; font-size:18px; font-weight:bold;">
+                                        Tidak Lulus
+                                    </span>
                                 @endif
                             </td>
                         </tr>
@@ -166,74 +239,93 @@
                     <div class="col-sm-3 col-xs-6">
                         <div class="review-stat">
                             Nilai
-                            <span class="value">{{ $nilai }}</span>
+                            <span class="value">
+                                {{ rtrim(rtrim(number_format($nilai, 2, '.', ''), '0'), '.') }}
+                            </span>
                         </div>
                     </div>
 
                     <div class="col-sm-3 col-xs-6">
                         <div class="review-stat">
                             Benar
-                            <span class="value" style="color:#198754;">{{ $benar }}</span>
+                            <span class="value" style="color:#198754;">
+                                {{ $benar }}
+                            </span>
                         </div>
                     </div>
 
                     <div class="col-sm-3 col-xs-6">
                         <div class="review-stat">
                             Salah
-                            <span class="value" style="color:#d32f2f;">{{ $salah }}</span>
+                            <span class="value" style="color:#d32f2f;">
+                                {{ $salah }}
+                            </span>
                         </div>
                     </div>
 
                     <div class="col-sm-3 col-xs-6">
                         <div class="review-stat">
                             Tidak Dijawab
-                            <span class="value" style="color:#777;">{{ $tidakDijawab }}</span>
+                            <span class="value" style="color:#777;">
+                                {{ $tidakDijawab }}
+                            </span>
                         </div>
                     </div>
                 </div>
 
                 <div class="alert alert-info" style="margin-bottom:0;">
-                    Total soal: <strong>{{ $jumlahSoal }}</strong>.
-                    Warna hijau menunjukkan kunci jawaban yang benar. Jika jawaban Anda salah,
-                    pilihan Anda ditandai warna merah.
+                    Total soal:
+                    <strong>
+                        {{ $jumlahSoal }}
+                    </strong>.
+                    Warna hijau menunjukkan kunci jawaban yang benar.
+                    Jika jawaban Anda salah, pilihan Anda ditandai warna merah.
                 </div>
             </div>
         </div>
 
         @if ($jawabs->count())
-            <?php $no = 1; ?>
+            @php
+                $no = 1;
+            @endphp
 
             @foreach ($jawabs as $jawab)
-                <?php
-                $pilihan = strtoupper(trim((string) $jawab->jawaban));
-                $kunci = strtoupper(trim((string) $jawab->kunci));
-                $isAnswered = $pilihan !== '';
-                $isCorrect = $isAnswered && $pilihan === $kunci;
-                $options = [
-                    'A' => $jawab->pila,
-                    'B' => $jawab->pilb,
-                    'C' => $jawab->pilc,
-                    'D' => $jawab->pild,
-                    'E' => $jawab->pile,
-                ];
-                ?>
+                @php
+                    $pilihan = strtoupper(trim((string) $jawab->jawaban));
+                    $kunci = strtoupper(trim((string) $jawab->kunci));
+                    $isAnswered = $pilihan !== '';
+                    $isCorrect = $isAnswered && $pilihan === $kunci;
+
+                    $options = [
+                        'A' => $jawab->pila,
+                        'B' => $jawab->pilb,
+                        'C' => $jawab->pilc,
+                        'D' => $jawab->pild,
+                        'E' => $jawab->pile,
+                    ];
+                @endphp
 
                 <div class="review-question">
                     <div class="review-question-header">
-                        <span>Soal {{ $no++ }}</span>
+                        <span>
+                            Soal {{ $no++ }}
+                        </span>
 
                         <span class="pull-right">
                             @if (!$isAnswered)
                                 <span class="review-status-empty">
-                                    <i class="fa fa-minus-circle"></i> Tidak Dijawab
+                                    <i class="fa fa-minus-circle"></i>
+                                    Tidak Dijawab
                                 </span>
-                            @elseif($isCorrect)
+                            @elseif ($isCorrect)
                                 <span class="review-status-correct">
-                                    <i class="fa fa-check-circle"></i> Benar
+                                    <i class="fa fa-check-circle"></i>
+                                    Benar
                                 </span>
                             @else
                                 <span class="review-status-wrong">
-                                    <i class="fa fa-times-circle"></i> Salah
+                                    <i class="fa fa-times-circle"></i>
+                                    Salah
                                 </span>
                             @endif
                         </span>
@@ -247,35 +339,31 @@
                         </div>
 
                         @foreach ($options as $kode => $teks)
-                            <?php
-                            $optionClass = 'review-option';
-                            if ($kode === $kunci) {
-                                $optionClass .= ' correct-answer';
-                            }
-                            if ($kode === $pilihan && $pilihan !== $kunci) {
-                                $optionClass .= ' wrong-answer';
-                            }
-                            if ($kode === $pilihan && $pilihan === $kunci) {
-                                $optionClass .= ' selected-correct';
-                            }
-                            ?>
+                            <div
+                                class="review-option{{ $kode === $kunci ? ' correct-answer' : '' }}{{ $kode === $pilihan && $pilihan !== $kunci ? ' wrong-answer' : '' }}{{ $kode === $pilihan && $pilihan === $kunci ? ' selected-correct' : '' }}">
+                                <span class="review-option-code">
+                                    {{ $kode }}.
+                                </span>
 
-                            <div class="{{ $optionClass }}">
-                                <span class="review-option-code">{{ $kode }}.</span>
-                                <span class="review-option-text">{!! $teks !!}</span>
+                                <span class="review-option-text">
+                                    {!! $teks !!}
+                                </span>
 
                                 <div class="review-option-badge">
                                     @if ($kode === $kunci && $kode === $pilihan)
                                         <span class="label label-success">
-                                            <i class="fa fa-check"></i> Jawaban Anda &amp; Kunci Jawaban
+                                            <i class="fa fa-check"></i>
+                                            Jawaban Anda &amp; Kunci Jawaban
                                         </span>
-                                    @elseif($kode === $kunci)
+                                    @elseif ($kode === $kunci)
                                         <span class="label label-success">
-                                            <i class="fa fa-check"></i> Kunci Jawaban
+                                            <i class="fa fa-check"></i>
+                                            Kunci Jawaban
                                         </span>
-                                    @elseif($kode === $pilihan)
+                                    @elseif ($kode === $pilihan)
                                         <span class="label label-danger">
-                                            <i class="fa fa-times"></i> Jawaban Anda
+                                            <i class="fa fa-times"></i>
+                                            Jawaban Anda
                                         </span>
                                     @endif
                                 </div>
@@ -285,21 +373,35 @@
                         <div class="review-meta">
                             <div class="row">
                                 <div class="col-sm-4">
-                                    <strong>Jawaban Anda:</strong>
+                                    <strong>
+                                        Jawaban Anda:
+                                    </strong>
+
                                     @if ($isAnswered)
                                         {{ $pilihan }}
                                     @else
-                                        <span class="text-muted">-</span>
+                                        <span class="text-muted">
+                                            -
+                                        </span>
                                     @endif
                                 </div>
 
                                 <div class="col-sm-4">
-                                    <strong>Kunci Jawaban:</strong> {{ $kunci }}
+                                    <strong>
+                                        Kunci Jawaban:
+                                    </strong>
+
+                                    {{ $kunci }}
                                 </div>
 
                                 <div class="col-sm-4">
-                                    <strong>Score:</strong>
-                                    {{ (float) $jawab->score_diperoleh }} / {{ (float) $jawab->max_score }}
+                                    <strong>
+                                        Score:
+                                    </strong>
+
+                                    {{ (float) $jawab->score_diperoleh }}
+                                    /
+                                    {{ (float) $jawab->max_score }}
                                 </div>
                             </div>
                         </div>
@@ -314,7 +416,8 @@
 
         <div style="margin-bottom: 25px;">
             <a href="{{ route('siswa.results') }}" class="btn btn-default">
-                <i class="fa fa-chevron-left"></i> Kembali ke Hasil Ujian
+                <i class="fa fa-chevron-left"></i>
+                Kembali ke Hasil Ujian
             </a>
         </div>
     </div>

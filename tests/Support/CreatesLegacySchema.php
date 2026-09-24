@@ -19,10 +19,12 @@ trait CreatesLegacySchema {
                     $connection->getDatabaseName(),
             );
         }
+
         $tables = [
             'aktifitas',
             'countexamtimes',
             'jawabs',
+            'assessment_attempts',
             'distribusisoals',
             'detailsoals',
             'soals',
@@ -156,8 +158,30 @@ trait CreatesLegacySchema {
             $table->timestamps();
         });
 
+        Schema::create('assessment_attempts', function (Blueprint $table) {
+            $table->id();
+
+            $table->unsignedInteger('id_soal');
+            $table->unsignedInteger('id_user');
+
+            $table->unsignedTinyInteger('attempt_no');
+
+            $table->string('status', 20)->default('in_progress');
+
+            $table->decimal('score', 10, 2)->nullable();
+
+            $table->timestamp('started_at')->nullable();
+            $table->timestamp('finished_at')->nullable();
+
+            $table->timestamps();
+
+            $table->unique(['id_soal', 'id_user', 'attempt_no']);
+        });
+
         Schema::create('jawabs', function (Blueprint $table) {
             $table->increments('id');
+
+            $table->unsignedBigInteger('attempt_id')->nullable();
 
             $table->unsignedInteger('no_soal_id');
 
@@ -179,6 +203,8 @@ trait CreatesLegacySchema {
 
         Schema::create('countexamtimes', function (Blueprint $table) {
             $table->increments('id');
+
+            $table->unsignedBigInteger('attempt_id')->nullable();
 
             $table->string('id_soal', 150);
             $table->string('id_user', 15);

@@ -61,11 +61,13 @@
                 <p class="text-muted" style="margin-bottom:10px;">
                     <i class="fa fa-info-circle"></i>
                     Review jawaban hanya tersedia untuk tipe Latihan.
+                    Latihan dapat dikerjakan maksimal 3 kali.
                 </p>
 
                 <div id="wrap-hasil" style="overflow-x:auto;">
                     @include('siswa.ajax.get_hasil', [
                         'results' => $results,
+                        'attemptHistory' => $attemptHistory,
                     ])
                 </div>
             </div>
@@ -86,7 +88,6 @@
                 $('#loading')
                     .show();
 
-
                 $.ajax({
 
                     type: 'POST',
@@ -96,7 +97,6 @@
                     data: {
                         q: $('#q').val()
                     },
-
 
                     success: function(data) {
 
@@ -109,7 +109,6 @@
 
                     },
 
-
                     error: function(xhr) {
 
                         $('#loading')
@@ -117,7 +116,6 @@
 
                         $('#wrap-hasil')
                             .show();
-
 
                         alert(
                             xhr.responseJSON
@@ -131,7 +129,6 @@
 
             }
 
-
             $('#q').on(
                 'keyup',
                 function(event) {
@@ -144,7 +141,6 @@
 
                 }
             );
-
 
             $('#search').on(
                 'click',
