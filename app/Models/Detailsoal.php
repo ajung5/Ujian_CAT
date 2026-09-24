@@ -4,7 +4,27 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property string $id_soal
+ * @property string $jenis
+ * @property string $soal
+ * @property string|null $audio
+ * @property string $pila
+ * @property string $pilb
+ * @property string $pilc
+ * @property string $pild
+ * @property string $pile
+ * @property string $kunci
+ * @property string|null $score
+ * @property string $id_user
+ * @property string $status
+ * @property string|null $sesi
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class Detailsoal extends Model {
     protected $table = 'detailsoals';
 

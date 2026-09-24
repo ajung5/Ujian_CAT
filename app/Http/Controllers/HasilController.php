@@ -179,7 +179,7 @@ class HasilController extends Controller {
          * users.id_kelas karena siswa mungkin
          * sudah berpindah kelas.
          */
-        $student = User::find((int) $validated['id_user']);
+        $student = User::query()->whereKey((int) $validated['id_user'])->first();
 
         /*
          * jawabs.nama menyimpan snapshot nama
@@ -188,7 +188,8 @@ class HasilController extends Controller {
          * Digunakan sebagai fallback apabila
          * akun user sudah tidak tersedia.
          */
-        $studentName = $student?->nama ?? ($historicalAnswer->nama ?? 'User ID ' . $validated['id_user']);
+        $studentName =
+            $student !== null ? $student->nama : $historicalAnswer->nama ?? 'User ID ' . $validated['id_user'];
 
         $deleted = DB::transaction(function () use ($soal, $kelas, $validated) {
             /*

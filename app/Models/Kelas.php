@@ -4,7 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property string $nama
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class Kelas extends Model {
     protected $table = 'kelas';
 

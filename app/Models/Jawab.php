@@ -4,7 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int|string $no_soal_id
+ * @property string $id_soal
+ * @property string $id_user
+ * @property string|null $id_kelas
+ * @property string|null $nama
+ * @property string $pilihan
+ * @property string|null $score
+ * @property string $status
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class Jawab extends Model {
     protected $table = 'jawabs';
 

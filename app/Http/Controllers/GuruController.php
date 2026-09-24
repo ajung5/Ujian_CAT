@@ -486,9 +486,10 @@ class GuruController extends Controller {
          */
         $kelasLamaId = $siswa->id_kelas;
 
-        $kelasLama = $kelasLamaId !== '' && $kelasLamaId !== null ? Kelas::find($kelasLamaId) : null;
+        $kelasLama =
+            $kelasLamaId !== '' && $kelasLamaId !== null ? Kelas::query()->whereKey($kelasLamaId)->first() : null;
 
-        $namaKelasLama = $kelasLama?->nama ?? 'belum ada kelas';
+        $namaKelasLama = $kelasLama !== null ? $kelasLama->nama : 'belum ada kelas';
 
         $siswa->id_kelas = (string) $kelasBaru->id;
 
@@ -520,9 +521,12 @@ class GuruController extends Controller {
 
         $siswa = User::query()->whereKey($validated['id_siswa'])->where('status', 'S')->firstOrFail();
 
-        $kelasLama = $siswa->id_kelas !== '' && $siswa->id_kelas !== null ? Kelas::find($siswa->id_kelas) : null;
+        $kelasLama =
+            $siswa->id_kelas !== '' && $siswa->id_kelas !== null
+                ? Kelas::query()->whereKey($siswa->id_kelas)->first()
+                : null;
 
-        $namaKelasLama = $kelasLama?->nama ?? 'kelas tidak diketahui';
+        $namaKelasLama = $kelasLama !== null ? $kelasLama->nama : 'kelas tidak diketahui';
 
         $siswa->id_kelas = '';
 

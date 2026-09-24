@@ -47,6 +47,9 @@ if (version_compare(PHP_VERSION, "8.4.1", "<")) {
 echo "==> Checking source formatting"
 npm run format:check
 
+echo "==> Running static analysis"
+"$PHP_BIN" /opt/homebrew/bin/composer analyse
+
 echo "==> Checking staged diff whitespace"
 git diff --cached --check
 

@@ -6,6 +6,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * @property int $id
+ * @property int|string|null $id_kelas
+ * @property string $nama
+ * @property string|null $no_induk
+ * @property string|null $jk
+ * @property string $status
+ * @property string $gambar
+ * @property string $email
+ * @property string $password
+ * @property string|null $remember_token
+ * @property string $sekolah_asal
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class User extends Authenticatable {
     use Notifiable;
 

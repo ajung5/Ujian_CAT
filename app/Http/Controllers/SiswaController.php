@@ -748,11 +748,11 @@ class SiswaController extends Controller {
         $nilai = 0.0;
 
         foreach ($jawabs as $jawab) {
-            $pilihan = strtoupper(trim((string) $jawab->jawaban));
+            $pilihan = strtoupper(trim((string) $jawab->getAttribute('jawaban')));
 
             $kunci = strtoupper(trim((string) $jawab->kunci));
 
-            $nilai += (float) ($jawab->score_diperoleh ?? 0);
+            $nilai += (float) ($jawab->getAttribute('score_diperoleh') ?? 0);
 
             if ($pilihan === '') {
                 $tidakDijawab++;
