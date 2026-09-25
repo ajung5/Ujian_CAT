@@ -7,6 +7,8 @@ use App\Models\School;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AuthController extends Controller {
@@ -60,6 +62,13 @@ class AuthController extends Controller {
 
         // Hanya role legacy yang dikenal aplikasi.
         if (!in_array($status, ['A', 'G', 'S', 'C'], true)) {
+            /*
+             * Siswa hanya boleh memiliki satu session aktif.
+             * Login terbaru akan mencabut session perangkat sebelumnya.
+             */
+            if ($status === 'S') {
+                $this->invalidateOtherStudentSessions($request, (int) Auth::id());
+            }
             Auth::logout();
 
             $request->session()->invalidate();
@@ -96,5 +105,19 @@ class AuthController extends Controller {
             'S', 'C' => redirect()->route('siswa.index'),
             default => redirect()->route('login'),
         };
+    }
+
+    /**
+     * Pastikan siswa hanya memiliki satu session aktif.
+     */
+    private function invalidateOtherStudentSessions(Request $request, int $userId): void {
+        if (config('session.driver') !== 'database') {
+            return;
+        }
+
+        DB::table((string) config('session.table', 'sessions'))
+            ->where('user_id', $userId)
+            ->where('id', '!=', $request->session()->getId())
+            ->delete();
     }
 }

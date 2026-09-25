@@ -931,10 +931,63 @@
 
             }
 
-            function loadQuestion(
-                questionId
-            ) {
+            function scrollQuestionToTop() {
 
+                /*
+                 * Pada mobile, assessment menggunakan
+                 * container #wrap_soal sebagai area scroll,
+                 * bukan window/browser.
+                 */
+                if (
+                    !window.matchMedia(
+                        '(max-width: 767px)'
+                    ).matches
+                ) {
+                    return;
+                }
+
+                const assessmentContainer =
+                    document.getElementById(
+                        'wrap_soal'
+                    );
+
+                const questionContainer =
+                    document.getElementById(
+                        'wrap-soal'
+                    );
+
+                if (
+                    !assessmentContainer ||
+                    !questionContainer
+                ) {
+                    return;
+                }
+
+                const assessmentRect =
+                    assessmentContainer
+                    .getBoundingClientRect();
+
+                const questionRect =
+                    questionContainer
+                    .getBoundingClientRect();
+
+                const targetTop =
+                    assessmentContainer.scrollTop +
+                    questionRect.top -
+                    assessmentRect.top -
+                    10;
+
+                assessmentContainer.scrollTo({
+                    top: Math.max(
+                        0,
+                        targetTop
+                    ),
+                    behavior: 'smooth'
+                });
+
+            }
+
+            function loadQuestion(questionId) {
                 questionId =
                     parseInt(
                         questionId,
@@ -971,7 +1024,14 @@
                         $('#wrap-soal')
                             .hide()
                             .html(html)
-                            .fadeIn(200);
+                            .fadeIn(
+                                200,
+                                function() {
+
+                                    scrollQuestionToTop();
+
+                                }
+                            );
 
                         isLoadingQuestion =
                             false;
