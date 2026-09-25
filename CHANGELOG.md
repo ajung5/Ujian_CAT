@@ -21,23 +21,46 @@ Belum ada perubahan yang dijadwalkan untuk release berikutnya.
 
 ## v2.2.1 - 25 September 2026
 
+### Added
+
+- Menambahkan pembatasan satu session aktif untuk setiap akun Siswa.
+- Menambahkan `active_session_hash` pada tabel `users` untuk menyimpan fingerprint session aktif siswa.
+- Menambahkan middleware `EnsureSingleStudentSession` untuk memvalidasi session siswa pada setiap akses ke area siswa.
+
 ### Changed
 
+- Login terbaru siswa sekarang menjadi session aktif yang sah.
+- Session siswa dari perangkat sebelumnya akan dihentikan pada request berikutnya setelah akun yang sama login dari perangkat lain.
+- Remember Me dinonaktifkan khusus untuk akun Siswa.
+- Token Remember Me legacy milik siswa dibersihkan saat login.
+- Session siswa menggunakan random token terpisah dari Laravel Session ID.
+- Database hanya menyimpan SHA-256 hash dari token session siswa, bukan token aslinya.
 - Memindahkan akses Review Latihan dari kolom Aksi utama ke Riwayat Percobaan.
 - Menambahkan tombol Riwayat Percobaan pada tabel hasil Latihan.
 - Riwayat setiap attempt sekarang ditampilkan melalui modal agar tabel hasil tetap ringkas.
-- Tombol Review sekarang tersedia pada masing-masing attempt di dalam Riwayat Percobaan.
-- Tombol Lihat pada histori diganti menjadi Review agar lebih konsisten dengan fungsi yang dilakukan.
+- Tombol Review tersedia pada masing-masing attempt di dalam Riwayat Percobaan.
 - Status batas maksimal 3 percobaan ditampilkan sebagai status, bukan tombol disabled.
+- Teks tombol konfirmasi pengerjaan diubah menjadi **Kembali ke Soal Belum Dijawab** agar lebih mudah dipahami.
 
 ### Fixed
 
 - Memperbaiki navigasi ketika siswa kembali ke soal yang belum dijawab.
 - Setelah menjawab satu soal yang sebelumnya kosong, sistem langsung membuka soal kosong berikutnya.
-- Navigasi tidak lagi berpindah ke nomor soal berikutnya yang sudah dijawab ketika berada dalam mode penyelesaian soal belum dijawab.
+- Navigasi tidak lagi berpindah ke nomor soal yang sudah dijawab ketika berada dalam mode penyelesaian soal belum dijawab.
 - Setelah seluruh soal kosong selesai dijawab, navigasi kembali ke mode normal.
 - Memperbaiki bug modal Riwayat Percobaan yang tidak dapat diklik karena konflik stacking context antara layout AdminPlus dan Bootstrap backdrop.
 - Modal Riwayat Percobaan sekarang dipindahkan ke level `<body>` saat dibuka agar tombol Review, Tutup, dan kontrol modal berfungsi normal.
+- Memperbaiki kompatibilitas tabel `users` legacy dengan MySQL modern dengan menormalisasi `created_at` dan `updated_at` dari zero-date default menjadi nullable timestamp.
+
+### Security
+
+- Satu akun Siswa hanya dapat mempunyai satu session aktif.
+- Login siswa terbaru membatalkan validitas session siswa sebelumnya tanpa menghapus session aktif terbaru.
+- Session token asli tidak disimpan pada database.
+- Fingerprint session siswa disimpan menggunakan SHA-256.
+- Session fixation tetap dicegah melalui regenerasi session setelah autentikasi.
+- Session lama tidak dapat menghapus `active_session_hash` milik login siswa terbaru.
+- Persistent login melalui Remember Me tidak digunakan untuk akun Siswa.
 
 ### UX
 
@@ -45,7 +68,35 @@ Belum ada perubahan yang dijadwalkan untuk release berikutnya.
 - Memisahkan fungsi Aksi utama dan Riwayat Percobaan agar lebih mudah dipahami.
 - Meningkatkan keterbacaan tombol dan kontrol histori percobaan.
 
-## v2.2.1 - 25 September 2026
+Alur penyelesaian soal yang belum dijawab:
+
+```text
+Klik Selesai
+    ↓
+Sistem mendeteksi soal yang belum dijawab
+    ↓
+Kembali ke Soal Belum Dijawab
+    ↓
+Buka soal kosong pertama
+    ↓
+Jawab soal
+    ↓
+Langsung ke soal kosong berikutnya
+    ↓
+Sampai seluruh soal terjawab
+```
+
+### Testing
+
+Regression test diperluas untuk mencakup:
+
+- Login siswa menghasilkan active session fingerprint.
+- Login siswa terbaru mengganti session aktif sebelumnya.
+- Session siswa lama ditolak setelah login dari session/perangkat lain.
+- Remember Me tidak dipertahankan untuk akun Siswa.
+- Token Remember Me legacy siswa dibersihkan saat login.
+- Compatibility session pada seluruh workflow Ujian dan Latihan.
+- Regression workflow multi-attempt, review, dan timer setelah penerapan single-session.
 
 ### Changed
 

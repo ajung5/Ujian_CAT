@@ -75,6 +75,8 @@ trait CreatesLegacySchema {
 
             $table->rememberToken();
 
+            $table->char('active_session_hash', 64)->nullable();
+
             $table->string('sekolah_asal')->default('');
 
             $table->timestamps();

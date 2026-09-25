@@ -18,6 +18,7 @@ use Illuminate\Notifications\Notifiable;
  * @property string $password
  * @property string|null $remember_token
  * @property string $sekolah_asal
+ * @property string|null $active_session_hash
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  */
@@ -38,7 +39,7 @@ class User extends Authenticatable {
         'sekolah_asal',
     ];
 
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password', 'remember_token', 'active_session_hash'];
 
     /**
      * @return HasMany<Soal, $this>

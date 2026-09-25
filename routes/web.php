@@ -276,7 +276,7 @@ Route::middleware(['auth', 'role:A'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'role:S,C'])->group(function () {
+Route::middleware(['auth', 'single.student.session', 'role:S,C'])->group(function () {
     /*
     |--------------------------------------------------------------------------
     | Dashboard & Profil
@@ -292,7 +292,7 @@ Route::middleware(['auth', 'role:S,C'])->group(function () {
     Route::post('/updateprofilfoto', [SiswaController::class, 'updateProfilePhoto'])->name('siswa.profile.photo');
 });
 
-Route::middleware(['auth', 'role:S'])->group(function () {
+Route::middleware(['auth', 'single.student.session', 'role:S'])->group(function () {
     /*
     |--------------------------------------------------------------------------
     | Ujian
