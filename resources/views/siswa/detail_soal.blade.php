@@ -667,7 +667,7 @@
                                         <button type="button" id="ke-soal-belum-dijawab" class="btn btn-primary"
                                             style="display:none;">
                                             <i class="fa fa-arrow-left"></i>
-                                            Ke Soal Belum Dijawab
+                                            Kembali ke Soal Belum Dijawab
                                         </button>
 
                                         <button type="button" id="batal-selesai" class="btn btn-default">
@@ -761,6 +761,9 @@
             let examFinished =
                 false;
 
+            let unansweredNavigationMode =
+                false;
+
             function formatTime(seconds) {
 
                 seconds =
@@ -820,6 +823,46 @@
                             10
                         )
                     );
+
+            }
+
+            function getNextUnansweredQuestionId(
+                questionId
+            ) {
+
+                const currentIndex =
+                    questionIds.indexOf(
+                        parseInt(
+                            questionId,
+                            10
+                        )
+                    );
+
+                if (currentIndex < 0) {
+                    return null;
+                }
+
+                for (
+                    let index = currentIndex + 1; index < questionIds.length; index++
+                ) {
+
+                    const candidateId =
+                        parseInt(
+                            questionIds[index],
+                            10
+                        );
+
+                    if (
+                        !answeredIds.includes(
+                            candidateId
+                        )
+                    ) {
+                        return candidateId;
+                    }
+
+                }
+
+                return null;
 
             }
 
@@ -1271,6 +1314,29 @@
                     'click',
                     function() {
 
+                        if (
+                            unansweredNavigationMode
+                        ) {
+
+                            const nextUnansweredId =
+                                getNextUnansweredQuestionId(
+                                    currentQuestionId
+                                );
+
+                            if (
+                                nextUnansweredId !== null
+                            ) {
+
+                                loadQuestion(
+                                    nextUnansweredId
+                                );
+
+                            }
+
+                            return;
+
+                        }
+
                         const index =
                             getCurrentIndex();
 
@@ -1428,24 +1494,64 @@
                                         false
                                     );
 
-                                updateNavigation();
-
-                                const index =
-                                    getCurrentIndex();
+                                let nextQuestionId =
+                                    null;
 
                                 if (
-                                    index >= 0 &&
-                                    index <
-                                    questionIds.length - 1
+                                    unansweredNavigationMode
+                                ) {
+
+                                    nextQuestionId =
+                                        getNextUnansweredQuestionId(
+                                            detailId
+                                        );
+
+                                    /*
+                                     * Semua soal yang sebelumnya belum
+                                     * dijawab sekarang sudah selesai.
+                                     *
+                                     * Kembali ke mode navigasi normal.
+                                     */
+                                    if (
+                                        nextQuestionId === null
+                                    ) {
+
+                                        unansweredNavigationMode =
+                                            false;
+
+                                    }
+
+                                } else {
+
+                                    const index =
+                                        getCurrentIndex();
+
+                                    if (
+                                        index >= 0 &&
+                                        index <
+                                        questionIds.length - 1
+                                    ) {
+
+                                        nextQuestionId =
+                                            questionIds[
+                                                index + 1
+                                            ];
+
+                                    }
+
+                                }
+
+                                updateNavigation();
+
+                                if (
+                                    nextQuestionId !== null
                                 ) {
 
                                     setTimeout(
                                         function() {
 
                                             loadQuestion(
-                                                questionIds[
-                                                    index + 1
-                                                ]
+                                                nextQuestionId
                                             );
 
                                         },
@@ -1662,6 +1768,14 @@
 
                         $('#finish-confirm-overlay')
                             .hide();
+
+                        /*
+                         * Setelah siswa memilih kembali ke soal
+                         * yang belum dijawab, navigasi berikutnya
+                         * hanya melewati soal yang masih kosong.
+                         */
+                        unansweredNavigationMode =
+                            true;
 
                         loadQuestion(
                             unansweredIds[0]

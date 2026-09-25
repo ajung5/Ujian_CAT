@@ -19,6 +19,54 @@
 @section('content')
 
     <style>
+        .attempt-history-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 14px;
+            border: 1px solid #d5dce5;
+            border-radius: 4px;
+            background: #fff;
+            color: #333;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            transition:
+                background 0.15s ease,
+                border-color 0.15s ease;
+        }
+
+        .attempt-history-toggle:hover {
+            border-color: #b8c2ce;
+            background: #f5f7fa;
+        }
+
+        .attempt-history-toggle::-webkit-details-marker {
+            display: none;
+        }
+
+        .attempt-history-toggle::marker {
+            display: none;
+        }
+
+        .attempt-history-chevron {
+            margin-left: 3px;
+            font-size: 11px;
+            transition: transform 0.15s ease;
+        }
+
+        details[open]>.attempt-history-toggle .attempt-history-chevron {
+            transform: rotate(180deg);
+        }
+
+        .attempt-history-view {
+            min-width: 82px;
+            padding: 6px 12px;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
         .result-action-buttons {
             display: flex;
             align-items: center;

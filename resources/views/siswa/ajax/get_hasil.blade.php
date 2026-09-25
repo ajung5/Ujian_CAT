@@ -153,13 +153,15 @@
                 <tr>
                     <td colspan="8" style="background:#fafbfd;">
                         <details>
-                            <summary
-                                style="
-                                    cursor:pointer;
-                                    font-weight:bold;
-                                ">
-                                Histori Percobaan
-                                ({{ $attemptCount }}/3)
+                            <summary class="attempt-history-toggle">
+                                <i class="fa fa-history"></i>
+
+                                <span>
+                                    Histori Percobaan
+                                    ({{ $attemptCount }}/3)
+                                </span>
+
+                                <i class="fa fa-chevron-down attempt-history-chevron"></i>
                             </summary>
 
                             <div style="margin-top:10px;">
@@ -247,6 +249,7 @@
                                                             btn
                                                             btn-xs
                                                             btn-info
+                                                            attempt-history-view
                                                         ">
                                                         <i class="fa fa-eye"></i>
 

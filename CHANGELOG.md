@@ -19,6 +19,41 @@ Belum ada perubahan yang dijadwalkan untuk release berikutnya.
 
 ---
 
+## v2.2.1 - 25 September 2026
+
+### Changed
+
+- Tampilan aksi pada halaman hasil siswa dirapikan agar tombol lebih konsisten dan mudah digunakan.
+- Bagian **Histori Percobaan** pada hasil Latihan sekarang ditampilkan sebagai kontrol yang lebih menyerupai tombol.
+- Tombol **Lihat** pada Histori Percobaan diperbesar agar lebih jelas dan konsisten dengan tombol aksi lainnya.
+- Teks tombol konfirmasi pengerjaan diubah menjadi **Kembali ke Soal Belum Dijawab** agar lebih mudah dipahami.
+
+### Fixed
+
+- Memperbaiki navigasi soal ketika siswa memilih kembali ke soal yang belum dijawab dari dialog penyelesaian assessment.
+- Setelah siswa menjawab salah satu soal yang sebelumnya kosong, sistem sekarang langsung membuka soal berikutnya yang masih belum dijawab.
+- Navigasi tidak lagi kembali ke urutan soal normal ketika siswa sedang menyelesaikan daftar soal yang belum dijawab.
+- Setelah seluruh soal yang sebelumnya kosong selesai dijawab, sistem otomatis kembali ke mode navigasi normal.
+
+### UX
+
+Alur penyelesaian soal yang belum dijawab sekarang menjadi:
+
+```text
+Klik Selesai
+    ↓
+Sistem mendeteksi soal yang belum dijawab
+    ↓
+Kembali ke Soal Belum Dijawab
+    ↓
+Buka soal kosong pertama
+    ↓
+Jawab soal
+    ↓
+Langsung ke soal kosong berikutnya
+    ↓
+Sampai seluruh soal terjawab
+
 ## v2.2.0 - 24 September 2026
 
 ### Added
@@ -246,3 +281,4 @@ Modernisasi dilakukan dengan prinsip:
 - meningkatkan maintainability;
 - meningkatkan automated testing;
 - meningkatkan code quality.
+```
