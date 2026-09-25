@@ -130,6 +130,7 @@ Jawab soal
 Langsung ke soal kosong berikutnya
     ↓
 Sampai seluruh soal terjawab
+```
 
 ## v2.2.0 - 24 September 2026
 
@@ -358,4 +359,7 @@ Modernisasi dilakukan dengan prinsip:
 - meningkatkan maintainability;
 - meningkatkan automated testing;
 - meningkatkan code quality.
+
+```
+
 ```
