@@ -23,6 +23,30 @@ Belum ada perubahan yang dijadwalkan untuk release berikutnya.
 
 ### Changed
 
+- Memindahkan akses Review Latihan dari kolom Aksi utama ke Riwayat Percobaan.
+- Menambahkan tombol Riwayat Percobaan pada tabel hasil Latihan.
+- Riwayat setiap attempt sekarang ditampilkan melalui modal agar tabel hasil tetap ringkas.
+- Tombol Review sekarang tersedia pada masing-masing attempt di dalam Riwayat Percobaan.
+- Tombol Lihat pada histori diganti menjadi Review agar lebih konsisten dengan fungsi yang dilakukan.
+- Status batas maksimal 3 percobaan ditampilkan sebagai status, bukan tombol disabled.
+
+### Fixed
+
+- Memperbaiki navigasi ketika siswa kembali ke soal yang belum dijawab.
+- Setelah menjawab satu soal yang sebelumnya kosong, sistem langsung membuka soal kosong berikutnya.
+- Navigasi tidak lagi berpindah ke nomor soal berikutnya yang sudah dijawab ketika berada dalam mode penyelesaian soal belum dijawab.
+- Setelah seluruh soal kosong selesai dijawab, navigasi kembali ke mode normal.
+
+### UX
+
+- Mengurangi duplikasi aksi Review pada halaman hasil.
+- Memisahkan fungsi Aksi utama dan Riwayat Percobaan agar lebih mudah dipahami.
+- Meningkatkan keterbacaan tombol dan kontrol histori percobaan.
+
+## v2.2.1 - 25 September 2026
+
+### Changed
+
 - Tampilan aksi pada halaman hasil siswa dirapikan agar tombol lebih konsisten dan mudah digunakan.
 - Bagian **Histori Percobaan** pada hasil Latihan sekarang ditampilkan sebagai kontrol yang lebih menyerupai tombol.
 - Tombol **Lihat** pada Histori Percobaan diperbesar agar lebih jelas dan konsisten dengan tombol aksi lainnya.
