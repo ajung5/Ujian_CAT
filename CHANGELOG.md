@@ -105,8 +105,6 @@ Regression test diperluas untuk mencakup:
 - Compatibility session pada seluruh workflow Ujian dan Latihan.
 - Regression workflow multi-attempt, review, dan timer setelah penerapan single-session.
 
-```
-
 ## v2.2.0 - 24 September 2026
 
 ### Added
@@ -334,6 +332,8 @@ Modernisasi dilakukan dengan prinsip:
 - meningkatkan maintainability;
 - meningkatkan automated testing;
 - meningkatkan code quality.
+
+```
 
 ```
 
