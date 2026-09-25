@@ -34,6 +34,10 @@
             </th>
 
             <th class="center">
+                Percobaan
+            </th>
+
+            <th class="center">
                 Aksi
             </th>
         </tr>
@@ -53,6 +57,8 @@
                 $history = ($attemptHistory ?? collect())->get((string) $result->id_soal, collect());
                 $attemptCount = $history->count();
                 $canRetry = !$isExam && $attemptCount < 3;
+
+                $historyModalId = 'attempt-history-modal-' . $result->id_soal;
             @endphp
 
             <tr>
@@ -63,7 +69,11 @@
                 <td>
                     {{ $result->paket }}
                     @if (!$isExam)
-                        <div class="text-muted" style="font-size:10pt; margin-top:3px;">
+                        <div class="text-muted"
+                            style="
+                                font-size:10pt;
+                                margin-top:3px;
+                            ">
                             Percobaan terakhir:
                             {{ $result->attempt_no }}
                             dari 3
@@ -97,17 +107,17 @@
                     @if ($lulus)
                         <span
                             style="
-                            color:#009900;
-                            font-weight:bold;
-                        ">
+                                color:#009900;
+                                font-weight:bold;
+                            ">
                             Lulus
                         </span>
                     @else
                         <span
                             style="
-                            color:#e60000;
-                            font-weight:bold;
-                        ">
+                                color:#e60000;
+                                font-weight:bold;
+                            ">
                             Tidak Lulus
                         </span>
                     @endif
@@ -118,158 +128,56 @@
                 </td>
 
                 <td class="center">
-                    @if (!$isExam)
-                        <div class="result-action-buttons">
-                            <a href="{{ route('siswa.results.detail', [
-                                'id' => $result->id_soal,
-                                'attempt' => $result->attempt_no,
-                            ]) }}"
-                                class="btn btn-sm btn-info">
-                                <i class="fa fa-eye"></i>
-                                Review
-                            </a>
+                    @if (!$isExam && $attemptCount > 0)
+                        <button type="button"
+                            class="
+                                btn
+                                btn-default
+                                btn-sm
+                                attempt-history-button
+                            "
+                            data-toggle="modal" data-target="#{{ $historyModalId }}">
+                            <i class="fa fa-history"></i>
 
-                            @if ($canRetry)
-                                <a href="{{ route('siswa.training', $result->id_soal) }}"
-                                    class="btn btn-sm btn-primary">
-                                    <i class="fa fa-repeat"></i>
-                                    Ulangi
-                                </a>
-                            @else
-                                <button type="button" class="btn btn-sm btn-default" disabled>
-                                    Maksimal 3x
-                                </button>
-                            @endif
-                        </div>
+                            Riwayat
+                            {{ $attemptCount }}/3
+                        </button>
                     @else
                         <span class="text-muted">
-                            Tidak Tersedia
+                            -
+                        </span>
+                    @endif
+                </td>
+
+                <td class="center">
+                    @if ($isExam)
+                        <span class="text-muted">
+                            -
+                        </span>
+                    @elseif ($canRetry)
+                        <a href="{{ route('siswa.training', $result->id_soal) }}"
+                            class="
+                                btn
+                                btn-sm
+                                btn-primary
+                                result-retry-button
+                            ">
+                            <i class="fa fa-repeat"></i>
+
+                            Ulangi
+                        </a>
+                    @else
+                        <span class="attempt-limit-status">
+                            <i class="fa fa-lock"></i>
+
+                            Batas 3x
                         </span>
                     @endif
                 </td>
             </tr>
-
-            @if (!$isExam && $history->count())
-                <tr>
-                    <td colspan="8" style="background:#fafbfd;">
-                        <details>
-                            <summary class="attempt-history-toggle">
-                                <i class="fa fa-history"></i>
-
-                                <span>
-                                    Histori Percobaan
-                                    ({{ $attemptCount }}/3)
-                                </span>
-
-                                <i class="fa fa-chevron-down attempt-history-chevron"></i>
-                            </summary>
-
-                            <div style="margin-top:10px;">
-                                <table
-                                    class="
-                                        table
-                                        table-bordered
-                                        table-condensed
-                                    "
-                                    style="
-                                        margin-bottom:0;
-                                        background:#fff;
-                                    ">
-                                    <thead>
-                                        <tr>
-                                            <th>
-                                                Percobaan
-                                            </th>
-
-                                            <th class="center">
-                                                Nilai
-                                            </th>
-
-                                            <th class="center">
-                                                Status
-                                            </th>
-
-                                            <th>
-                                                Tanggal
-                                            </th>
-
-                                            <th class="center" style="min-width: 200px;">
-                                                Aksi
-                                            </th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-                                        @foreach ($history as $historyAttempt)
-                                            @php
-                                                $historyScore = (float) $historyAttempt->score;
-                                                $historyPassed = $historyScore >= (float) $result->kkm;
-                                            @endphp
-
-                                            <tr>
-                                                <td>
-                                                    Percobaan
-                                                    {{ $historyAttempt->attempt_no }}
-                                                </td>
-
-                                                <td class="center">
-                                                    {{ rtrim(rtrim(number_format($historyScore, 2, '.', ''), '0'), '.') }}
-                                                </td>
-
-                                                <td class="center">
-                                                    @if ($historyPassed)
-                                                        <span
-                                                            style="
-                                                                color:#009900;
-                                                                font-weight:bold;
-                                                            ">
-                                                            Lulus
-                                                        </span>
-                                                    @else
-                                                        <span
-                                                            style="
-                                                                color:#e60000;
-                                                                font-weight:bold;
-                                                            ">
-                                                            Tidak Lulus
-                                                        </span>
-                                                    @endif
-                                                </td>
-
-                                                <td>
-                                                    {{ $historyAttempt->finished_at ? $historyAttempt->finished_at->format('d-m-Y H:i') : '-' }}
-                                                </td>
-
-                                                <td class="center">
-                                                    <a href="{{ route('siswa.results.detail', [
-                                                        'id' => $result->id_soal,
-                                                        'attempt' => $historyAttempt->attempt_no,
-                                                    ]) }}"
-                                                        class="
-                                                            btn
-                                                            btn-xs
-                                                            btn-info
-                                                            attempt-history-view
-                                                        ">
-                                                        <i class="fa fa-eye"></i>
-
-                                                        Lihat
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </details>
-                    </td>
-                </tr>
-            @endif
-
         @empty
-
             <tr>
-                <td colspan="8" class="alert alert-info">
+                <td colspan="9" class="alert alert-info">
                     Belum ada hasil ujian
                     untuk ditampilkan.
                 </td>
@@ -279,7 +187,6 @@
 </table>
 
 @if ($results instanceof \Illuminate\Pagination\LengthAwarePaginator && $results->lastPage() > 1)
-
     <ul class="pagination pagination-sm">
         <li class="{{ $results->onFirstPage() ? 'page-item disabled' : 'page-item' }}">
             <a class="page-link" href="{{ $results->previousPageUrl() ?? '#' }}">
@@ -301,5 +208,161 @@
             </a>
         </li>
     </ul>
-
 @endif
+
+{{-- Modal Riwayat Percobaan --}}
+@foreach ($results as $result)
+    @php
+        $isExam = (int) $result->jenis_soal === 1;
+
+        $history = ($attemptHistory ?? collect())->get((string) $result->id_soal, collect());
+
+        $historyModalId = 'attempt-history-modal-' . $result->id_soal;
+    @endphp
+
+    @if (!$isExam && $history->count())
+        <div class="
+                modal
+                fade
+                attempt-history-modal
+            "
+            id="{{ $historyModalId }}" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="
+                    modal-dialog
+                    modal-lg
+                "
+                role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
+                            <span aria-hidden="true">
+                                &times;
+                            </span>
+                        </button>
+
+                        <h4 class="modal-title">
+                            <i class="fa fa-history"></i>
+
+                            Riwayat Percobaan
+                        </h4>
+
+                        <div class="attempt-history-package">
+                            {{ $result->paket }}
+                        </div>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="attempt-history-summary">
+                            <span>
+                                Total percobaan
+                            </span>
+
+                            <strong>
+                                {{ $history->count() }}/3
+                            </strong>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table
+                                class="
+                                    table
+                                    table-bordered
+                                    table-hover
+                                    attempt-history-table
+                                ">
+                                <thead>
+                                    <tr>
+                                        <th class="center">
+                                            Percobaan
+                                        </th>
+
+                                        <th class="center">
+                                            Nilai
+                                        </th>
+
+                                        <th class="center">
+                                            Status
+                                        </th>
+
+                                        <th>
+                                            Tanggal
+                                        </th>
+
+                                        <th class="center">
+                                            Aksi
+                                        </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @foreach ($history as $historyAttempt)
+                                        @php
+                                            $historyScore = (float) $historyAttempt->score;
+                                            $historyPassed = $historyScore >= (float) $result->kkm;
+                                        @endphp
+
+                                        <tr>
+                                            <td class="center">
+                                                <strong>
+                                                    Percobaan
+                                                    {{ $historyAttempt->attempt_no }}
+                                                </strong>
+                                            </td>
+
+                                            <td class="center">
+                                                {{ rtrim(rtrim(number_format($historyScore, 2, '.', ''), '0'), '.') }}
+                                            </td>
+
+                                            <td class="center">
+                                                @if ($historyPassed)
+                                                    <span class="history-status history-status-success">
+                                                        <i class="fa fa-check-circle"></i>
+
+                                                        Lulus
+                                                    </span>
+                                                @else
+                                                    <span class="history-status history-status-failed">
+                                                        <i class="fa fa-times-circle"></i>
+
+                                                        Tidak Lulus
+                                                    </span>
+                                                @endif
+                                            </td>
+
+                                            <td>
+                                                {{ $historyAttempt->finished_at ? $historyAttempt->finished_at->format('d-m-Y H:i') : '-' }}
+                                            </td>
+
+                                            <td class="center">
+                                                <a href="{{ route('siswa.results.detail', [
+                                                    'id' => $result->id_soal,
+                                                    'attempt' => $historyAttempt->attempt_no,
+                                                ]) }}"
+                                                    class="
+                                                        btn
+                                                        btn-sm
+                                                        btn-info
+                                                        attempt-review-button
+                                                    ">
+                                                    <i class="fa fa-eye"></i>
+
+                                                    Review
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+@endforeach

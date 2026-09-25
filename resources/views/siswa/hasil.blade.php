@@ -19,76 +19,135 @@
 @section('content')
 
     <style>
-        .attempt-history-toggle {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 9px 14px;
-            border: 1px solid #d5dce5;
-            border-radius: 4px;
-            background: #fff;
-            color: #333;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            user-select: none;
-            transition:
-                background 0.15s ease,
-                border-color 0.15s ease;
-        }
-
-        .attempt-history-toggle:hover {
-            border-color: #b8c2ce;
-            background: #f5f7fa;
-        }
-
-        .attempt-history-toggle::-webkit-details-marker {
-            display: none;
-        }
-
-        .attempt-history-toggle::marker {
-            display: none;
-        }
-
-        .attempt-history-chevron {
-            margin-left: 3px;
-            font-size: 11px;
-            transition: transform 0.15s ease;
-        }
-
-        details[open]>.attempt-history-toggle .attempt-history-chevron {
-            transform: rotate(180deg);
-        }
-
-        .attempt-history-view {
-            min-width: 82px;
-            padding: 6px 12px;
-            font-size: 14px;
+        .attempt-history-button,
+        .result-retry-button {
+            min-width: 105px;
             white-space: nowrap;
         }
 
-        .result-action-buttons {
+        .attempt-history-button {
+            border-color: #cbd5e1;
+            background: #fff;
+            color: #344054;
+            font-weight: 600;
+        }
+
+        .attempt-history-button:hover,
+        .attempt-history-button:focus {
+            border-color: #98a2b3;
+            background: #f8fafc;
+            color: #1d2939;
+        }
+
+        .attempt-history-button .fa {
+            margin-right: 4px;
+        }
+
+        .attempt-limit-status {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 4px;
+            background: #f2f4f7;
+            color: #8a949f;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .attempt-limit-status .fa {
+            margin-right: 3px;
+        }
+
+        .attempt-history-modal .modal-header {
+            padding: 18px 20px;
+            border-bottom: 1px solid #e4e7ec;
+        }
+
+        .attempt-history-modal .modal-title {
+            margin-bottom: 5px;
+            color: #344054;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .attempt-history-modal .modal-title .fa {
+            margin-right: 6px;
+            color: #337ab7;
+        }
+
+        .attempt-history-package {
+            margin-top: 5px;
+            color: #667085;
+            font-size: 14px;
+        }
+
+        .attempt-history-modal .modal-body {
+            padding: 20px;
+        }
+
+        .attempt-history-summary {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
-            flex-wrap: nowrap;
-            min-width: 190px;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 10px 14px;
+            border: 1px solid #e4e7ec;
+            border-radius: 5px;
+            background: #f8fafc;
+            color: #667085;
         }
 
-        .result-action-buttons .btn {
-            min-width: 82px;
+        .attempt-history-summary strong {
+            color: #344054;
+            font-size: 16px;
+        }
+
+        .attempt-history-table {
+            margin-bottom: 0;
+        }
+
+        .attempt-history-table>thead>tr>th {
+            vertical-align: middle;
+            background: #f8fafc;
+        }
+
+        .attempt-history-table>tbody>tr>td {
+            vertical-align: middle;
+        }
+
+        .attempt-review-button {
+            min-width: 92px;
             white-space: nowrap;
+        }
+
+        .history-status {
+            display: inline-block;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .history-status-success {
+            color: #009900;
+        }
+
+        .history-status-failed {
+            color: #e60000;
         }
 
         @media (max-width: 767px) {
-            .result-action-buttons {
-                flex-wrap: wrap;
-                min-width: 120px;
+
+            .attempt-history-button,
+            .result-retry-button {
+                width: 100%;
+                min-width: 95px;
             }
 
-            .result-action-buttons .btn {
-                width: 100%;
+            .attempt-history-modal .modal-dialog {
+                margin: 10px;
+            }
+
+            .attempt-history-summary {
+                gap: 15px;
             }
         }
     </style>

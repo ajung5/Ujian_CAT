@@ -289,6 +289,7 @@ test('alur ujian start simpan jawaban dan finish berjalan sampai final', functio
     $attempt = AssessmentAttempt::query()->where('id_soal', $ujian->id)->where('id_user', $siswa->id)->firstOrFail();
 
     expect($attempt->attempt_no)->toBe(1);
+
     expect($attempt->status)->toBe(AssessmentAttempt::STATUS_IN_PROGRESS);
 
     $this->assertDatabaseHas('countexamtimes', [
@@ -349,7 +350,9 @@ test('alur ujian start simpan jawaban dan finish berjalan sampai final', functio
     $attempt->refresh();
 
     expect($attempt->status)->toBe(AssessmentAttempt::STATUS_FINISHED);
+
     expect((float) $attempt->score)->toBe(100.0);
+
     expect($attempt->finished_at)->not->toBeNull();
 });
 
@@ -676,7 +679,7 @@ test('siswa tidak dapat mereview latihan yang belum final', function () {
         ->assertSessionHas('error', 'Review jawaban hanya tersedia setelah pengerjaan selesai.');
 });
 
-test('halaman hasil hanya menampilkan aksi review untuk latihan', function () {
+test('halaman hasil menampilkan review melalui riwayat percobaan latihan', function () {
     $kelas = Kelas::query()->create([
         'nama' => 'Kelas Review Visibility',
     ]);
@@ -718,25 +721,28 @@ test('halaman hasil hanya menampilkan aksi review untuk latihan', function () {
         ->assertOk()
         ->assertSee('Ujian Tanpa Tombol Review')
         ->assertSee('Latihan Dengan Tombol Review')
+        ->assertSee('Riwayat')
+        ->assertSee('Riwayat Percobaan')
         ->assertSee('Review')
-        ->assertSee('Ulangi')
-        ->assertSee('Histori Percobaan');
+        ->assertSee('Ulangi');
 
     $html = $response->getContent();
 
-    expect($html)->toContain(
-        route('siswa.results.detail', [
-            'id' => $latihan->id,
-            'attempt' => 1,
-        ]),
-    );
+    $trainingReviewUrl = route('siswa.results.detail', [
+        'id' => $latihan->id,
+        'attempt' => 1,
+    ]);
 
-    expect($html)->not->toContain(
-        route('siswa.results.detail', [
-            'id' => $ujian->id,
-            'attempt' => 1,
-        ]),
-    );
+    $examReviewUrl = route('siswa.results.detail', [
+        'id' => $ujian->id,
+        'attempt' => 1,
+    ]);
+
+    expect($html)->toContain($trainingReviewUrl);
+
+    expect(substr_count($html, $trainingReviewUrl))->toBe(1);
+
+    expect($html)->not->toContain($examReviewUrl);
 });
 
 /*
@@ -813,7 +819,9 @@ test('latihan dapat dikerjakan tiga kali tanpa menimpa jawaban attempt sebelumny
         ->get();
 
     expect($attempts)->toHaveCount(3);
+
     expect($attempts->pluck('attempt_no')->all())->toBe([1, 2, 3]);
+
     expect($attempts->pluck('status')->unique()->all())->toBe([AssessmentAttempt::STATUS_FINISHED]);
 
     expect($attempts->map(fn(AssessmentAttempt $attempt) => (float) $attempt->score)->all())->toBe([100.0, 0.0, 100.0]);
@@ -825,7 +833,9 @@ test('latihan dapat dikerjakan tiga kali tanpa menimpa jawaban attempt sebelumny
         ->get();
 
     expect($answers)->toHaveCount(3);
+
     expect($answers->pluck('attempt_id')->unique())->toHaveCount(3);
+
     expect($answers->pluck('pilihan')->all())->toBe(['A', 'B', 'A']);
 });
 
@@ -1006,25 +1016,29 @@ test('halaman hasil menampilkan histori attempt dan nilai attempt terbaru', func
         ->assertSee('Percobaan terakhir:')
         ->assertSee('2')
         ->assertSee('90')
-        ->assertSee('Histori Percobaan')
-        ->assertSee('(2/3)')
+        ->assertSee('Riwayat')
+        ->assertSee('2/3')
+        ->assertSee('Riwayat Percobaan')
+        ->assertSee('Review')
         ->assertSee('Ulangi');
 
     $html = $response->getContent();
 
-    expect($html)->toContain(
-        route('siswa.results.detail', [
-            'id' => $latihan->id,
-            'attempt' => 1,
-        ]),
-    );
+    $attempt1Url = route('siswa.results.detail', [
+        'id' => $latihan->id,
+        'attempt' => 1,
+    ]);
 
-    expect($html)->toContain(
-        route('siswa.results.detail', [
-            'id' => $latihan->id,
-            'attempt' => 2,
-        ]),
-    );
+    $attempt2Url = route('siswa.results.detail', [
+        'id' => $latihan->id,
+        'attempt' => 2,
+    ]);
+
+    expect($html)->toContain($attempt1Url)->toContain($attempt2Url);
+
+    expect(substr_count($html, $attempt1Url))->toBe(1);
+
+    expect(substr_count($html, $attempt2Url))->toBe(1);
 });
 
 test('timer setiap attempt latihan terisolasi', function () {
@@ -1051,6 +1065,7 @@ test('timer setiap attempt latihan terisolasi', function () {
     ]);
 
     $this->actingAs($siswa)->get(route('siswa.training', $latihan->id))->assertOk();
+
     $this->actingAs($siswa)->postJson(route('siswa.training.start', $latihan->id))->assertOk();
 
     $this->actingAs($siswa)
@@ -1095,7 +1110,9 @@ test('timer setiap attempt latihan terisolasi', function () {
     $counter2 = Countexamtime::query()->where('attempt_id', $attempt2->id)->firstOrFail();
 
     expect($attempt2->id)->not->toBe($attempt1->id);
+
     expect($counter2->id)->not->toBe($counter1->id);
+
     expect((int) $counter2->waktu)->toBeGreaterThan(0);
 
     $counter1->refresh();
@@ -1202,12 +1219,15 @@ test('timer satu paket tidak mengubah timer paket lain', function () {
     ]);
 
     createLifecycleQuestion($ujianA, $guru->id);
+
     createLifecycleQuestion($ujianB, $guru->id);
 
     $this->actingAs($siswa)->get(route('siswa.exam', $ujianA->id))->assertOk();
+
     $this->actingAs($siswa)->postJson(route('siswa.exam.start', $ujianA->id))->assertOk();
 
     $this->actingAs($siswa)->get(route('siswa.exam', $ujianB->id))->assertOk();
+
     $this->actingAs($siswa)->postJson(route('siswa.exam.start', $ujianB->id))->assertOk();
 
     $attemptA = AssessmentAttempt::query()->where('id_soal', $ujianA->id)->where('id_user', $siswa->id)->firstOrFail();
