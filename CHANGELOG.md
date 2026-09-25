@@ -26,6 +26,14 @@ Belum ada perubahan yang dijadwalkan untuk release berikutnya.
 - Menambahkan pembatasan satu session aktif untuk setiap akun Siswa.
 - Menambahkan `active_session_hash` pada tabel `users` untuk menyimpan fingerprint session aktif siswa.
 - Menambahkan middleware `EnsureSingleStudentSession` untuk memvalidasi session siswa pada setiap akses ke area siswa.
+- Security audit trail melalui tabel `user_security_events`.
+- Pencatatan `LOGIN_SUCCESS`, `LOGIN_FAILED`, `LOGOUT`, `SESSION_REPLACED`, `SESSION_INVALIDATED`, `SESSION_FORCE_REQUESTED`, dan `SESSION_LEGACY_CLAIMED`.
+- Penyimpanan snapshot email, role, IP address, user-agent, session fingerprint, actor, metadata, dan waktu event.
+- Halaman administrator **Aktivitas Keamanan** dengan filter event, role, nama/email/IP, dan ringkasan 24 jam.
+- Monitoring fingerprint session siswa yang terdaftar.
+- Aksi administrator **Paksa Logout** untuk siswa.
+- Informasi `last_login_at`, `last_login_ip`, dan `last_login_user_agent` pada akun.
+- Regression test khusus security audit trail dan admin force logout.
 
 ### Changed
 
@@ -44,6 +52,10 @@ Belum ada perubahan yang dijadwalkan untuk release berikutnya.
 - Tampilan aksi pada halaman hasil siswa dirapikan agar tombol lebih konsisten dan mudah digunakan.
 - Bagian **Histori Percobaan** pada hasil Latihan sekarang ditampilkan sebagai kontrol yang lebih menyerupai tombol.
 - Tombol **Lihat** pada Histori Percobaan diperbesar agar lebih jelas dan konsisten dengan tombol aksi lainnya.
+- Login siswa menghapus status revocation dan mendaftarkan fingerprint session baru.
+- Login siswa yang menggantikan session lama sekarang menghasilkan audit event `SESSION_REPLACED`.
+- Session siswa yang tidak valid sekarang menghasilkan audit event sebelum diputus.
+- Session yang dipaksa logout administrator tetap direvoke sampai siswa melakukan login baru yang sah.
 
 ### Fixed
 
@@ -68,6 +80,10 @@ Belum ada perubahan yang dijadwalkan untuk release berikutnya.
 - Session fixation tetap dicegah melalui regenerasi session setelah autentikasi.
 - Session lama tidak dapat menghapus `active_session_hash` milik login siswa terbaru.
 - Persistent login melalui Remember Me tidak digunakan untuk akun Siswa.
+- Password tidak pernah disimpan pada security audit trail.
+- Token session asli tetap hanya berada pada Laravel session; audit trail dan tabel `users` hanya menyimpan SHA-256 fingerprint.
+- Force logout administrator menggunakan revocation marker server-side sehingga session lama tidak dapat mengklaim kembali session aktif.
+- Halaman audit trail dan aksi force logout hanya tersedia untuk role Administrator (`A`).
 
 ### UX
 
@@ -332,10 +348,6 @@ Modernisasi dilakukan dengan prinsip:
 - meningkatkan maintainability;
 - meningkatkan automated testing;
 - meningkatkan code quality.
-
-```
-
-```
 
 ```
 
