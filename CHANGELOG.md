@@ -41,6 +41,9 @@ Belum ada perubahan yang dijadwalkan untuk release berikutnya.
 - Tombol Review tersedia pada masing-masing attempt di dalam Riwayat Percobaan.
 - Status batas maksimal 3 percobaan ditampilkan sebagai status, bukan tombol disabled.
 - Teks tombol konfirmasi pengerjaan diubah menjadi **Kembali ke Soal Belum Dijawab** agar lebih mudah dipahami.
+- Tampilan aksi pada halaman hasil siswa dirapikan agar tombol lebih konsisten dan mudah digunakan.
+- Bagian **Histori Percobaan** pada hasil Latihan sekarang ditampilkan sebagai kontrol yang lebih menyerupai tombol.
+- Tombol **Lihat** pada Histori Percobaan diperbesar agar lebih jelas dan konsisten dengan tombol aksi lainnya.
 
 ### Fixed
 
@@ -51,6 +54,10 @@ Belum ada perubahan yang dijadwalkan untuk release berikutnya.
 - Memperbaiki bug modal Riwayat Percobaan yang tidak dapat diklik karena konflik stacking context antara layout AdminPlus dan Bootstrap backdrop.
 - Modal Riwayat Percobaan sekarang dipindahkan ke level `<body>` saat dibuka agar tombol Review, Tutup, dan kontrol modal berfungsi normal.
 - Memperbaiki kompatibilitas tabel `users` legacy dengan MySQL modern dengan menormalisasi `created_at` dan `updated_at` dari zero-date default menjadi nullable timestamp.
+- Memperbaiki navigasi soal ketika siswa memilih kembali ke soal yang belum dijawab dari dialog penyelesaian assessment.
+- Setelah siswa menjawab salah satu soal yang sebelumnya kosong, sistem sekarang langsung membuka soal berikutnya yang masih belum dijawab.
+- Navigasi tidak lagi kembali ke urutan soal normal ketika siswa sedang menyelesaikan daftar soal yang belum dijawab.
+- Setelah seluruh soal yang sebelumnya kosong selesai dijawab, sistem otomatis kembali ke mode navigasi normal.
 
 ### Security
 
@@ -98,38 +105,6 @@ Regression test diperluas untuk mencakup:
 - Compatibility session pada seluruh workflow Ujian dan Latihan.
 - Regression workflow multi-attempt, review, dan timer setelah penerapan single-session.
 
-### Changed
-
-- Tampilan aksi pada halaman hasil siswa dirapikan agar tombol lebih konsisten dan mudah digunakan.
-- Bagian **Histori Percobaan** pada hasil Latihan sekarang ditampilkan sebagai kontrol yang lebih menyerupai tombol.
-- Tombol **Lihat** pada Histori Percobaan diperbesar agar lebih jelas dan konsisten dengan tombol aksi lainnya.
-- Teks tombol konfirmasi pengerjaan diubah menjadi **Kembali ke Soal Belum Dijawab** agar lebih mudah dipahami.
-
-### Fixed
-
-- Memperbaiki navigasi soal ketika siswa memilih kembali ke soal yang belum dijawab dari dialog penyelesaian assessment.
-- Setelah siswa menjawab salah satu soal yang sebelumnya kosong, sistem sekarang langsung membuka soal berikutnya yang masih belum dijawab.
-- Navigasi tidak lagi kembali ke urutan soal normal ketika siswa sedang menyelesaikan daftar soal yang belum dijawab.
-- Setelah seluruh soal yang sebelumnya kosong selesai dijawab, sistem otomatis kembali ke mode navigasi normal.
-
-### UX
-
-Alur penyelesaian soal yang belum dijawab sekarang menjadi:
-
-```text
-Klik Selesai
-    ↓
-Sistem mendeteksi soal yang belum dijawab
-    ↓
-Kembali ke Soal Belum Dijawab
-    ↓
-Buka soal kosong pertama
-    ↓
-Jawab soal
-    ↓
-Langsung ke soal kosong berikutnya
-    ↓
-Sampai seluruh soal terjawab
 ```
 
 ## v2.2.0 - 24 September 2026
@@ -359,6 +334,8 @@ Modernisasi dilakukan dengan prinsip:
 - meningkatkan maintainability;
 - meningkatkan automated testing;
 - meningkatkan code quality.
+
+```
 
 ```
 
