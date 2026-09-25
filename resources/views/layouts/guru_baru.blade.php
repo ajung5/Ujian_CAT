@@ -249,6 +249,16 @@
                             </li>
 
                             @if (auth()->user()->status === 'A')
+                                <li class="{{ request()->routeIs('admin.security.*') ? 'active' : '' }}">
+                                    <a href="{{ route('admin.security.index') }}">
+                                        <i class="fa fa-shield"></i>
+
+                                        <span>
+                                            Aktivitas Keamanan
+                                        </span>
+                                    </a>
+                                </li>
+
                                 <li class="{{ request()->routeIs('admin.changelog') ? 'active' : '' }}">
                                     <a href="{{ route('admin.changelog') }}">
                                         <i class="fa fa-history"></i>

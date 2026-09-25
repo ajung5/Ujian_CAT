@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\SecurityEventController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\ChangelogController;
 use App\Http\Controllers\DataguruController;
 use App\Http\Controllers\DatasiswaController;
 use App\Http\Controllers\GuruController;
@@ -9,9 +11,8 @@ use App\Http\Controllers\LatihanController;
 use App\Http\Controllers\MateriController;
 use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\SoalController;
-use App\Http\Controllers\ChangelogController;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -246,10 +247,6 @@ Route::middleware('guest')->group(function () {
 |--------------------------------------------------------------------------
 | Logout
 |--------------------------------------------------------------------------
-|
-| GET dipertahankan sementara untuk kompatibilitas aplikasi Laravel 5.1.
-| Nantinya sebaiknya UI logout dipindahkan ke POST + CSRF.
-|
 */
 
 Route::post('/auth/logout', [AuthController::class, 'logout'])
@@ -264,6 +261,12 @@ Route::post('/auth/logout', [AuthController::class, 'logout'])
 
 Route::middleware(['auth', 'role:A'])->group(function () {
     Route::get('/admin/changelog', [ChangelogController::class, 'index'])->name('admin.changelog');
+
+    Route::get('/admin/security-events', [SecurityEventController::class, 'index'])->name('admin.security.index');
+
+    Route::post('/admin/security-events/students/{user}/force-logout', [SecurityEventController::class, 'forceLogout'])
+        ->whereNumber('user')
+        ->name('admin.security.force-logout');
 });
 
 /*
@@ -281,8 +284,6 @@ Route::middleware(['auth', 'single.student.session', 'role:S,C'])->group(functio
     |--------------------------------------------------------------------------
     | Dashboard & Profil
     |--------------------------------------------------------------------------
-    |
-    | Tetap tersedia untuk Siswa (S) dan Calon Siswa (C).
     */
 
     Route::get('/siswa', [SiswaController::class, 'index'])->name('siswa.index');
@@ -297,8 +298,6 @@ Route::middleware(['auth', 'single.student.session', 'role:S'])->group(function 
     |--------------------------------------------------------------------------
     | Ujian
     |--------------------------------------------------------------------------
-    |
-    | Hanya siswa resmi berstatus S.
     */
 
     Route::get('/soal-siswa', [SiswaController::class, 'exams'])->name('siswa.soal');

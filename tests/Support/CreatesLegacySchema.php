@@ -21,6 +21,7 @@ trait CreatesLegacySchema {
         }
 
         $tables = [
+            'user_security_events',
             'aktifitas',
             'countexamtimes',
             'jawabs',
@@ -76,10 +77,32 @@ trait CreatesLegacySchema {
             $table->rememberToken();
 
             $table->char('active_session_hash', 64)->nullable();
+            $table->timestamp('student_session_revoked_at')->nullable();
+            $table->timestamp('last_login_at')->nullable();
+            $table->string('last_login_ip', 45)->nullable();
+            $table->text('last_login_user_agent')->nullable();
 
             $table->string('sekolah_asal')->default('');
 
             $table->timestamps();
+        });
+
+        Schema::create('user_security_events', function (Blueprint $table) {
+            $table->id();
+
+            $table->unsignedInteger('user_id')->nullable();
+            $table->unsignedInteger('actor_user_id')->nullable();
+
+            $table->string('email')->nullable();
+            $table->string('role', 1)->nullable();
+            $table->string('event', 50);
+
+            $table->string('ip_address', 45)->nullable();
+            $table->text('user_agent')->nullable();
+            $table->char('session_hash', 64)->nullable();
+            $table->json('metadata')->nullable();
+
+            $table->timestamp('created_at')->nullable();
         });
 
         Schema::create('materis', function (Blueprint $table) {

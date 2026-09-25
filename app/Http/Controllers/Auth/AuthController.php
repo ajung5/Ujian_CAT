@@ -5,12 +5,16 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\School;
 use App\Models\User;
+use App\Models\UserSecurityEvent;
+use App\Services\SecurityEventLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class AuthController extends Controller {
+    public function __construct(private readonly SecurityEventLogger $securityEvents) {}
+
     /**
      * Tampilkan halaman login.
      */
@@ -30,9 +34,6 @@ class AuthController extends Controller {
      * Proses login.
      */
     public function login(Request $request): RedirectResponse {
-        /*
-         * Normalisasi email agar login legacy tetap konsisten.
-         */
         $request->merge([
             'email' => strtolower(trim((string) $request->input('email'))),
         ]);
@@ -49,22 +50,21 @@ class AuthController extends Controller {
             ],
         );
 
-        /*
-         * Cari role sebelum autentikasi.
-         *
-         * Tujuannya menentukan apakah Remember Me
-         * diperbolehkan.
-         *
-         * Remember Me dinonaktifkan khusus siswa.
-         */
         $loginUser = User::query()->where('email', $credentials['email'])->first();
 
         $remember = $request->boolean('remember') && $loginUser?->status !== 'S';
 
-        /*
-         * Autentikasi user.
-         */
         if (!Auth::attempt($credentials, $remember)) {
+            $this->securityEvents->log(
+                request: $request,
+                event: UserSecurityEvent::LOGIN_FAILED,
+                subject: $loginUser,
+                metadata: [
+                    'reason' => 'invalid_credentials',
+                ],
+                email: $credentials['email'],
+            );
+
             return back()
                 ->withErrors([
                     'email' => 'Email atau password tidak sesuai.',
@@ -73,21 +73,16 @@ class AuthController extends Controller {
         }
 
         /*
-         * Regenerasi session ID untuk mencegah
-         * session fixation.
+         * Regenerasi session ID untuk mencegah session fixation.
          */
         $request->session()->regenerate();
 
         $user = Auth::user();
 
-        /*
-         * Validasi user hasil autentikasi.
-         */
         if (!($user instanceof User)) {
             Auth::logout();
 
             $request->session()->invalidate();
-
             $request->session()->regenerateToken();
 
             return redirect()
@@ -99,19 +94,10 @@ class AuthController extends Controller {
 
         $status = $user->status;
 
-        /*
-         * Validasi role legacy aplikasi.
-         *
-         * A = Administrator
-         * G = Guru
-         * S = Siswa
-         * C = Calon Siswa
-         */
         if (!in_array($status, ['A', 'G', 'S', 'C'], true)) {
             Auth::logout();
 
             $request->session()->invalidate();
-
             $request->session()->regenerateToken();
 
             return redirect()
@@ -121,47 +107,58 @@ class AuthController extends Controller {
                 ]);
         }
 
-        /*
-         * =====================================================
-         * SINGLE ACTIVE SESSION KHUSUS SISWA
-         * =====================================================
-         *
-         * Setiap login siswa menghasilkan random token baru.
-         *
-         * Token asli:
-         *     hanya disimpan di Laravel session.
-         *
-         * Database:
-         *     hanya menyimpan SHA-256 hash token.
-         *
-         * Login terbaru otomatis mengganti hash sebelumnya.
-         * Akibatnya session/perangkat lama akan ditolak
-         * oleh middleware EnsureSingleStudentSession.
-         */
-        if ($status === 'S') {
-            $studentSessionToken = bin2hex(random_bytes(32));
+        $loginMetadata = [
+            'remember_requested' => $request->boolean('remember'),
+            'remember_applied' => $remember,
+        ];
 
-            /*
-             * Simpan token asli di session.
-             */
+        if ($status === 'S') {
+            $previousSessionHash = (string) ($user->active_session_hash ?? '');
+            $studentSessionToken = bin2hex(random_bytes(32));
+            $currentSessionHash = hash('sha256', $studentSessionToken);
+
             $request->session()->put('student_session_token', $studentSessionToken);
 
-            /*
-             * Remember Me tidak digunakan untuk siswa.
-             *
-             * remember_token lama juga dihapus agar cookie
-             * persistent login dari versi aplikasi sebelumnya
-             * tidak dapat digunakan kembali.
-             *
-             * Database hanya menyimpan hash dari token session.
-             */
             $user
                 ->forceFill([
                     'remember_token' => null,
-                    'active_session_hash' => hash('sha256', $studentSessionToken),
+                    'active_session_hash' => $currentSessionHash,
+                    'student_session_revoked_at' => null,
+                    'last_login_at' => now(),
+                    'last_login_ip' => $request->ip(),
+                    'last_login_user_agent' => $request->userAgent(),
+                ])
+                ->saveQuietly();
+
+            if ($previousSessionHash !== '') {
+                $this->securityEvents->log(
+                    request: $request,
+                    event: UserSecurityEvent::SESSION_REPLACED,
+                    subject: $user,
+                    actor: $user,
+                    metadata: [
+                        'reason' => 'new_student_login',
+                        'previous_session_existed' => true,
+                    ],
+                );
+            }
+        } else {
+            $user
+                ->forceFill([
+                    'last_login_at' => now(),
+                    'last_login_ip' => $request->ip(),
+                    'last_login_user_agent' => $request->userAgent(),
                 ])
                 ->saveQuietly();
         }
+
+        $this->securityEvents->log(
+            request: $request,
+            event: UserSecurityEvent::LOGIN_SUCCESS,
+            subject: $user,
+            actor: $user,
+            metadata: $loginMetadata,
+        );
 
         return $this->redirectByRole($status);
     }
@@ -172,21 +169,17 @@ class AuthController extends Controller {
     public function logout(Request $request): RedirectResponse {
         $user = Auth::user();
 
-        /*
-         * =====================================================
-         * CLEANUP ACTIVE SESSION SISWA
-         * =====================================================
-         *
-         * Hanya session siswa yang masih merupakan session
-         * aktif yang diperbolehkan menghapus
-         * active_session_hash.
-         *
-         * Ini penting karena session lama tidak boleh
-         * menghapus hash milik login/perangkat terbaru.
-         */
+        if ($user instanceof User) {
+            $this->securityEvents->log(
+                request: $request,
+                event: UserSecurityEvent::LOGOUT,
+                subject: $user,
+                actor: $user,
+            );
+        }
+
         if ($user instanceof User && $user->status === 'S') {
             $activeSessionHash = (string) ($user->active_session_hash ?? '');
-
             $studentSessionToken = (string) $request->session()->get('student_session_token', '');
 
             if (
@@ -197,24 +190,15 @@ class AuthController extends Controller {
                 $user
                     ->forceFill([
                         'active_session_hash' => null,
+                        'student_session_revoked_at' => null,
                     ])
                     ->saveQuietly();
             }
         }
 
-        /*
-         * Logout Laravel.
-         */
         Auth::logout();
 
-        /*
-         * Hapus seluruh data session lama.
-         */
         $request->session()->invalidate();
-
-        /*
-         * Regenerasi CSRF token.
-         */
         $request->session()->regenerateToken();
 
         return redirect()->route('login');
@@ -226,9 +210,7 @@ class AuthController extends Controller {
     private function redirectByRole(?string $status): RedirectResponse {
         return match ($status) {
             'A', 'G' => redirect()->route('guru.index'),
-
             'S', 'C' => redirect()->route('siswa.index'),
-
             default => redirect()->route('login'),
         };
     }

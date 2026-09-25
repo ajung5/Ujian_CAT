@@ -3,6 +3,8 @@
 namespace App\Http\Middleware;
 
 use App\Models\User;
+use App\Models\UserSecurityEvent;
+use App\Services\SecurityEventLogger;
 use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -10,11 +12,10 @@ use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureSingleStudentSession {
+    public function __construct(private readonly SecurityEventLogger $securityEvents) {}
+
     /**
      * Pastikan akun siswa hanya mempunyai satu session aktif.
-     *
-     * Login siswa terbaru menjadi session yang sah.
-     * Session lama akan dipaksa logout pada request berikutnya.
      *
      * @param Closure(Request): Response $next
      */
@@ -25,16 +26,28 @@ class EnsureSingleStudentSession {
             return $next($request);
         }
 
-        $activeSessionHash = (string) ($user->active_session_hash ?? '');
+        if ($user->student_session_revoked_at !== null) {
+            $this->securityEvents->log(
+                request: $request,
+                event: UserSecurityEvent::SESSION_INVALIDATED,
+                subject: $user,
+                metadata: [
+                    'reason' => 'admin_forced_logout',
+                ],
+            );
 
+            return $this->terminateStudentSession(
+                request: $request,
+                message: 'Sesi Anda telah dihentikan oleh administrator. Silakan login kembali.',
+            );
+        }
+
+        $activeSessionHash = (string) ($user->active_session_hash ?? '');
         $studentSessionToken = (string) $request->session()->get('student_session_token', '');
 
         /*
-         * Kompatibilitas untuk session siswa lama
-         * sebelum fitur single-session diterapkan.
-         *
-         * Jika belum ada active_session_hash,
-         * session saat ini menjadi session aktif pertama.
+         * Kompatibilitas session siswa yang sudah aktif sebelum
+         * fitur fingerprint session diterapkan.
          */
         if ($activeSessionHash === '') {
             if ($studentSessionToken === '') {
@@ -49,24 +62,43 @@ class EnsureSingleStudentSession {
                 ])
                 ->saveQuietly();
 
+            $this->securityEvents->log(
+                request: $request,
+                event: UserSecurityEvent::SESSION_LEGACY_CLAIMED,
+                subject: $user,
+                metadata: [
+                    'reason' => 'missing_active_session_hash',
+                ],
+            );
+
             return $next($request);
         }
 
-        /*
-         * Jika database sudah memiliki session aktif,
-         * request juga wajib mempunyai token session.
-         */
         if ($studentSessionToken === '') {
+            $this->securityEvents->log(
+                request: $request,
+                event: UserSecurityEvent::SESSION_INVALIDATED,
+                subject: $user,
+                metadata: [
+                    'reason' => 'missing_student_session_token',
+                ],
+            );
+
             return $this->terminateStudentSession($request);
         }
 
         $currentSessionHash = hash('sha256', $studentSessionToken);
 
-        /*
-         * Hash berbeda berarti ada login siswa
-         * yang lebih baru dari perangkat/session lain.
-         */
         if (!hash_equals($activeSessionHash, $currentSessionHash)) {
+            $this->securityEvents->log(
+                request: $request,
+                event: UserSecurityEvent::SESSION_INVALIDATED,
+                subject: $user,
+                metadata: [
+                    'reason' => 'session_replaced_or_mismatch',
+                ],
+            );
+
             return $this->terminateStudentSession($request);
         }
 
@@ -76,17 +108,19 @@ class EnsureSingleStudentSession {
     /**
      * Akhiri session siswa yang sudah tidak sah.
      */
-    private function terminateStudentSession(Request $request): RedirectResponse {
+    private function terminateStudentSession(
+        Request $request,
+        string $message = 'Sesi Anda telah berakhir karena akun ini digunakan untuk login di perangkat lain.',
+    ): RedirectResponse {
         Auth::logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
         return redirect()
             ->route('login')
             ->withErrors([
-                'email' => 'Sesi Anda telah berakhir karena akun ini digunakan untuk login di perangkat lain.',
+                'email' => $message,
             ]);
     }
 }

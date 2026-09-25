@@ -19,6 +19,10 @@ use Illuminate\Notifications\Notifiable;
  * @property string|null $remember_token
  * @property string $sekolah_asal
  * @property string|null $active_session_hash
+ * @property \Illuminate\Support\Carbon|null $student_session_revoked_at
+ * @property \Illuminate\Support\Carbon|null $last_login_at
+ * @property string|null $last_login_ip
+ * @property string|null $last_login_user_agent
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  */
@@ -40,6 +44,11 @@ class User extends Authenticatable {
     ];
 
     protected $hidden = ['password', 'remember_token', 'active_session_hash'];
+
+    protected $casts = [
+        'student_session_revoked_at' => 'datetime',
+        'last_login_at' => 'datetime',
+    ];
 
     /**
      * @return HasMany<Soal, $this>
@@ -67,5 +76,19 @@ class User extends Authenticatable {
      */
     public function countexamtimes(): HasMany {
         return $this->hasMany(Countexamtime::class, 'id_user');
+    }
+
+    /**
+     * @return HasMany<UserSecurityEvent, $this>
+     */
+    public function securityEvents(): HasMany {
+        return $this->hasMany(UserSecurityEvent::class, 'user_id');
+    }
+
+    /**
+     * @return HasMany<UserSecurityEvent, $this>
+     */
+    public function securityActions(): HasMany {
+        return $this->hasMany(UserSecurityEvent::class, 'actor_user_id');
     }
 }
