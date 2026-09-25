@@ -214,6 +214,68 @@
     <script>
         $(document).ready(function() {
 
+            /*
+             * Modal Riwayat Percobaan harus menjadi child langsung
+             * dari <body>.
+             *
+             * Layout AdminPlus menggunakan stacking context z-index 998,
+             * sedangkan Bootstrap modal backdrop menggunakan z-index 1040.
+             * Jika modal tetap berada di dalam .layout-content, backdrop
+             * akan berada di atas modal dan membuat modal tidak dapat diklik.
+             */
+            $(document).on(
+                'show.bs.modal',
+                '.attempt-history-modal',
+                function(event) {
+
+                    const modal =
+                        $(event.target);
+
+                    if (
+                        modal.parent()[0] !==
+                        document.body
+                    ) {
+
+                        modal.appendTo(
+                            document.body
+                        );
+
+                    }
+
+                }
+            );
+
+            /*
+             * Setelah modal ditutup, kembalikan ke #wrap-hasil.
+             * Ini penting karena isi hasil dapat diganti melalui AJAX
+             * ketika siswa melakukan pencarian.
+             */
+            $(document).on(
+                'hidden.bs.modal',
+                '.attempt-history-modal',
+                function(event) {
+
+                    const modal =
+                        $(event.target);
+
+                    const container =
+                        $('#wrap-hasil');
+
+                    if (
+                        container.length &&
+                        modal.parent()[0] !==
+                        container[0]
+                    ) {
+
+                        modal.appendTo(
+                            container
+                        );
+
+                    }
+
+                }
+            );
+
             function cariHasil() {
 
                 $('#wrap-hasil')

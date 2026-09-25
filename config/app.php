@@ -113,5 +113,5 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
-    'version' => '2.2.0',
+    'version' => '2.2.1',
 ];

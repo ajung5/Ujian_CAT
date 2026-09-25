@@ -36,6 +36,8 @@ Belum ada perubahan yang dijadwalkan untuk release berikutnya.
 - Setelah menjawab satu soal yang sebelumnya kosong, sistem langsung membuka soal kosong berikutnya.
 - Navigasi tidak lagi berpindah ke nomor soal berikutnya yang sudah dijawab ketika berada dalam mode penyelesaian soal belum dijawab.
 - Setelah seluruh soal kosong selesai dijawab, navigasi kembali ke mode normal.
+- Memperbaiki bug modal Riwayat Percobaan yang tidak dapat diklik karena konflik stacking context antara layout AdminPlus dan Bootstrap backdrop.
+- Modal Riwayat Percobaan sekarang dipindahkan ke level `<body>` saat dibuka agar tombol Review, Tutup, dan kontrol modal berfungsi normal.
 
 ### UX
 
