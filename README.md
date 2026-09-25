@@ -1,30 +1,33 @@
 # Ujian CAT
 
-Aplikasi **Computer Assisted Test (CAT)** berbasis Laravel untuk pengelolaan ujian, latihan, materi pembelajaran, peserta, kelas, serta laporan hasil assessment.
+Aplikasi **Computer Assisted Test (CAT)** berbasis Laravel untuk pengelolaan ujian, latihan, materi pembelajaran, peserta, kelas, hasil assessment, serta aktivitas keamanan pengguna.
 
-Project ini merupakan hasil modernisasi aplikasi CAT legacy dari **Laravel 5.1** ke **Laravel 13** dengan prinsip utama mempertahankan proses bisnis, UI/UX utama, dan kompatibilitas database legacy sambil memperkuat security, maintainability, testing, serta kualitas source code.
+Project ini merupakan hasil modernisasi aplikasi CAT legacy dari **Laravel 5.1** ke **Laravel 13**. Modernisasi dilakukan dengan tetap mempertahankan proses bisnis utama, pola UI/UX legacy yang masih digunakan, dan kompatibilitas database existing, sambil memperkuat security, automated testing, static analysis, serta maintainability source code.
 
-## Status Project
+## Status Aplikasi
 
-| Komponen | Status |
-|---|---|
-| Framework | Laravel 13 |
-| Database | MySQL legacy `ujian` |
-| Runtime PHP | `^8.3` pada Composer; pre-commit project memvalidasi PHP `>= 8.4.1` |
+| Komponen | Kondisi Saat Ini |
+| --- | --- |
+| Versi aplikasi | `2.2.1` |
+| Framework | Laravel `^13.17` |
+| PHP | Composer `^8.3`; pre-commit project mensyaratkan `>= 8.4.1` |
+| Database | MySQL, default database `ujian` |
 | Frontend | Blade, Bootstrap, jQuery, Vite |
-| Import / Export | PhpSpreadsheet |
-| Image Processing | Intervention Image |
-| Testing | Pest / PHPUnit |
-| Regression Baseline | **47 passed, 0 failed** |
+| Import / Export | PhpSpreadsheet `^5.10` |
+| Image Processing | Intervention Image `^4.0` |
+| Testing | Pest / PHPUnit, SQLite `:memory:` |
+| Static Analysis | Larastan / PHPStan level 6 |
+| Feature test | 69 skenario feature test pada repository saat ini |
 | Docker | Tidak diperlukan |
+| Fresh database installer | `database/install/ujian_cat_empty.sql` |
 
-Aplikasi dapat dijalankan secara lokal menggunakan:
+Aplikasi dapat dijalankan langsung menggunakan:
 
 ```bash
 php artisan serve
 ```
 
-Default development URL:
+Default URL development:
 
 ```text
 http://127.0.0.1:8000
@@ -34,66 +37,276 @@ http://127.0.0.1:8000
 
 ## Fitur Utama
 
-### Administrator / Guru
+### Administrator
 
-- Dashboard Guru / Administrator.
-- Manajemen profil dan identitas sekolah.
-- Manajemen data Guru.
-- Manajemen Kelas.
-- Manajemen Siswa dan Calon Siswa melalui tab terpisah.
-- Penerimaan Calon Siswa menjadi Siswa tanpa membuat record user baru.
-- Penetapan NIS final dan kelas saat penerimaan Calon Siswa.
-- Import data siswa dari Excel.
-- Manajemen Materi pembelajaran.
-- Manajemen Paket Soal.
-- Pemisahan jenis Paket Soal **Ujian** dan **Latihan**.
-- Manajemen Detail Soal.
-- Import soal dari Excel.
-- Upload dan penghapusan audio soal.
-- Distribusi Ujian ke kelas.
-- Laporan hasil Ujian dan Latihan.
-- Detail hasil per kelas dan per siswa.
-- Export hasil per kelas ke Excel.
-- Penghapusan hasil siswa / kelas dengan proteksi histori.
-- Activity logging untuk operasi administratif penting.
+Administrator menggunakan status `A`.
+
+Fitur utama:
+
+- dashboard Administrator/Guru;
+- profil dan identitas sekolah;
+- manajemen Guru;
+- manajemen Kelas;
+- manajemen Siswa dan Calon Siswa;
+- penerimaan Calon Siswa menjadi Siswa;
+- import siswa dan calon siswa;
+- manajemen Materi;
+- manajemen Paket Soal;
+- manajemen Detail Soal;
+- upload audio soal;
+- import soal;
+- distribusi Ujian ke kelas;
+- laporan hasil assessment;
+- export hasil per kelas;
+- penghapusan hasil dengan validasi histori dan ownership;
+- halaman Changelog;
+- halaman **Aktivitas Keamanan**;
+- monitoring session siswa;
+- **Paksa Logout** session siswa.
+
+### Guru
+
+Guru menggunakan status `G`.
+
+Fitur utama:
+
+- dashboard Guru;
+- profil;
+- manajemen Kelas sesuai flow aplikasi;
+- manajemen Siswa/Calon Siswa;
+- Materi;
+- Paket Soal;
+- Detail Soal;
+- distribusi assessment;
+- hasil dan laporan assessment;
+- import/export yang diizinkan aplikasi.
+
+Fitur Administrator-only seperti Security Audit Trail dan Changelog administratif dibatasi melalui middleware role.
 
 ### Siswa
 
-- Dashboard siswa.
-- Daftar Ujian berdasarkan distribusi kelas.
-- Engine Ujian dengan timer server-side.
-- Penyimpanan jawaban selama assessment.
-- Finalisasi assessment.
-- Finalisasi otomatis ketika waktu habis.
-- Proteksi perubahan jawaban setelah assessment final.
-- Hasil Ujian.
-- Review jawaban.
-- Materi pembelajaran.
-- Daftar dan engine Latihan.
-- Profil siswa.
+Siswa menggunakan status `S`.
+
+Fitur utama:
+
+- dashboard;
+- profil;
+- daftar Ujian sesuai distribusi kelas;
+- engine Ujian;
+- engine Latihan;
+- timer server-side;
+- penyimpanan jawaban;
+- finalisasi assessment;
+- auto-finalize ketika waktu habis;
+- hasil assessment;
+- riwayat percobaan Latihan;
+- review Latihan berdasarkan attempt;
+- Materi pembelajaran;
+- navigasi kembali ke soal yang belum dijawab;
+- single active session.
 
 ### Calon Siswa
 
-Role Calon Siswa menggunakan status `C` dan dibatasi hanya pada fitur yang memang diperbolehkan, seperti dashboard/profil yang relevan. Calon Siswa tidak memperoleh akses ke flow assessment Siswa sebelum diterima menjadi status `S`.
+Calon Siswa menggunakan status `C`.
+
+Calon Siswa hanya memperoleh akses ke area yang memang diizinkan, seperti dashboard/profil. Assessment belum dapat diakses sampai user diterima menjadi Siswa (`S`).
 
 ---
 
 ## Role Pengguna
 
 | Status | Role |
-|---|---|
+| --- | --- |
 | `A` | Administrator |
 | `G` | Guru |
 | `S` | Siswa |
 | `C` | Calon Siswa |
 
-Authorization diterapkan pada route dan resource. Validasi akses tidak hanya mengandalkan UI, tetapi juga dilakukan pada server-side controller/middleware dan ownership resource.
+Authorization diterapkan melalui middleware dan validasi server-side. UI bukan satu-satunya kontrol akses.
 
 ---
 
-## Requirements
+## Perilaku Assessment
 
-Pastikan environment development memiliki:
+### Ujian
+
+- Maksimal **1 attempt** per siswa dan paket Ujian.
+- Paket harus didistribusikan ke kelas siswa.
+- Attempt aktif divalidasi pada server-side.
+- Timer dikelola per attempt.
+- Jawaban tidak dapat diubah setelah attempt final.
+- Paket Ujian tidak dapat direview melalui direct URL sebagai Latihan.
+
+### Latihan
+
+- Maksimal **3 attempt**.
+- Setiap attempt disimpan terpisah.
+- Jawaban setiap attempt menggunakan `attempt_id`.
+- Timer setiap attempt terisolasi.
+- Nilai setiap attempt disimpan terpisah.
+- Hasil utama menampilkan completed attempt terbaru.
+- Riwayat Percobaan tersedia dari halaman hasil.
+- Review dilakukan per attempt.
+- Attempt ke-4 ditolak server-side.
+
+### Navigasi Soal
+
+Ketika siswa menekan selesai tetapi masih ada soal kosong:
+
+```text
+Klik Selesai
+    ↓
+Sistem mendeteksi soal belum dijawab
+    ↓
+Kembali ke Soal Belum Dijawab
+    ↓
+Buka soal kosong
+    ↓
+Jawab
+    ↓
+Pindah ke soal kosong berikutnya
+    ↓
+Kembali ke mode normal setelah semua terjawab
+```
+
+Pada perangkat mobile, area soal akan diarahkan kembali ke posisi pertanyaan ketika berpindah ke soal yang belum dijawab.
+
+---
+
+## Single Active Session Siswa
+
+Akun dengan status `S` hanya dapat mempunyai **satu session aktif**.
+
+Flow:
+
+```text
+Perangkat A login
+    ↓
+Random student session token dibuat
+    ↓
+Token asli disimpan di Laravel session
+    ↓
+SHA-256(token) disimpan sebagai active_session_hash
+
+Perangkat B login dengan akun yang sama
+    ↓
+Token baru dibuat
+    ↓
+active_session_hash diganti
+    ↓
+Perangkat A ditolak pada request berikutnya
+    ↓
+Perangkat B tetap aktif
+```
+
+Ketentuan:
+
+- login terbaru menang;
+- token session asli tidak disimpan di database;
+- database hanya menyimpan SHA-256 fingerprint;
+- Remember Me dinonaktifkan untuk Siswa;
+- remember token legacy siswa dibersihkan pada login;
+- session lama tidak dapat menghapus fingerprint session terbaru;
+- Administrator dapat melakukan Paksa Logout;
+- force logout menggunakan `student_session_revoked_at` sehingga session lama tidak dapat mengklaim ulang session aktif.
+
+---
+
+## Security Audit Trail
+
+Aplikasi mempunyai tabel `user_security_events`.
+
+Event yang dicatat:
+
+```text
+LOGIN_SUCCESS
+LOGIN_FAILED
+LOGOUT
+SESSION_REPLACED
+SESSION_INVALIDATED
+SESSION_FORCE_REQUESTED
+SESSION_LEGACY_CLAIMED
+```
+
+Informasi yang dapat dicatat sesuai event:
+
+- user ID;
+- actor user ID;
+- snapshot email;
+- role;
+- IP address;
+- user-agent;
+- SHA-256 session fingerprint;
+- metadata event;
+- waktu event.
+
+Password tidak dicatat pada audit trail.
+
+Administrator dapat membuka:
+
+```text
+/admin/security-events
+```
+
+Fitur halaman tersebut meliputi:
+
+- filter event;
+- filter role;
+- pencarian nama/email/IP;
+- pagination;
+- ringkasan aktivitas keamanan 24 jam;
+- monitoring session siswa;
+- last login;
+- last login IP;
+- user-agent;
+- Paksa Logout siswa.
+
+---
+
+## Security Controls
+
+Kontrol yang sudah tersedia antara lain:
+
+- Laravel authentication;
+- role-based authorization;
+- CSRF protection;
+- POST-only logout;
+- login rate limiting;
+- ownership validation;
+- IDOR protection;
+- cross-package assessment protection;
+- server-side timer;
+- transaction untuk operasi database kritis;
+- upload validation;
+- single active session khusus Siswa;
+- server-side session revocation;
+- security audit trail;
+- admin force logout siswa;
+- last-login tracking;
+- regression test untuk critical flow.
+
+Jangan pernah commit secret seperti:
+
+```text
+.env
+APP_KEY
+database password
+API token
+private key
+production credential
+```
+
+Lihat [`SECURITY.md`](SECURITY.md).
+
+---
+
+# Instalasi Baru
+
+Untuk instalasi baru, gunakan **fresh database installer** yang tersedia di repository.
+
+## 1. Requirements
+
+Pastikan tersedia:
 
 ```text
 PHP
@@ -104,51 +317,29 @@ npm
 Git
 ```
 
-Constraint PHP pada `composer.json`:
+Constraint project:
 
 ```text
-^8.3
+PHP ^8.3
 ```
 
-Untuk menyamakan dengan validasi pre-commit repository saat ini, gunakan PHP:
+Untuk menggunakan pre-commit hook repository tanpa perbedaan runtime:
 
 ```text
->= 8.4.1
+PHP >= 8.4.1
 ```
 
-Cek environment:
-
-```bash
-php -v
-composer --version
-mysql --version
-node -v
-npm -v
-git --version
-```
-
----
-
-## Quick Start
+## 2. Clone dan Dependency
 
 ```bash
 git clone https://github.com/ajung5/Ujian_CAT.git
 cd Ujian_CAT
-
 composer install
-
 cp .env.example .env
 php artisan key:generate
-
-npm install
-npm run build
-
-php artisan optimize:clear
-php artisan test
-php artisan serve
 ```
 
-Sesuaikan koneksi MySQL pada `.env`:
+Contoh database pada `.env`:
 
 ```dotenv
 DB_CONNECTION=mysql
@@ -159,241 +350,293 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-Aplikasi tidak membutuhkan Docker untuk development lokal.
+Default session development:
 
-Panduan lebih lengkap tersedia pada [`docs/INSTALLATION.md`](docs/INSTALLATION.md).
+```dotenv
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+```
+
+## 3. Buat Database Kosong
+
+```sql
+CREATE DATABASE ujian
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+```
+
+## 4. Import Fresh Database
+
+Gunakan:
+
+```text
+database/install/ujian_cat_empty.sql
+```
+
+Import:
+
+```bash
+mysql -u root -p ujian < database/install/ujian_cat_empty.sql
+```
+
+Installer tersebut:
+
+- ditujukan untuk database kosong;
+- tidak menggunakan `DROP TABLE`;
+- membuat struktur aplikasi saat ini;
+- mencakup multi-attempt;
+- mencakup single active student session;
+- mencakup security audit trail;
+- tidak membuat data Guru/Siswa/Kelas/Materi/Soal/Jawaban dummy;
+- hanya membuat satu Administrator awal;
+- mengisi tabel `migrations` untuk schema yang sudah direpresentasikan installer.
+
+Administrator awal:
+
+```text
+Email : admin@ujian-cat.local
+Role  : A
+```
+
+Password awal sengaja tidak didistribusikan.
+
+Set password sendiri:
+
+```bash
+php artisan tinker
+```
+
+Kemudian:
+
+```php
+$admin = \App\Models\User::where(
+    'email',
+    'admin@ujian-cat.local'
+)->firstOrFail();
+
+$admin->password =
+    \Illuminate\Support\Facades\Hash::make(
+        'GANTI-DENGAN-PASSWORD-KUAT'
+    );
+
+$admin->save();
+```
+
+Opsional:
+
+```php
+$admin->email = 'admin@example.go.id';
+$admin->save();
+```
+
+## 5. Frontend dan Validasi
+
+```bash
+npm install
+npm run build
+php artisan optimize:clear
+php artisan migrate:status
+php artisan test
+php artisan serve
+```
+
+Akses:
+
+```text
+http://127.0.0.1:8000
+```
+
+Dokumentasi khusus installer tersedia pada [`database/install/README.md`](database/install/README.md).
 
 ---
 
-## Database Legacy
+# Menggunakan Database Legacy Existing
 
-Aplikasi menggunakan **database CAT existing** dengan nama default:
+Aplikasi tetap mendukung database CAT legacy existing.
 
-```text
-ujian
+Sebelum perubahan schema:
+
+1. backup database;
+2. gunakan environment non-production terlebih dahulu;
+3. cek migration yang pending;
+4. review perubahan schema;
+5. baru jalankan migration yang dibutuhkan.
+
+Cek:
+
+```bash
+php artisan migrate:status
 ```
 
-Tabel inti yang digunakan antara lain:
+Migration modernisasi saat ini mencakup antara lain:
+
+- `assessment_attempts`;
+- `attempt_id` pada jawaban dan timer;
+- unique index multi-attempt;
+- normalisasi timestamp legacy;
+- `active_session_hash`;
+- session revocation dan last-login fields;
+- `user_security_events`.
+
+Setelah backup dan review:
+
+```bash
+php artisan migrate
+```
+
+**Jangan** menggunakan:
+
+```bash
+php artisan migrate:fresh
+```
+
+pada database existing karena perintah tersebut destruktif.
+
+Migration production tidak disarankan dijalankan otomatis tanpa review.
+
+---
+
+## Tabel Database Utama
+
+Schema aplikasi saat ini menggunakan antara lain:
 
 ```text
-users
-kelas
 schools
+kelas
+users
 materis
 soals
 detailsoals
 distribusisoals
+assessment_attempts
 jawabs
 countexamtimes
 aktifitas
+user_security_events
+migrations
 ```
 
-### Peringatan Database
-
-Jangan menjalankan perintah berikut terhadap database legacy yang berisi data existing tanpa review schema dan backup:
-
-```bash
-php artisan migrate
-php artisan migrate:fresh
-```
-
-Aplikasi ini mempertahankan struktur database legacy sebagai compatibility boundary. Beberapa field masih menggunakan tipe/constraint dari aplikasi lama, sehingga perubahan schema harus dilakukan secara terkontrol.
-
-Dokumentasi database: [`docs/DATABASE.md`](docs/DATABASE.md).
+Beberapa kolom tetap mempertahankan penamaan dan tipe legacy untuk compatibility.
 
 ---
 
 ## Testing
 
-Jalankan seluruh regression suite:
+Testing menggunakan Pest/PHPUnit dengan SQLite `:memory:`.
 
-```bash
-php artisan test
-```
-
-Baseline repository saat dokumentasi ini diperbarui:
+Feature suite repository saat ini berisi **69 skenario test**:
 
 ```text
-47 passed
-0 failed
-```
-
-Suite utama saat ini:
-
-```text
+AdminChangelogTest
 AuthenticationAndRoleTest
 CandidateAcceptanceTest
 CandidateAccessRestrictionTest
+SecurityAuditTrailTest
 StudentAssessmentAccessTest
 StudentAssessmentLifecycleTest
 StudentDataTabsTest
 TeacherAssessmentManagementTest
 ```
 
-Regression test mencakup antara lain:
+Jalankan:
 
-- authentication dan role redirect;
-- POST-only logout;
-- akses assessment berdasarkan role;
-- pembatasan Calon Siswa;
-- penerimaan Calon Siswa menjadi Siswa;
-- pemisahan tab Siswa / Calon Siswa;
-- distribusi Ujian;
-- pemisahan Ujian / Latihan;
-- assessment lifecycle;
-- server-side timer dan expiry;
-- finalisasi jawaban;
-- cross-package protection;
-- ownership / IDOR protection;
-- historical class result;
-- proteksi penghapusan Paket Soal dan hasil assessment;
-- isolasi timer dan data antar assessment.
-
-### Safety Test Database
-
-Regression test **tidak boleh menggunakan MySQL development/production**.
-
-Test menggunakan:
-
-```text
-SQLite :memory:
+```bash
+php artisan test
 ```
 
-`phpunit.xml`, `tests/TestCase.php`, dan `tests/Support/CreatesLegacySchema.php` memiliki pengamanan untuk memastikan test schema hanya dibuat pada SQLite in-memory. `APP_ENV=testing` juga dipaksa pada test bootstrap agar environment shell/VS Code tidak mengalihkan test ke database development.
-
-Dokumentasi testing: [`docs/TESTING.md`](docs/TESTING.md).
+Regression mencakup authentication, role, candidate workflow, single-session, security audit, Ujian/Latihan, multi-attempt, timer, review, ownership, IDOR, dan historical result.
 
 ---
 
-## Security Controls
+## Static Analysis dan Formatting
 
-Kontrol keamanan yang sudah diterapkan antara lain:
+Static analysis:
 
-- authentication middleware;
-- role-based authorization;
-- resource ownership validation;
-- CSRF protection;
-- POST-only logout;
-- login rate limiting;
-- IDOR protection;
-- server-side assessment timer;
-- validasi Paket Soal dan Detail Soal;
-- cross-package assessment protection;
-- proteksi historical result;
-- transaction untuk operasi database kritis;
-- validasi upload file;
-- pembatasan akses Calon Siswa;
-- regression test untuk critical assessment flow.
-
-Jangan pernah commit:
-
-```text
-.env
-APP_KEY
-password database
-API token
-private key
-production credential
+```bash
+composer analyse
 ```
 
-Lihat [`SECURITY.md`](SECURITY.md) untuk kebijakan keamanan repository.
+PHPStan/Larastan saat ini menggunakan level 6.
 
----
-
-## Source Code Quality
-
-Project menggunakan Prettier untuk PHP, Blade, dan frontend source, ditambah Blade whitespace cleanup khusus project.
-
-Format seluruh first-party source:
+Format source:
 
 ```bash
 npm run format
 ```
 
-Periksa formatting tanpa melakukan perubahan:
+Validasi:
 
 ```bash
 npm run format:check
-```
-
-Pemeriksaan whitespace Git:
-
-```bash
 git diff --check
 ```
-
-Controller menggunakan facade Laravel secara eksplisit, termasuk `Auth` dan `DB`, agar source lebih mudah dianalisis oleh IDE/static analyzer seperti Intelephense.
-
-Dokumentasi style: [`docs/CODE-STYLE.md`](docs/CODE-STYLE.md).
 
 ---
 
 ## Pre-commit Hook
 
-Repository menyediakan hook pada:
-
-```text
-.githooks/pre-commit
-```
-
-Aktifkan sekali pada clone lokal:
+Aktifkan:
 
 ```bash
 git config core.hooksPath .githooks
 ```
 
-Sebelum commit, hook akan menjalankan:
+Hook menjalankan:
 
 ```text
 PHP runtime validation
 npm run format:check
+composer analyse
 git diff --cached --check
 APP_ENV=testing php artisan test
 ```
 
-Dengan konfigurasi repository saat ini, hook memerlukan PHP `>= 8.4.1`.
+Pre-commit saat ini mensyaratkan PHP `>= 8.4.1`.
 
 ---
 
-## Development Validation
-
-Sebelum commit atau pull request, minimal jalankan:
+## Quality Gate Sebelum Commit
 
 ```bash
-npm run format:check
 php artisan test
+composer analyse
+npm run format:check
 git diff --check
 ```
 
-Audit dependency bila diperlukan:
+Audit dependency:
 
 ```bash
-composer validate
 composer audit
 npm audit
 ```
 
-Hindari:
-
-```bash
-npm audit fix --force
-```
-
-tanpa review dependency dan regression test karena dapat menimbulkan breaking changes.
+Hindari `npm audit fix --force` tanpa review.
 
 ---
 
-## Struktur Utama Project
+## Struktur Project
 
 ```text
 app/
 ├── Http/
 │   ├── Controllers/
+│   │   ├── Admin/
+│   │   └── Auth/
 │   └── Middleware/
-└── Models/
+├── Models/
+└── Services/
+
+database/
+├── install/
+│   ├── README.md
+│   └── ujian_cat_empty.sql
+└── migrations/
 
 resources/
 └── views/
+    ├── admin/
+    ├── auth/
     ├── guru/
     ├── siswa/
     └── layouts/
@@ -414,61 +657,62 @@ docs/
 ├── MIGRATION-NOTES.md
 ├── OPERATIONS.md
 └── TESTING.md
-
-public/
-├── css/
-├── js/
-├── img/
-└── assets/
 ```
-
-Folder `public/` masih memuat sejumlah asset legacy/third-party sehingga tidak seluruh isinya menjadi target formatter first-party.
-
----
-
-## Catatan Modernisasi
-
-Aplikasi berasal dari CAT legacy berbasis Laravel 5.1.
-
-```text
-Business Process  -> dipertahankan
-Database          -> dipertahankan
-UI / UX utama     -> dipertahankan
-Framework         -> Laravel 13
-Security          -> diperkuat
-Testing           -> ditambahkan dan diperluas
-Code Quality      -> distandardisasi
-```
-
-Komponen legacy yang telah diganti atau dibersihkan antara lain:
-
-- legacy authentication flow;
-- raw `mysqli` access;
-- LaravelCollective HTML;
-- PHPExcel;
-- GET logout;
-- view legacy yang tidak digunakan;
-- dependency frontend legacy yang tidak diperlukan.
-
-Import/export Excel sekarang menggunakan **PhpSpreadsheet**.
 
 ---
 
 ## Dokumentasi
 
-Dokumentasi teknis repository:
-
+- [`database/install/README.md`](database/install/README.md) — fresh database installer.
 - [`docs/INSTALLATION.md`](docs/INSTALLATION.md) — instalasi development.
-- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — deployment/production readiness.
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — arsitektur aplikasi.
-- [`docs/DATABASE.md`](docs/DATABASE.md) — database legacy.
-- [`docs/TESTING.md`](docs/TESTING.md) — regression testing.
-- [`docs/CODE-STYLE.md`](docs/CODE-STYLE.md) — formatting dan source style.
-- [`docs/OPERATIONS.md`](docs/OPERATIONS.md) — operasi aplikasi.
-- [`docs/MIGRATION-NOTES.md`](docs/MIGRATION-NOTES.md) — catatan modernisasi legacy.
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — deployment.
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — arsitektur.
+- [`docs/DATABASE.md`](docs/DATABASE.md) — database.
+- [`docs/TESTING.md`](docs/TESTING.md) — testing.
+- [`docs/CODE-STYLE.md`](docs/CODE-STYLE.md) — code style.
+- [`docs/OPERATIONS.md`](docs/OPERATIONS.md) — operasi.
+- [`docs/MIGRATION-NOTES.md`](docs/MIGRATION-NOTES.md) — modernisasi.
 - [`SECURITY.md`](SECURITY.md) — security policy.
-- [`CONTRIBUTING.md`](CONTRIBUTING.md) — workflow kontribusi.
-- [`CHANGELOG.md`](CHANGELOG.md) — ringkasan perubahan.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — kontribusi.
+- [`CHANGELOG.md`](CHANGELOG.md) — histori perubahan.
+
+---
+
+## Catatan Modernisasi
+
+```text
+Business Process  → dipertahankan
+UI / UX utama     → dipertahankan
+Database legacy   → compatibility dijaga
+Framework         → Laravel 13
+Security          → diperkuat
+Testing           → diperluas
+Static Analysis   → diterapkan
+Code Quality      → distandardisasi
+```
+
+Komponen yang telah dimodernisasi antara lain authentication, authorization, logout POST + CSRF, PhpSpreadsheet, assessment lifecycle, multi-attempt, server-side timer, candidate workflow, single student session, security audit trail, serta automated regression testing.
+
+---
+
+## Production Notes
+
+Minimal:
+
+```dotenv
+APP_ENV=production
+APP_DEBUG=false
+```
+
+Gunakan HTTPS dan pastikan:
+
+- `.env` tidak dapat diakses publik;
+- MySQL tidak diekspos langsung ke internet;
+- backup dilakukan sebelum upgrade;
+- `storage/` dan `bootstrap/cache/` writable;
+- DocumentRoot mengarah ke `public/`;
+- migration production tidak otomatis;
+- regression test dan smoke test dilakukan sebelum go-live.
 
 ---
 
@@ -478,28 +722,8 @@ Dokumentasi teknis repository:
 https://github.com/ajung5/Ujian_CAT
 ```
 
----
-
-## Status Modernisasi
+Versi aplikasi pada `config/app.php` saat ini:
 
 ```text
-Laravel 5.1 Legacy
-        |
-        v
-Laravel 13
-        |
-        v
-Security Hardening
-        |
-        v
-Assessment Regression Testing
-        |
-        v
-Candidate Workflow & Access Control
-        |
-        v
-Formatting / Static Analysis Cleanup
-        |
-        v
-Production Readiness
+2.2.1
 ```
